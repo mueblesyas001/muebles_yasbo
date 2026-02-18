@@ -1,0 +1,38 @@
+name: proyecto-gus
+recipe: laravel
+config:
+  php: '8.3'
+  via: nginx
+  database: mysql
+  webroot: public
+  cache: redis
+  xdebug: false
+
+proxy:
+  appserver_nginx:
+    - proyecto-gus.lndo.site
+  phpmyadmin:
+    - phpmyadmin.proyecto-gus.lndo.site
+
+services:
+  appserver:
+    build_as_root:
+      - apt-get update
+      - apt-get install -y
+  node:
+    type: node:20
+    scanner: false
+    ports:
+      - 3022:3022
+    build:
+      - npm install
+  phpmyadmin:
+    type: phpmyadmin
+
+tooling:
+  npm:
+    service: node
+    cmd: npm
+  pint:
+    service: appserver
+    cmd: pint
