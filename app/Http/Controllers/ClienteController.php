@@ -73,4 +73,13 @@ class ClienteController extends Controller
                 ->with('error', 'Error al eliminar el cliente: ' . $e->getMessage());
         }
     }
+
+    public function verificarPedidos($id){
+        $cliente = Cliente::withCount('pedidos')->findOrFail($id);
+        
+        return response()->json([
+            'tienePedidos' => $cliente->pedidos_count > 0,
+            'cantidadPedidos' => $cliente->pedidos_count
+        ]);
+    }
 }

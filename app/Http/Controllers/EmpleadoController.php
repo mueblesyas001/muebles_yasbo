@@ -12,83 +12,81 @@ use Illuminate\Support\Facades\Hash;
 
 class EmpleadoController extends Controller
 {
-    public function index(Request $request)
-    {
-        // Consulta base para empleados con filtros
-        $query = Empleado::with('usuario');
-        
-        // Aplicar filtros si existen
-        if ($request->filled('id')) {
-            $query->where('id', $request->id);
-        }
-        
-        if ($request->filled('nombre')) {
-            $query->where(function($q) use ($request) {
-                $q->where('Nombre', 'LIKE', '%' . $request->nombre . '%')
-                  ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
-                  ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
-            });
-        }
-        
-        if ($request->filled('cargo')) {
-            $query->where('Cargo', $request->cargo);
-        }
-        
-        if ($request->filled('area')) {
-            $query->where('Area_trabajo', $request->area);
-        }
-        
-        if ($request->filled('estado_usuario')) {
-            if ($request->estado_usuario == 'con_usuario') {
-                $query->whereHas('usuario');
-            } elseif ($request->estado_usuario == 'sin_usuario') {
-                $query->whereDoesntHave('usuario');
-            }
-        }
-        
-        if ($request->filled('rol')) {
-            $query->whereHas('usuario', function($q) use ($request) {
-                $q->where('rol', $request->rol);
-            });
-        }
-        
-        // Ordenamiento
-        $sortBy = $request->get('sort_by', 'id');
-        $sortOrder = $request->get('sort_order', 'asc');
-        
-        $query->orderBy($sortBy, $sortOrder);
-        
-        // Paginación con filtros
-        $empleadosPaginated = $query->paginate(10)->appends($request->query());
-        
-        // Para estadísticas (empleados filtrados)
-        $empleadosFiltrados = $query->get();
-        
-        // Para compatibilidad con estadísticas cuando no hay filtros
-        $empleados = Empleado::with('usuario')->get();
-        $usuarios = Usuario::with('empleado')->get();
-        
-        // Valores para filtros
-        $areas = Empleado::distinct()->pluck('Area_trabajo')->filter()->values()->toArray();
-        $cargos = Empleado::distinct()->pluck('Cargo')->filter()->values()->toArray();
-        $roles = ['Administración', 'Almacén', 'Logística'];
-        
-        // Alias para la vista
-        $areasUnicas = $areas;
-        $cargosUnicos = $cargos;
-
-        return view('personal.index', compact(
-            'empleados',           // Todos los empleados (para estadísticas)
-            'empleadosPaginated',  // Empleados paginados con filtros
-            'empleadosFiltrados',  // Empleados filtrados sin paginar
-            'usuarios',            // Todos los usuarios
-            'areas', 
-            'cargos', 
-            'roles',
-            'areasUnicas',
-            'cargosUnicos'
-        ));
+    public function index(Request $request){
+    $query = Empleado::with('usuario')  
+        ->withCount(['pedidos', 'ventas']); 
+    
+    if ($request->filled('id')) {
+        $query->where('id', $request->id);
     }
+    
+    if ($request->filled('nombre')) {
+        $query->where(function($q) use ($request) {
+            $q->where('Nombre', 'LIKE', '%' . $request->nombre . '%')
+              ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
+              ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
+        });
+    }
+    
+    if ($request->filled('cargo')) {
+        $query->where('Cargo', $request->cargo);
+    }
+    
+    if ($request->filled('area')) {
+        $query->where('Area_trabajo', $request->area);
+    }
+    
+    if ($request->filled('estado_usuario')) {
+        if ($request->estado_usuario == 'con_usuario') {
+            $query->whereHas('usuario');
+        } elseif ($request->estado_usuario == 'sin_usuario') {
+            $query->whereDoesntHave('usuario');
+        }
+    }
+    
+    if ($request->filled('rol')) {
+        $query->whereHas('usuario', function($q) use ($request) {
+            $q->where('rol', $request->rol);
+        });
+    }
+    
+    // Ordenamiento
+    $sortBy = $request->get('sort_by', 'id');
+    $sortOrder = $request->get('sort_order', 'asc');
+    
+    $query->orderBy($sortBy, $sortOrder);
+    
+    // Paginación con filtros
+    $empleadosPaginated = $query->paginate(10)->appends($request->query());
+    
+    // Para estadísticas (empleados filtrados)
+    $empleadosFiltrados = $query->get();
+    
+    // Para compatibilidad con estadísticas cuando no hay filtros
+    $empleados = Empleado::with('usuario')->withCount(['pedidos', 'ventas'])->get();
+    $usuarios = Usuario::with('empleado')->get();
+    
+    // Valores para filtros
+    $areas = Empleado::distinct()->pluck('Area_trabajo')->filter()->values()->toArray();
+    $cargos = Empleado::distinct()->pluck('Cargo')->filter()->values()->toArray();
+    $roles = ['Administración', 'Almacén', 'Logística'];
+    
+    // Alias para la vista
+    $areasUnicas = $areas;
+    $cargosUnicos = $cargos;
+
+    return view('personal.index', compact(
+        'empleados',           // Todos los empleados (para estadísticas)
+        'empleadosPaginated',  // Empleados paginados con filtros
+        'empleadosFiltrados',  // Empleados filtrados sin paginar
+        'usuarios',            // Todos los usuarios
+        'areas', 
+        'cargos', 
+        'roles',
+        'areasUnicas',
+        'cargosUnicos'
+    ));
+}
 
     /**
      * Formulario crear
@@ -120,7 +118,7 @@ class EmpleadoController extends Controller
                 'Telefono' => 'required|string|max:10|regex:/^[0-9]+$/',
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
-                'Sexo' => 'required|in:M,F,Otro',  // Cambiado de 'O' a 'Otro'
+                'Sexo' => 'required|in:M,F,Otro',
                 'Area_trabajo' => 'required|string|max:80',
                 
                 'correo_usuario' => 'required|email|unique:usuarios,correo',
@@ -188,7 +186,7 @@ class EmpleadoController extends Controller
      */
     public function show($id)
     {
-        $empleado = Empleado::with('usuario')->findOrFail($id);
+        $empleado = Empleado::with(['usuario', 'pedidos', 'ventas'])->withCount(['pedidos', 'ventas'])->findOrFail($id);
 
         return view('personal.show', [
             'empleado' => $empleado,
@@ -229,7 +227,7 @@ class EmpleadoController extends Controller
                 'Telefono' => 'required|string|max:10|regex:/^[0-9]+$/',
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
-                'Sexo' => 'required|in:M,F,Otro',  // Cambiado de 'O' a 'Otro'
+                'Sexo' => 'required|in:M,F,Otro',
                 'Area_trabajo' => 'required|string|max:80',
             ];
 
@@ -298,37 +296,86 @@ class EmpleadoController extends Controller
     }
 
     /**
-     * Eliminar empleado (y su usuario si existe)
+     * Eliminar empleado (y su usuario si existe) - VERSIÓN CORREGIDA
      */
     public function destroy($id)
     {
         DB::beginTransaction();
 
         try {
-            $empleado = Empleado::with('usuario')->findOrFail($id);
-            $nombreEmpleado = $empleado->Nombre . ' ' . $empleado->ApPaterno;
+            // Cargar empleado con sus relaciones y conteos
+            $empleado = Empleado::with(['usuario'])
+                ->withCount(['pedidos', 'ventas'])
+                ->findOrFail($id);
+                
+            $nombreEmpleado = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
             $teniaUsuario = $empleado->usuario !== null;
-
-            // Eliminar usuario primero (si existe) debido a la relación foreign key
-            if ($teniaUsuario) {
-                $empleado->usuario->delete();
+            
+            // Verificar si tiene pedidos o ventas
+            $tienePedidos = $empleado->pedidos_count > 0;
+            $tieneVentas = $empleado->ventas_count > 0;
+            
+            $mensajeError = [];
+            if ($tienePedidos) {
+                $mensajeError[] = "{$empleado->pedidos_count} pedido(s)";
+            }
+            if ($tieneVentas) {
+                $mensajeError[] = "{$empleado->ventas_count} venta(s)";
             }
 
-            // Luego eliminar el empleado
+            // CASO 1: El empleado TIENE registros relacionados
+            if ($tienePedidos || $tieneVentas) {
+                DB::rollBack();
+                
+                $mensaje = 'No se puede eliminar el empleado porque tiene ';
+                $mensaje .= implode(' y ', $mensajeError) . ' asociada(s).';
+                
+                return redirect()->route('personal.index')
+                    ->with('foreign_key_error', $mensaje)
+                    ->with('empleado_nombre', $nombreEmpleado)
+                    ->with('pedidos_count', $empleado->pedidos_count)
+                    ->with('ventas_count', $empleado->ventas_count);
+            }
+
+            // CASO 2: El empleado NO tiene registros relacionados - proceder con eliminación
+            // Eliminar usuario primero (si existe)
+            if ($teniaUsuario) {
+                $empleado->usuario->delete();
+                Log::info("Usuario eliminado para empleado ID: {$id}");
+            }
+
+            // Eliminar el empleado
             $empleado->delete();
             
             DB::commit();
 
-            return redirect()->route('personal.index')->with(
-                'success',
-                $teniaUsuario
-                    ? 'Empleado "' . $nombreEmpleado . '" y su usuario eliminados exitosamente.'
-                    : 'Empleado "' . $nombreEmpleado . '" eliminado exitosamente.'
-            );
+            // Mensaje según lo que se eliminó
+            $mensaje = $teniaUsuario
+                ? "✅ Empleado '{$nombreEmpleado}' y su usuario eliminados exitosamente."
+                : "✅ Empleado '{$nombreEmpleado}' eliminado exitosamente.";
 
+            return redirect()->route('personal.index')->with('success', $mensaje);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+            
+            // Error específico de foreign key
+            if ($e->getCode() == '23000') {
+                Log::error('Error de foreign key al eliminar empleado: ' . $e->getMessage());
+                
+                return redirect()->route('personal.index')->with(
+                    'error', 
+                    'No se puede eliminar el empleado porque tiene registros relacionados (pedidos o ventas).'
+                );
+            }
+            
+            Log::error('Error query al eliminar empleado: ' . $e->getMessage());
+            return back()->with('error', 'Error en la base de datos al eliminar el empleado.');
+            
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error destroy empleado: ' . $e->getMessage());
+            Log::error('Trace: ' . $e->getTraceAsString());
 
             return back()->with('error', 'Error al eliminar el empleado: ' . $e->getMessage());
         }
@@ -406,11 +453,14 @@ class EmpleadoController extends Controller
     }
     
     /**
-     * Eliminar empleado y usuario juntos (confirmación)
+     * Página de confirmación para eliminar empleado
      */
     public function confirmDestroy($id)
     {
-        $empleado = Empleado::with('usuario')->findOrFail($id);
+        $empleado = Empleado::with(['usuario'])
+            ->withCount(['pedidos', 'ventas'])
+            ->findOrFail($id);
+            
         return view('personal.confirm-destroy', compact('empleado'));
     }
 }

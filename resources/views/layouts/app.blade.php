@@ -23,6 +23,8 @@ body{
     background:var(--bg);
     font-family:system-ui;
     color:var(--text);
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* ===== NAVBAR ===== */
@@ -30,6 +32,7 @@ body{
     background:var(--nav);
     padding:14px 28px;
     box-shadow:0 10px 30px rgba(0,0,0,.25);
+    width: 100%;
 }
 
 .brand{
@@ -162,6 +165,17 @@ body{
     opacity:0.5;
 }
 
+/* ===== BADGE DE ROL ===== */
+.rol-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: #a78bfa;
+    margin-left: 8px;
+    text-transform: uppercase;
+}
+
 /* ===== MOBILE ===== */
 #mobileToggle{
     border:none;
@@ -169,27 +183,72 @@ body{
     color:#fff;
     padding:8px 12px;
     border-radius:10px;
+    display: none;
+    cursor: pointer;
+    z-index: 1001;
 }
 
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.container-fluid.mt-4 {
+    padding-right: calc(var(--bs-gutter-x) * 1);
+    padding-left: calc(var(--bs-gutter-x) * 1);
+    width: 100%;
+    margin-top: 1.5rem !important;
+}
+
+/* ===== MEDIA QUERIES - MÓVIL ===== */
 @media(max-width:992px){
+    #mobileToggle{
+        display: block;
+    }
+
+    .navbar-app {
+        padding: 12px 16px;
+        position: relative;
+    }
+
+    .container-fluid {
+        flex-wrap: wrap;
+        position: relative;
+    }
+
     #navMenu{
-        display:none;
+        display: none !important;
         background:var(--nav);
         margin-top:14px;
         padding:16px;
         border-radius:18px;
         flex-direction:column;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 100%;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    #navMenu.active{display:flex}
+    #navMenu.active{
+        display: flex !important;
+    }
 
-    .user-menu{
-        width:100%;
+    .nav-item-app, 
+    .user-menu {
+        width: 100%;
+    }
+
+    .nav-link-app {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .user-info{
-        justify-content:center;
+        justify-content:flex-start;
         padding:12px;
+        width: 100%;
+    }
+
+    .user-info span {
+        flex: 1;
     }
 
     .dropdown-menu-app{
@@ -197,8 +256,17 @@ body{
         box-shadow:none;
         border:none;
         background:transparent;
-        padding:8px 0 0 0;
+        padding:8px 0 0 20px;
         min-width:100%;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        display: none;
+    }
+
+    .nav-item-app.active .dropdown-menu-app,
+    .user-menu.active .dropdown-menu-app{
+        display: block;
     }
 
     .dropdown-menu-app a{
@@ -208,6 +276,33 @@ body{
 
     .dropdown-menu-app a:hover{
         background:#1f2937;
+    }
+
+    .rol-badge {
+        display: inline-block;
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}
+
+/* Ajustes para móviles pequeños */
+@media(max-width:576px){
+    .brand {
+        font-size: 1.1rem;
+        gap: 8px;
+    }
+
+    .brand i {
+        padding: 8px;
+    }
+
+    .navbar-app {
+        padding: 10px 12px;
+    }
+
+    .container-fluid.mt-4 {
+        padding-left: 12px;
+        padding-right: 12px;
     }
 }
 
@@ -289,6 +384,7 @@ body{
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    width: 100%;
 }
 
 .table-report th {
@@ -335,6 +431,7 @@ body{
     border: 1px solid var(--border);
 }
 
+/* ===== MEDIA QUERIES PARA CONTENIDO ===== */
 @media(max-width:768px){
     .report-container {
         padding: 15px;
@@ -347,6 +444,69 @@ body{
     .table-report {
         font-size: 14px;
     }
+
+    .btn-report {
+        width: 100%;
+        padding: 10px 20px;
+    }
+
+    .report-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media(max-width:576px){
+    .report-container {
+        padding: 10px;
+    }
+
+    .report-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .filter-card {
+        padding: 15px;
+    }
+
+    .table-report th,
+    .table-report td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .chart-container {
+        padding: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card h3 {
+        font-size: 1.3rem;
+    }
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.row {
+    margin-right: -12px;
+    margin-left: -12px;
+}
+
+.row > * {
+    padding-right: 12px;
+    padding-left: 12px;
 }
 </style>
 </head>
@@ -359,6 +519,10 @@ body{
     @auth
     <a href="{{ route('home') }}" class="brand">
         <i class="fa-solid fa-couch"></i> Yasbo
+        @php
+            $rolUsuario = auth()->user()->rol ?? 'Usuario';
+        @endphp
+        <span class="rol-badge">{{ $rolUsuario }}</span>
     </a>
     @else
     <a href="{{ route('login') }}" class="brand">
@@ -371,21 +535,30 @@ body{
     </button>
 
     <div class="d-flex align-items-center" id="navMenu">
-        {{-- MOSTRAR SOLO SI NO ESTÁ AUTENTICADO --}}
         @guest
         <a class="nav-link-app" href="{{ route('login') }}">
             <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
         </a>
         @endguest
 
-        {{-- MOSTRAR SOLO SI ESTÁ AUTENTICADO --}}
         @auth
-        <!-- INICIO -->
+        @php
+            $user = auth()->user();
+            $rol = $user->rol ?? 'Usuario';
+            $empleado = $user->empleado;
+            $nombreCompleto = '';
+            $inicial = 'U';
+            
+            if($empleado) {
+                $inicial = strtoupper(substr($empleado->Nombre ?? '', 0, 1));
+                $nombreCompleto = trim($empleado->Nombre . ' ' . $empleado->ApPaterno);
+            }
+        @endphp
+
         <a class="nav-link-app" href="{{ route('dashboard') }}">
             <i class="fa-solid fa-house"></i> Inicio
         </a>
 
-        <!-- OPERACIONES -->
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-briefcase"></i> Operaciones
@@ -394,7 +567,6 @@ body{
                 <a href="{{ route('ventas.index') }}"><i class="fa-solid fa-cash-register"></i> Ventas</a>
                 <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
                 <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-file-lines"></i> Pedidos</a>
-                <!-- AGREGADO: MENÚ DE REPORTES -->
                 <hr>
                 <a href="{{ route('reportes.index')}}">
                     <i class="fa-solid fa-chart-column"></i> Reportes
@@ -402,7 +574,6 @@ body{
             </div>
         </div>
 
-        <!-- INVENTARIO -->
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-boxes-stacked"></i> Inventario
@@ -413,13 +584,11 @@ body{
             </div>
         </div>
 
-        <!-- CALENDARIO -->
         <a class="nav-link-app" href="{{ route('calendario.index') }}">
             <i class="fa-solid fa-calendar-days"></i> Calendario
         </a>
 
-        <!-- ADMINISTRACIÓN (SOLO PARA ADMINISTRADORES) -->
-        @if(auth()->user()->rol === 'Administración')
+        @if($rol === 'Administración')
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-user-shield"></i> Administración
@@ -433,25 +602,52 @@ body{
         </div>
         @endif
 
-        <!-- MENÚ DE USUARIO -->
+        @if($rol === 'Gerencia')
+        <div class="nav-item-app">
+            <div class="nav-link-app dropdown-btn">
+                <i class="fa-solid fa-chart-line"></i> Gerencia
+            </div>
+            <div class="dropdown-menu-app">
+                <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
+                <a href="{{ route('clientes.index') }}"><i class="fa-solid fa-users"></i> Clientes</a>
+                <hr>
+                <a href="{{ route('reportes.index') }}?tipo=rentabilidad">
+                    <i class="fa-solid fa-chart-pie"></i> Rentabilidad
+                </a>
+                <a href="{{ route('reportes.index') }}?tipo=ventas">
+                    <i class="fa-solid fa-chart-line"></i> Análisis de Ventas
+                </a>
+            </div>
+        </div>
+        @endif
+
+        @if($rol === 'Logística')
+        <div class="nav-item-app">
+            <div class="nav-link-app dropdown-btn">
+                <i class="fa-solid fa-truck-fast"></i> Logística
+            </div>
+            <div class="dropdown-menu-app">
+                <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
+                <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
+                <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-truck-loading"></i> Pedidos</a>
+                <hr>
+                <a href="{{ route('reportes.index') }}?tipo=compras">
+                    <i class="fa-solid fa-file-invoice"></i> Reporte de Compras
+                </a>
+                <a href="{{ route('reportes.index') }}?tipo=inventario">
+                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
+                </a>
+            </div>
+        </div>
+        @endif
+
         <div class="user-menu">
             <div class="user-info dropdown-btn">
                 <div class="user-avatar">
-                    {{-- Obtener la primera letra del nombre del empleado --}}
-                    @php
-                        $empleado = auth()->user()->empleado;
-                        $nombreCompleto = '';
-                        $inicial = 'U';
-                        
-                        if($empleado) {
-                            $inicial = strtoupper(substr($empleado->Nombre ?? '', 0, 1));
-                            $nombreCompleto = trim($empleado->Nombre . ' ' . $empleado->ApPaterno);
-                        }
-                    @endphp
                     {{ $inicial }}
                 </div>
                 <span>
-                    {{ $empleado ? trim($empleado->Nombre . ' ' . $empleado->ApPaterno) : 'Usuario' }}
+                    {{ $nombreCompleto ?: 'Usuario' }}
                 </span>
                 <i class="fa-solid fa-chevron-down" style="font-size:12px;"></i>
             </div>
@@ -479,89 +675,181 @@ body{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Librerías para reportes -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-    const toggle=document.getElementById('mobileToggle');
-    const menu=document.getElementById('navMenu');
-    const items=document.querySelectorAll('.nav-item-app');
-    const userMenu=document.querySelector('.user-menu');
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('mobileToggle');
+    const menu = document.getElementById('navMenu');
+    const items = document.querySelectorAll('.nav-item-app');
+    const userMenu = document.querySelector('.user-menu');
+    
+    let isMobile = window.innerWidth <= 992;
 
-    // Toggle menu móvil
-    if(toggle){
-        toggle.onclick=()=>{
-            menu.classList.toggle('active');
-            // Cerrar todos los dropdowns
-            items.forEach(item=>item.classList.remove('active'));
-            if(userMenu) userMenu.classList.remove('active');
-        };
+    // Función para verificar si estamos en móvil
+    function checkMobile() {
+        isMobile = window.innerWidth <= 992;
+        if (!isMobile) {
+            // Si estamos en desktop, aseguramos que el menú sea visible y sin estilos móviles
+            menu.style.display = 'flex';
+            menu.classList.remove('active');
+            closeAllDropdowns();
+        } else {
+            // Si estamos en móvil, ocultamos el menú inicialmente
+            menu.style.display = '';
+            menu.classList.remove('active');
+        }
     }
 
-    // Dropdowns normales
-    items.forEach(item=>{
-        const btn=item.querySelector('.dropdown-btn');
-        if(!btn) return;
+    // Función para cerrar todos los dropdowns
+    function closeAllDropdowns() {
+        items.forEach(item => item.classList.remove('active'));
+        if (userMenu) userMenu.classList.remove('active');
+    }
 
-        btn.onclick=e=>{
-            if(window.innerWidth<=992){
+    // Función para cerrar el menú hamburguesa
+    function closeHamburgerMenu() {
+        if (isMobile) {
+            menu.classList.remove('active');
+            closeAllDropdowns();
+        }
+    }
+
+    // Función para abrir/cerrar el menú hamburguesa
+    function toggleHamburgerMenu() {
+        if (isMobile) {
+            menu.classList.toggle('active');
+            if (!menu.classList.contains('active')) {
+                closeAllDropdowns();
+            }
+        }
+    }
+
+    // Evento del botón hamburguesa
+    if (toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleHamburgerMenu();
+        });
+    }
+
+    // Eventos para dropdowns en móvil
+    items.forEach(item => {
+        const btn = item.querySelector('.dropdown-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function(e) {
+            if (isMobile) {
                 e.preventDefault();
                 e.stopPropagation();
+                
                 // Cerrar otros dropdowns
-                items.forEach(other=>{
-                    if(other!==item) other.classList.remove('active');
+                items.forEach(other => {
+                    if (other !== item) other.classList.remove('active');
                 });
-                if(userMenu) userMenu.classList.remove('active');
+                if (userMenu) userMenu.classList.remove('active');
+                
+                // Toggle dropdown actual
                 item.classList.toggle('active');
             }
-        };
-
-        item.onmouseenter=()=>window.innerWidth>992&&item.classList.add('active');
-        item.onmouseleave=()=>window.innerWidth>992&&item.classList.remove('active');
+        });
     });
 
-    // Menú de usuario
-    if(userMenu){
-        const btn=userMenu.querySelector('.dropdown-btn');
-        
-        btn.onclick=(e)=>{
-            if(window.innerWidth<=992){
-                e.preventDefault();
-                e.stopPropagation();
-                // Cerrar otros dropdowns
-                items.forEach(item=>item.classList.remove('active'));
-                userMenu.classList.toggle('active');
-            }
-        };
-
-        userMenu.onmouseenter=()=>window.innerWidth>992&&userMenu.classList.add('active');
-        userMenu.onmouseleave=()=>window.innerWidth>992&&userMenu.classList.remove('active');
-
-        // Cerrar menús al hacer clic fuera
-        document.addEventListener('click',(e)=>{
-            if(window.innerWidth>992) return;
-            
-            if(userMenu && !userMenu.contains(e.target)){
-                userMenu.classList.remove('active');
-            }
-            items.forEach(item=>{
-                if(!item.contains(e.target)){
-                    item.classList.remove('active');
+    // Evento para menú de usuario en móvil
+    if (userMenu) {
+        const userBtn = userMenu.querySelector('.dropdown-btn');
+        if (userBtn) {
+            userBtn.addEventListener('click', function(e) {
+                if (isMobile) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Cerrar otros dropdowns
+                    items.forEach(item => item.classList.remove('active'));
+                    
+                    // Toggle menú usuario
+                    userMenu.classList.toggle('active');
                 }
             });
-        });
+        }
+    }
 
-        // Cerrar menús al redimensionar
-        window.addEventListener('resize',()=>{
-            if(window.innerWidth>992){
-                items.forEach(item=>item.classList.remove('active'));
-                userMenu.classList.remove('active');
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (isMobile) {
+            const isClickInside = menu.contains(e.target) || toggle.contains(e.target);
+            
+            if (!isClickInside) {
+                closeHamburgerMenu();
             }
+        }
+    });
+
+    // Prevenir cierre al hacer clic dentro del menú
+    if (menu) {
+        menu.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
     }
+
+    // Cerrar al hacer clic en enlaces
+    const allLinks = document.querySelectorAll('.nav-link-app:not(.dropdown-btn), .dropdown-menu-app a');
+    allLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (isMobile) {
+                setTimeout(closeHamburgerMenu, 100);
+            }
+        });
+    });
+
+    // Manejar redimensionamiento
+    window.addEventListener('resize', function() {
+        checkMobile();
+    });
+
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isMobile) {
+            closeHamburgerMenu();
+        }
+    });
+
+    // Eventos hover solo para desktop
+    function setupHoverEvents() {
+        if (!isMobile) {
+            items.forEach(item => {
+                item.addEventListener('mouseenter', () => item.classList.add('active'));
+                item.addEventListener('mouseleave', () => item.classList.remove('active'));
+            });
+            if (userMenu) {
+                userMenu.addEventListener('mouseenter', () => userMenu.classList.add('active'));
+                userMenu.addEventListener('mouseleave', () => userMenu.classList.remove('active'));
+            }
+        } else {
+            items.forEach(item => {
+                item.removeEventListener('mouseenter', () => {});
+                item.removeEventListener('mouseleave', () => {});
+            });
+            if (userMenu) {
+                userMenu.removeEventListener('mouseenter', () => {});
+                userMenu.removeEventListener('mouseleave', () => {});
+            }
+        }
+    }
+
+    // Inicializar eventos hover
+    setupHoverEvents();
+
+    // Reconfigurar eventos hover al redimensionar
+    window.addEventListener('resize', function() {
+        setupHoverEvents();
+    });
+
+    // Inicializar estado móvil
+    checkMobile();
 });
 
 // Funciones para reportes
@@ -569,13 +857,11 @@ function generarPDFReporte(nombre, titulo, datos, columnas) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Título
     doc.setFontSize(20);
     doc.text(titulo, 14, 15);
     doc.setFontSize(10);
     doc.text(`Generado: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 22);
     
-    // Crear tabla
     doc.autoTable({
         head: [columnas],
         body: datos,
@@ -585,22 +871,18 @@ function generarPDFReporte(nombre, titulo, datos, columnas) {
         headStyles: { fillColor: [109, 40, 217] }
     });
     
-    // Guardar
     doc.save(`${nombre}_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
 function exportarExcel(nombre, datos, columnas) {
-    // Crear tabla HTML para Excel
     let tableHtml = '<table border="1">';
     
-    // Encabezados
     tableHtml += '<tr>';
     columnas.forEach(col => {
         tableHtml += `<th>${col}</th>`;
     });
     tableHtml += '</tr>';
     
-    // Datos
     datos.forEach(fila => {
         tableHtml += '<tr>';
         fila.forEach(celda => {
@@ -611,7 +893,6 @@ function exportarExcel(nombre, datos, columnas) {
     
     tableHtml += '</table>';
     
-    // Crear y descargar archivo
     const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

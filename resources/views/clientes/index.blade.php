@@ -1,451 +1,794 @@
 @extends('layouts.app')
 
 @section('content')
-<div id="clientes-page" class="container-fluid">
-    <!-- Encabezado -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="flex-grow-1">
-            <h1 class="h2 mb-1 text-primary fw-bold">Gestión de Clientes</h1>
-            <p class="text-muted mb-0">Administra la información de tus clientes registrados</p>
-        </div>
-        <div>
-            <a href="{{ route('clientes.create') }}" class="btn btn-primary shadow-sm">
-                <i class="fas fa-user-plus me-2"></i> Nuevo Cliente
-            </a>
+<div id="clientes-page" class="container-fluid px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
+    <!-- Header con Glassmorphism -->
+    <div class="glass-header py-4 px-4 mb-4" style="
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-top: 20px;
+    ">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-4">
+                <div class="header-icon" style="
+                    width: 70px;
+                    height: 70px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+                ">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <div>
+                    <h1 class="display-6 fw-bold mb-1" style="
+                        background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        letter-spacing: -0.5px;
+                    ">
+                        Gestión de Clientes
+                    </h1>
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-bolt me-1 text-warning"></i>
+                        Administra la información de tus clientes registrados
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" id="refreshData" class="btn btn-outline-primary" style="
+                    border-radius: 14px;
+                    padding: 12px 20px;
+                    border: 1px solid #e5e7eb;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{{ route('clientes.create') }}" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    border-radius: 14px;
+                    padding: 12px 28px;
+                    font-weight: 600;
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                ">
+                    <i class="fas fa-user-plus me-2"></i> Nuevo Cliente
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Alertas -->
+    <!-- Alertas Mejoradas -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <div>{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-modern alert-success d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #155724;">¡Operación Exitosa!</h6>
+                <p class="mb-0" style="color: #155724;">{{ session('success') }}</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <div>{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-modern alert-danger d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-exclamation-circle fa-2x" style="color: #dc3545;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #721c24;">¡Error!</h6>
+                <p class="mb-0" style="color: #721c24;">{{ session('error') }}</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Total Clientes</h6>
-                            <h3 class="mb-0">{{ $clientes->count() }}</h3>
-                        </div>
-                        <div class="cliente-avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-users text-primary fa-lg"></i>
-                        </div>
+    @if(session('foreign_key_error'))
+        <div class="alert alert-modern alert-warning d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-exclamation-triangle fa-2x" style="color: #856404;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #856404;">Cliente Protegido</h6>
+                <p class="mb-0" style="color: #856404;">{{ is_array(session('foreign_key_error')) ? session('foreign_key_error')['mensaje'] : session('foreign_key_error') }}</p>
+                @if(session('pedidos_count'))
+                <div class="mt-2 small">
+                    <strong style="color: #856404;">Detalles:</strong>
+                    <ul class="mb-0 mt-1">
+                        <li style="color: #856404;">Pedidos: {{ session('pedidos_count') }}</li>
+                    </ul>
+                </div>
+                @endif
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Tarjetas de Estadísticas Mejoradas -->
+    <div class="row g-4 mb-4">
+        @php
+            $stats = [
+                [
+                    'titulo' => 'Total Clientes',
+                    'valor' => $clientes->count(),
+                    'icono' => 'fas fa-users',
+                    'color' => '#667eea',
+                    'gradiente' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'descripcion' => 'Registrados en el sistema'
+                ],
+                [
+                    'titulo' => 'Hombres',
+                    'valor' => $clientes->where('Sexo', 'Masculino')->count(),
+                    'icono' => 'fas fa-male',
+                    'color' => '#3b82f6',
+                    'gradiente' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    'descripcion' => 'Clientes masculinos'
+                ],
+                [
+                    'titulo' => 'Mujeres',
+                    'valor' => $clientes->where('Sexo', 'Femenino')->count(),
+                    'icono' => 'fas fa-female',
+                    'color' => '#ec4899',
+                    'gradiente' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+                    'descripcion' => 'Clientes femeninas'
+                ],
+                [
+                    'titulo' => 'Otros',
+                    'valor' => $clientes->whereNotIn('Sexo', ['Masculino', 'Femenino'])->count(),
+                    'icono' => 'fas fa-user-alt',
+                    'color' => '#6b7280',
+                    'gradiente' => 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                    'descripcion' => 'Otros géneros'
+                ]
+            ];
+        @endphp
+
+        @foreach($stats as $stat)
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card h-100" style="
+                background: white;
+                border-radius: 24px;
+                padding: 1.5rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                border: 1px solid rgba(0,0,0,0.03);
+                transition: all 0.3s ease;
+                cursor: default;
+                position: relative;
+                overflow: hidden;
+            ">
+                <div class="stat-decoration" style="
+                    position: absolute;
+                    top: -50%;
+                    right: -50%;
+                    width: 200px;
+                    height: 200px;
+                    background: {{ $stat['gradiente'] }};
+                    opacity: 0.05;
+                    border-radius: 50%;
+                    transition: all 0.5s ease;
+                "></div>
+                
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge" style="
+                            background: {{ $stat['gradiente'] }};
+                            color: white;
+                            padding: 0.5rem 1rem;
+                            border-radius: 50px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            letter-spacing: 0.5px;
+                        ">
+                            {{ $stat['descripcion'] }}
+                        </span>
                     </div>
+                    <div class="stat-icon" style="
+                        width: 50px;
+                        height: 50px;
+                        background: {{ $stat['gradiente'] }};
+                        border-radius: 16px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 1.5rem;
+                        box-shadow: 0 8px 20px {{ $stat['color'] }}40;
+                    ">
+                        <i class="{{ $stat['icono'] }}"></i>
+                    </div>
+                </div>
+                
+                <h3 class="fw-bold mb-1" style="font-size: 2.5rem; color: #1f2937;">{{ $stat['valor'] }}</h3>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $stat['titulo'] }}</p>
+                
+                <div class="stat-progress mt-3" style="
+                    height: 4px;
+                    background: #e5e7eb;
+                    border-radius: 2px;
+                    overflow: hidden;
+                ">
+                    @php
+                        $porcentaje = $stats[0]['valor'] > 0 ? ($stat['valor'] / $stats[0]['valor']) * 100 : 0;
+                    @endphp
+                    <div class="stat-progress-bar" style="
+                        width: {{ $porcentaje }}%;
+                        height: 100%;
+                        background: {{ $stat['gradiente'] }};
+                        border-radius: 2px;
+                        transition: width 1s ease;
+                    "></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Hombres</h6>
-                            <h3 class="mb-0 text-primary">
-                                {{ $clientes->where('Sexo', 'Masculino')->count() }}
-                            </h3>
-                        </div>
-                        <div class="cliente-avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-male text-primary fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Mujeres</h6>
-                            <h3 class="mb-0 text-pink">
-                                {{ $clientes->where('Sexo', 'Femenino')->count() }}
-                            </h3>
-                        </div>
-                        <div class="cliente-avatar-sm bg-pink bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-female text-pink fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Otros</h6>
-                            <h3 class="mb-0 text-secondary">
-                                {{ $clientes->whereNotIn('Sexo', ['Masculino', 'Femenino'])->count() }}
-                            </h3>
-                        </div>
-                        <div class="cliente-avatar-sm bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-user-alt text-secondary fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
-    <!-- Panel de Búsqueda y Filtros -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold text-dark">
-                <i class="fas fa-search me-2 text-primary"></i>
-                Búsqueda y Filtros
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label small text-muted">
-                        <i class="fas fa-search me-1"></i> Buscar Cliente
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input type="text" 
-                               id="searchInput" 
-                               class="form-control" 
-                               placeholder="Nombre, correo, teléfono..."
-                               aria-label="Buscar cliente">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">
-                        <i class="fas fa-venus-mars me-1"></i> Sexo
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="fas fa-user"></i>
-                        </span>
-                        <select id="filterSexo" class="form-select" aria-label="Sexo">
-                            <option value="">Todos los sexos</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Femenino">Femenino</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">
-                        <i class="fas fa-sort me-1"></i> Ordenar por
-                    </label>
-                    <select id="sortBy" class="form-select" aria-label="Ordenar por">
-                        <option value="Nombre">Nombre</option>
-                        <option value="id">ID</option>
-                        <option value="Correo">Correo</option>
-                        <option value="Telefono">Teléfono</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-muted">
-                        <i class="fas fa-sort-amount-down me-1"></i> Dirección
-                    </label>
-                    <select id="sortOrder" class="form-select" aria-label="Dirección orden">
-                        <option value="asc">Ascendente</option>
-                        <option value="desc">Descendente</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <div class="d-flex justify-content-end align-items-center h-100 gap-2">
-                        <div class="text-muted small">
-                            <span id="filterCount">0</span> filtro(s) activo(s)
-                        </div>
-                        <div class="btn-group">
-                            <button type="button" id="applyFilters" class="btn btn-primary px-4">
-                                <i class="fas fa-filter me-1"></i> Aplicar
-                            </button>
-                            <button type="button" id="resetFilters" class="btn btn-outline-secondary">
-                                <i class="fas fa-redo me-1"></i> Limpiar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Panel de Búsqueda y Filtros Mejorado -->
+    <div class="filters-panel mb-4" style="
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.03);
+    ">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="filters-icon" style="
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            ">
+                <i class="fas fa-filter"></i>
             </div>
-        </div>
-    </div>
-
-    <!-- Tabla de clientes -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
             <div>
-                <h5 class="mb-0 fw-bold text-dark">
+                <h5 class="fw-bold mb-1" style="color: #1f2937;">Filtros de Búsqueda</h5>
+                <p class="text-muted small mb-0">Encuentra clientes específicos usando los siguientes filtros</p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Buscar Cliente -->
+            <div class="col-md-4">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fas fa-search me-1" style="color: #667eea;"></i>
+                    Buscar Cliente
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-light">
+                        <i class="fas fa-search text-primary"></i>
+                    </span>
+                    <input type="text" 
+                           id="searchInput" 
+                           class="form-control border-0 bg-light" 
+                           placeholder="Nombre, correo, teléfono..."
+                           aria-label="Buscar cliente"
+                           style="box-shadow: none;">
+                </div>
+            </div>
+
+            <!-- Sexo -->
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fas fa-venus-mars me-1" style="color: #667eea;"></i>
+                    Sexo
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-light">
+                        <i class="fas fa-user text-primary"></i>
+                    </span>
+                    <select id="filterSexo" class="form-select border-0 bg-light" aria-label="Sexo">
+                        <option value="">Todos los sexos</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Ordenamiento -->
+            <div class="col-md-3">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fas fa-sort me-1" style="color: #667eea;"></i>
+                    Ordenar por
+                </label>
+                <select id="sortBy" class="form-select border-0 bg-light" aria-label="Ordenar por">
+                    <option value="Nombre">Nombre</option>
+                    <option value="id">ID</option>
+                    <option value="Correo">Correo</option>
+                    <option value="Telefono">Teléfono</option>
+                </select>
+            </div>
+
+            <!-- Dirección de orden -->
+            <div class="col-md-2">
+                <label class="form-label small text-muted fw-semibold">
+                    <i class="fas fa-sort-amount-down me-1" style="color: #667eea;"></i>
+                    Dirección
+                </label>
+                <select id="sortOrder" class="form-select border-0 bg-light" aria-label="Dirección orden">
+                    <option value="asc">Ascendente</option>
+                    <option value="desc">Descendente</option>
+                </select>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="col-md-4">
+                <div class="d-flex justify-content-end align-items-center h-100 gap-2">
+                    <div class="text-muted small">
+                        <span id="filterCount">0</span> filtro(s) activo(s)
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" id="applyFilters" class="btn btn-primary px-4" style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border: none;
+                            border-radius: 12px 0 0 12px;
+                        ">
+                            <i class="fas fa-filter me-1"></i> Aplicar
+                        </button>
+                        <button type="button" id="resetFilters" class="btn btn-outline-secondary px-4" style="
+                            border-radius: 0 12px 12px 0;
+                            border: 1px solid #e5e7eb;
+                        ">
+                            <i class="fas fa-redo me-1"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de clientes Mejorada -->
+    <div class="table-container" style="
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.03);
+    ">
+        <div class="table-header p-4 d-flex justify-content-between align-items-center" style="
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+        ">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #1f2937;">
                     <i class="fas fa-list-ul me-2 text-primary"></i>
                     Lista de Clientes
                 </h5>
-                <small class="text-muted">
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
                     <span id="totalCount">{{ $clientes->count() }}</span> cliente(s) registrado(s)
-                </small>
+                </p>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="text-muted small">
-                    Ordenado por: 
-                    <span class="badge bg-light text-dark" id="sortDisplay">
-                        Nombre <i class="fas fa-arrow-up ms-1"></i>
-                    </span>
-                </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge px-3 py-2" style="
+                    background: #f3f4f6;
+                    color: #4b5563;
+                    border-radius: 50px;
+                    font-size: 0.85rem;
+                ">
+                    <i class="fas fa-arrow-{{ request('sort_order', 'asc') == 'asc' ? 'up' : 'down' }} me-1"></i>
+                    Orden: <span id="sortDisplay">Nombre</span>
+                </span>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="clientesTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="py-3" width="60px"></th>
-                            <th class="py-3">Cliente</th>
-                            <th class="py-3">Contacto</th>
-                            <th class="py-3">Dirección</th>
-                            <th class="py-3">Sexo</th>
-                            <th class="text-end py-3">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($clientes as $cliente)
-                        @php
-                            $nombreCompleto = $cliente->Nombre . ' ' . $cliente->ApPaterno . ($cliente->ApMaterno ? ' ' . $cliente->ApMaterno : '');
-                        @endphp
-                        <tr class="align-middle cliente-row" data-nombre="{{ strtolower($nombreCompleto) }}" 
-                            data-correo="{{ strtolower($cliente->Correo) }}" 
-                            data-telefono="{{ $cliente->Telefono ?? '' }}"
-                            data-sexo="{{ $cliente->Sexo ?? '' }}">
-                            <!-- Botón para expandir -->
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-secondary btn-expand-cliente" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#detallesCliente{{ $cliente->id }}" 
-                                        aria-expanded="false"
-                                        aria-controls="detallesCliente{{ $cliente->id }}">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </td>
-                            
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="cliente-avatar cliente-avatar-md bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
-                                        <i class="fas fa-user text-primary"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 fw-semibold">{{ $nombreCompleto }}</h6>
-                                        <small class="text-muted">
-                                            ID: #{{ $cliente->id }}
-                                        </small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="mb-1">
-                                    <a href="mailto:{{ $cliente->Correo }}" class="text-decoration-none">
-                                        <i class="fas fa-envelope me-1 text-muted"></i>
-                                        {{ $cliente->Correo }}
-                                    </a>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="clientesTable">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th class="py-3 ps-4" width="60px"></th>
+                        <th class="py-3">Cliente</th>
+                        <th class="py-3">Contacto</th>
+                        <th class="py-3">Dirección</th>
+                        <th class="py-3">Sexo</th>
+                        <th class="py-3 pe-4 text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($clientes as $cliente)
+                    @php
+                        $nombreCompleto = $cliente->Nombre . ' ' . $cliente->ApPaterno . ($cliente->ApMaterno ? ' ' . $cliente->ApMaterno : '');
+                        $tienePedidos = $cliente->pedidos && $cliente->pedidos->count() > 0;
+                        $pedidosCount = $tienePedidos ? $cliente->pedidos->count() : 0;
+                        
+                        $sexoColor = $cliente->Sexo == 'Masculino' ? '#3b82f6' : ($cliente->Sexo == 'Femenino' ? '#ec4899' : '#6b7280');
+                        $sexoGradiente = $cliente->Sexo == 'Masculino' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 
+                                        ($cliente->Sexo == 'Femenino' ? 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' : 
+                                        'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)');
+                    @endphp
+                    <tr class="align-middle cliente-row {{ $tienePedidos ? 'cliente-protegido' : '' }}" 
+                        data-nombre="{{ strtolower($nombreCompleto) }}" 
+                        data-correo="{{ strtolower($cliente->Correo) }}" 
+                        data-telefono="{{ $cliente->Telefono ?? '' }}"
+                        data-sexo="{{ $cliente->Sexo ?? '' }}"
+                        data-id="{{ $cliente->id }}">
+                        
+                        <!-- Botón expandir -->
+                        <td class="ps-4">
+                            <button class="btn btn-sm btn-expand-cliente" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#detallesCliente{{ $cliente->id }}"
+                                    style="
+                                        width: 32px;
+                                        height: 32px;
+                                        border-radius: 8px;
+                                        border: 1px solid #e5e7eb;
+                                        color: #6b7280;
+                                        transition: all 0.3s ease;
+                                    ">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </td>
+                        
+                        <!-- Cliente -->
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="cliente-avatar me-3" style="
+                                    width: 48px;
+                                    height: 48px;
+                                    background: {{ $sexoGradiente }};
+                                    border-radius: 14px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-weight: 600;
+                                    font-size: 1.2rem;
+                                    box-shadow: 0 5px 15px {{ $sexoColor }}40;
+                                ">
+                                    {{ strtoupper(substr($cliente->Nombre, 0, 1)) }}{{ strtoupper(substr($cliente->ApPaterno, 0, 1)) }}
                                 </div>
                                 <div>
-                                    @if($cliente->Telefono)
-                                    <i class="fas fa-phone me-1 text-muted"></i>
-                                    {{ $cliente->Telefono }}
-                                    @else
-                                    <span class="text-muted">Sin teléfono</span>
+                                    <h6 class="fw-bold mb-1">{{ $nombreCompleto }}</h6>
+                                    <small class="text-muted">ID: #{{ str_pad($cliente->id, 5, '0', STR_PAD_LEFT) }}</small>
+                                    @if($tienePedidos)
+                                    <span class="badge ms-2 px-2 py-1" style="
+                                        background: {{ $sexoGradiente }};
+                                        color: white;
+                                        border-radius: 50px;
+                                        font-size: 0.7rem;
+                                    ">
+                                        <i class="fas fa-shopping-cart me-1"></i>{{ $pedidosCount }}
+                                    </span>
                                     @endif
                                 </div>
-                            </td>
-                            <td>
-                                @if($cliente->Direccion)
-                                <span class="d-inline-block text-truncate" style="max-width: 200px;" 
-                                      data-bs-toggle="tooltip" title="{{ $cliente->Direccion }}">
-                                    {{ $cliente->Direccion }}
+                            </div>
+                        </td>
+
+                        <!-- Contacto -->
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-envelope me-2" style="color: #667eea; width: 16px;"></i>
+                                    <span class="small">{{ Str::limit($cliente->Correo, 25) }}</span>
                                 </span>
-                                @else
-                                <span class="text-muted">Sin dirección</span>
+                                @if($cliente->Telefono)
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-phone-alt me-2" style="color: #10b981; width: 16px;"></i>
+                                    <span class="small">{{ $cliente->Telefono }}</span>
+                                </span>
                                 @endif
-                            </td>
-                            <td>
-                                <span class="badge bg-{{ $cliente->Sexo == 'Masculino' ? 'primary' : ($cliente->Sexo == 'Femenino' ? 'pink' : 'secondary') }} bg-opacity-10 text-{{ $cliente->Sexo == 'Masculino' ? 'primary' : ($cliente->Sexo == 'Femenino' ? 'pink' : 'secondary') }} border border-{{ $cliente->Sexo == 'Masculino' ? 'primary' : ($cliente->Sexo == 'Femenino' ? 'pink' : 'secondary') }} border-opacity-25 px-3 py-2 rounded-pill">
-                                    {{ $cliente->Sexo ?? 'No especificado' }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('clientes.edit', $cliente->id) }}" 
-                                       class="btn btn-outline-primary" 
-                                       data-bs-toggle="tooltip" 
-                                       title="Editar cliente">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                            </div>
+                        </td>
+
+                        <!-- Dirección -->
+                        <td>
+                            @if($cliente->Direccion)
+                            <span class="d-inline-block text-truncate small" style="max-width: 150px;" 
+                                  data-bs-toggle="tooltip" title="{{ $cliente->Direccion }}">
+                                <i class="fas fa-map-marker-alt me-1" style="color: #f59e0b;"></i>
+                                {{ Str::limit($cliente->Direccion, 25) }}
+                            </span>
+                            @else
+                            <span class="text-muted small">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Sin dirección
+                            </span>
+                            @endif
+                        </td>
+
+                        <!-- Sexo -->
+                        <td>
+                            <span class="badge px-3 py-2" style="
+                                background: {{ $sexoGradiente }};
+                                color: white;
+                                border-radius: 50px;
+                                font-size: 0.75rem;
+                                width: fit-content;
+                            ">
+                                <i class="fas fa-{{ $cliente->Sexo == 'Masculino' ? 'mars' : ($cliente->Sexo == 'Femenino' ? 'venus' : 'transgender-alt') }} me-1"></i>
+                                {{ $cliente->Sexo ?? 'No especificado' }}
+                            </span>
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="pe-4">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{{ route('clientes.edit', $cliente->id) }}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                   title="Editar cliente">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                @if($tienePedidos)
                                     <button type="button" 
-                                            class="btn btn-outline-danger" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteModal" 
-                                            onclick="setDeleteCliente({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}')"
+                                            class="btn btn-sm btn-outline-warning" 
+                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                            onclick="mostrarErrorPedidos({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}', {{ $pedidosCount }})"
+                                            title="No se puede eliminar: tiene pedidos asociados">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                            onclick="verificarPedidosYeliminar({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}')"
                                             title="Eliminar cliente">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Fila expandible con detalles del cliente -->
-                        <tr class="detalle-cliente-row">
-                            <td colspan="6" class="p-0 border-0">
-                                <div class="collapse" id="detallesCliente{{ $cliente->id }}">
-                                    <div class="card card-body border-0 bg-light bg-gradient rounded-0">
-                                        <div class="row">
-                                            <!-- Información detallada -->
-                                            <div class="col-md-8">
-                                                <h6 class="fw-bold mb-3 text-primary">
-                                                    <i class="fas fa-info-circle me-2"></i>Información del Cliente
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Fila expandible con detalles del cliente -->
+                    <tr class="detalle-cliente-row">
+                        <td colspan="6" class="p-0 border-0">
+                            <div class="collapse" id="detallesCliente{{ $cliente->id }}">
+                                <div class="p-4" style="background: #f8fafc; border-top: 1px solid #e5e7eb;">
+                                    <!-- Advertencia si tiene pedidos -->
+                                    @if($tienePedidos)
+                                    <div class="alert alert-warning mb-4" style="
+                                        background: linear-gradient(135deg, #fef3c7 0%, #ffe69c 100%);
+                                        border: none;
+                                        border-radius: 16px;
+                                        padding: 1rem;
+                                    ">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <i class="fas fa-exclamation-triangle fa-2x" style="color: #856404;"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-1" style="color: #856404;">⛔ Cliente Protegido</h6>
+                                                <p class="mb-0" style="color: #856404;">
+                                                    Este cliente tiene <span class="badge bg-warning">{{ $pedidosCount }} pedido(s)</span> asociados y no puede ser eliminado.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    
+                                    <div class="row g-4">
+                                        <!-- Información detallada -->
+                                        <div class="col-md-8">
+                                            <div class="detail-card p-3" style="
+                                                background: white;
+                                                border-radius: 16px;
+                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                            ">
+                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                                                    Información del Cliente
                                                 </h6>
                                                 
                                                 <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card bg-white border-0 shadow-sm h-100">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Información Personal</h6>
-                                                                <div class="mb-2">
-                                                                    <small class="text-muted d-block">Nombre completo:</small>
-                                                                    <span class="fw-semibold">{{ $nombreCompleto }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <small class="text-muted d-block">ID Cliente:</small>
-                                                                    <span class="badge bg-primary bg-opacity-10 text-primary">#{{ $cliente->id }}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <small class="text-muted d-block">Sexo:</small>
-                                                                    <span class="badge bg-{{ $cliente->Sexo == 'Masculino' ? 'primary' : ($cliente->Sexo == 'Femenino' ? 'pink' : 'secondary') }} bg-opacity-10 text-{{ $cliente->Sexo == 'Masculino' ? 'primary' : ($cliente->Sexo == 'Femenino' ? 'pink' : 'secondary') }}">
-                                                                        {{ $cliente->Sexo ?? 'No especificado' }}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Nombre completo:</span>
+                                                            <span class="fw-medium">{{ $nombreCompleto }}</span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">ID Cliente:</span>
+                                                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1">#{{ $cliente->id }}</span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Sexo:</span>
+                                                            <span class="badge px-3 py-1" style="background: {{ $sexoGradiente }}; color: white;">
+                                                                <i class="fas fa-{{ $cliente->Sexo == 'Masculino' ? 'mars' : ($cliente->Sexo == 'Femenino' ? 'venus' : 'transgender-alt') }} me-1"></i>
+                                                                {{ $cliente->Sexo ?? 'No especificado' }}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card bg-white border-0 shadow-sm h-100">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Información de Contacto</h6>
-                                                                <div class="mb-3">
-                                                                    <small class="text-muted d-block">Correo electrónico:</small>
-                                                                    <a href="mailto:{{ $cliente->Correo }}" class="text-decoration-none">
-                                                                        <i class="fas fa-envelope me-1 text-primary"></i>
-                                                                        {{ $cliente->Correo }}
-                                                                    </a>
-                                                                </div>
-                                                                <div>
-                                                                    <small class="text-muted d-block">Teléfono:</small>
-                                                                    @if($cliente->Telefono)
-                                                                    <a href="tel:{{ $cliente->Telefono }}" class="text-decoration-none">
-                                                                        <i class="fas fa-phone me-1 text-primary"></i>
-                                                                        {{ $cliente->Telefono }}
-                                                                    </a>
-                                                                    @else
-                                                                    <span class="text-muted">No especificado</span>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Correo:</span>
+                                                            <span class="fw-medium">{{ $cliente->Correo }}</span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Teléfono:</span>
+                                                            <span class="fw-medium">{{ $cliente->Telefono ?? 'No especificado' }}</span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between">
+                                                            <span class="text-muted">Pedidos:</span>
+                                                            <span class="fw-medium">{{ $pedidosCount }}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="card bg-white border-0 shadow-sm">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Dirección</h6>
-                                                                @if($cliente->Direccion)
-                                                                <p class="mb-0">{{ $cliente->Direccion }}</p>
-                                                                @else
-                                                                <p class="mb-0 text-muted">No se ha registrado una dirección</p>
+                                                <div class="mt-3">
+                                                    <span class="text-muted d-block mb-2">Dirección:</span>
+                                                    @if($cliente->Direccion)
+                                                    <p class="mb-0 p-3 bg-light rounded-3">{{ $cliente->Direccion }}</p>
+                                                    @else
+                                                    <p class="mb-0 p-3 bg-light rounded-3 text-muted">No se ha registrado una dirección</p>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Pedidos asociados (si los hay) -->
+                                                @if($tienePedidos && $cliente->pedidos)
+                                                <div class="mt-4">
+                                                    <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                        <i class="fas fa-shopping-cart me-2 text-primary"></i>
+                                                        Pedidos Realizados ({{ $pedidosCount }})
+                                                    </h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr class="text-muted small">
+                                                                    <th>ID Pedido</th>
+                                                                    <th class="text-center">Fecha</th>
+                                                                    <th class="text-end">Total</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach($cliente->pedidos->take(5) as $pedido)
+                                                                <tr>
+                                                                    <td>
+                                                                        <span class="fw-medium">#{{ $pedido->id }}</span>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        {{ \Carbon\Carbon::parse($pedido->Fecha_entrega)->format('d/m/Y') }}
+                                                                    </td>
+                                                                    <td class="text-end fw-bold" style="color: #10b981;">
+                                                                        ${{ number_format($pedido->Total, 2) }}
+                                                                    </td>
+                                                                </tr>
+                                                                @endforeach
+                                                                @if($cliente->pedidos->count() > 5)
+                                                                <tr>
+                                                                    <td colspan="3" class="text-center py-2">
+                                                                        <small class="text-muted">
+                                                                            Y {{ $cliente->pedidos->count() - 5 }} pedido(s) más...
+                                                                        </small>
+                                                                    </td>
+                                                                </tr>
                                                                 @endif
-                                                            </div>
-                                                        </div>
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 </div>
+                                                @endif
                                             </div>
-                                            
-                                            <!-- Resumen y acciones -->
-                                            <div class="col-md-4">
-                                                <div class="card border-0 shadow-sm h-100">
-                                                    <div class="card-body">
-                                                        <h6 class="fw-bold mb-3 text-primary">
-                                                            <i class="fas fa-chart-pie me-2"></i>Resumen
-                                                        </h6>
-                                                        
-                                                        <div class="mb-3">
-                                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                <span class="text-muted">ID Cliente:</span>
-                                                                <span class="fw-medium">#{{ $cliente->id }}</span>
-                                                            </div>
-                                                            
-                                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                <span class="text-muted">Estado:</span>
-                                                                <span class="badge bg-success bg-opacity-10 text-success">
-                                                                    Activo
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <hr>
-                                                        
-                                                        <div class="mt-4">
-                                                            <a href="{{ route('clientes.edit', $cliente->id) }}" 
-                                                               class="btn btn-outline-secondary btn-sm w-100 mb-2">
-                                                                <i class="fas fa-edit me-1"></i> Editar cliente
-                                                            </a>
-                                                            <button type="button" 
-                                                                    class="btn btn-outline-danger btn-sm w-100"
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#deleteModal" 
-                                                                    onclick="setDeleteCliente({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}')">
-                                                                <i class="fas fa-trash me-1"></i> Eliminar cliente
-                                                            </button>
-                                                        </div>
+                                        </div>
+                                        
+                                        <!-- Resumen y acciones -->
+                                        <div class="col-md-4">
+                                            <div class="detail-card p-3" style="
+                                                background: white;
+                                                border-radius: 16px;
+                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                            ">
+                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                    <i class="fas fa-chart-pie me-2 text-primary"></i>
+                                                    Resumen
+                                                </h6>
+                                                
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="text-muted">ID Cliente:</span>
+                                                        <span class="fw-medium">#{{ str_pad($cliente->id, 5, '0', STR_PAD_LEFT) }}</span>
                                                     </div>
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="text-muted">Pedidos realizados:</span>
+                                                        <span class="fw-medium">{{ $pedidosCount }}</span>
+                                                    </div>
+                                                    
+                                                    @if($tienePedidos)
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <span class="text-muted">Total comprado:</span>
+                                                        <span class="fw-bold" style="color: #10b981;">
+                                                            ${{ number_format($cliente->pedidos->sum('Total'), 2) }}
+                                                        </span>
+                                                    </div>
+                                                    @endif
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="text-muted">Estado:</span>
+                                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-1">
+                                                            Activo
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <hr style="margin: 1rem 0; border-color: #e5e7eb;">
+                                                
+                                                <!-- Botones de acción en detalles -->
+                                                <div class="d-grid gap-2">
+                                                    <a href="{{ route('clientes.edit', $cliente->id) }}" 
+                                                       class="btn btn-outline-primary btn-sm" 
+                                                       style="border-radius: 10px; border: 1px solid #e5e7eb;">
+                                                        <i class="fas fa-edit me-1"></i> Editar cliente
+                                                    </a>
+                                                    
+                                                    @if($tienePedidos)
+                                                        <button type="button" 
+                                                                class="btn btn-outline-warning btn-sm"
+                                                                style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                                onclick="mostrarErrorPedidos({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}', {{ $pedidosCount }})">
+                                                            <i class="fas fa-lock me-1"></i> Ver detalles
+                                                        </button>
+                                                    @else
+                                                        <button type="button" 
+                                                                class="btn btn-outline-danger btn-sm"
+                                                                style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                                onclick="verificarPedidosYeliminar({{ $cliente->id }}, '{{ addslashes($nombreCompleto) }}')">
+                                                            <i class="fas fa-trash me-1"></i> Eliminar cliente
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="py-5">
-                                    <i class="fas fa-user-times fa-4x text-muted mb-4"></i>
-                                    <h4 class="text-muted fw-bold mb-3">No hay clientes registrados</h4>
-                                    <p class="text-muted mb-4">
-                                        Comienza registrando el primer cliente en el sistema.
-                                    </p>
-                                    <a href="{{ route('clientes.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-user-plus me-2"></i> Registrar Cliente
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state py-5">
+                                <i class="fas fa-users-slash fa-4x mb-3" style="color: #9ca3af;"></i>
+                                <h5 class="fw-bold mb-2">No hay clientes registrados</h5>
+                                <p class="text-muted mb-4">
+                                    Comienza registrando el primer cliente en el sistema.
+                                </p>
+                                <a href="{{ route('clientes.create') }}" class="btn btn-primary">
+                                    <i class="fas fa-user-plus me-2"></i> Registrar Cliente
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-white border-0 py-3">
+
+        <div class="card-footer bg-white border-0 py-3 px-4" style="border-top: 1px solid #e5e7eb;">
             <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted">
+                <div class="text-muted small">
                     Mostrando <span id="visibleCount">{{ $clientes->count() }}</span> de {{ $clientes->count() }} cliente(s)
                 </div>
             </div>
@@ -453,37 +796,159 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
+<!-- MODAL DE ELIMINACIÓN MEJORADO -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-danger text-white position-relative">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
+            <div class="modal-header bg-gradient-danger text-white" style="
+                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+                border: none;
+                padding: 1.5rem;
+            ">
                 <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
                     Confirmar Eliminación
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body text-center py-4">
-                <div class="mb-3">
-                    <i class="fas fa-user-times fa-4x text-danger mb-3"></i>
+            
+            <div class="modal-body text-center p-4">
+                <div class="delete-icon-wrapper mb-4">
+                    <div class="delete-icon-circle" style="
+                        width: 80px;
+                        height: 80px;
+                        background: rgba(220, 53, 69, 0.1);
+                        border-radius: 50%;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto;
+                    ">
+                        <i class="fas fa-user-times fa-3x text-danger"></i>
+                    </div>
                 </div>
-                <p class="fs-6">
-                    Estás a punto de eliminar al cliente <strong id="deleteClienteNombre"></strong>
-                </p>
+                
+                <h5 class="fw-bold mb-3" id="deleteClienteNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="deleteClienteId" style="font-size: 0.9rem;"></p>
+                
+                <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted">Cliente a eliminar:</span>
+                            <span class="fw-bold" id="deleteClienteNombre"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                    <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
+                    <div class="text-start">
+                        <strong class="text-danger">¡Atención!</strong>
+                        <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente el cliente del sistema.</p>
+                    </div>
+                </div>
             </div>
-            <!-- Reemplaza esta parte del modal -->
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Cancelar
+            
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
+                    <i class="fas fa-times me-2"></i>Cancelar
                 </button>
                 <form id="deleteForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-lg">
-                        <i class="fas fa-trash me-1"></i> Eliminar
+                    <button type="submit" class="btn btn-danger px-4" id="confirmDeleteBtn" style="border-radius: 50px;">
+                        <i class="fas fa-trash me-2"></i>Sí, eliminar
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ERROR MEJORADO - Pedidos asociados -->
+<div class="modal fade" id="foreignKeyErrorModal" tabindex="-1" aria-labelledby="foreignKeyErrorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
+            <div class="modal-header bg-gradient-warning text-white" style="
+                background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+                border: none;
+                padding: 1.5rem;
+            ">
+                <h5 class="modal-title fw-bold" id="foreignKeyErrorModalLabel">
+                    <i class="fas fa-lock me-2 fa-lg"></i>
+                    Cliente Protegido
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            
+            <div class="modal-body text-center p-4">
+                <div class="error-icon-wrapper mb-4">
+                    <div class="error-icon-circle" style="
+                        width: 90px;
+                        height: 90px;
+                        background: rgba(255, 193, 7, 0.1);
+                        border-radius: 50%;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto;
+                    ">
+                        <i class="fas fa-shopping-cart fa-4x text-warning"></i>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mb-3" id="errorClienteNombre"></h5>
+                
+                <div class="card border-warning border-2 mb-4" style="border-radius: 16px;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <span class="badge bg-warning text-dark p-3" style="
+                                font-size: 1.2rem;
+                                border-radius: 50px;
+                            ">
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                <span id="errorPedidosCount"></span> pedidos asociados
+                            </span>
+                        </div>
+                        <p class="text-muted mb-0">
+                            Este cliente no puede ser eliminado porque tiene pedidos registrados en el sistema.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info bg-opacity-10 border-0 text-start" style="border-radius: 12px;">
+                    <h6 class="fw-bold text-info mb-2">
+                        <i class="fas fa-lightbulb me-2"></i>¿Cómo solucionarlo?
+                    </h6>
+                    <ol class="text-muted small mb-0 ps-3">
+                        <li class="mb-1">Primero debes eliminar los pedidos asociados</li>
+                        <li class="mb-1">Luego podrás eliminar este cliente</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <a href="{{ route('pedidos.index') }}" class="btn btn-warning px-5" style="border-radius: 50px;" id="verPedidosBtn" target="_blank">
+                    <i class="fas fa-eye me-2"></i>Ver pedidos
+                </a>
+                <button type="button" class="btn btn-light px-5" data-bs-dismiss="modal" style="border-radius: 50px;">
+                    <i class="fas fa-check me-2"></i>Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Carga -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Verificando...</span>
+                </div>
+                <h6 class="fw-bold mb-2">Verificando pedidos</h6>
+                <p class="text-muted small mb-0">Por favor espera un momento...</p>
             </div>
         </div>
     </div>
@@ -492,29 +957,48 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips de Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    initTooltips();
+    setupExpandButtons();
+    setupFilters();
+    setupRefreshButton();
+    setupModalCleanup();
+    
+    @if(session('foreign_key_error'))
+        @php
+            $errorData = is_array(session('foreign_key_error')) 
+                ? session('foreign_key_error') 
+                : ['cliente_nombre' => session('cliente_nombre') ?? 'el cliente', 
+                   'pedidos_count' => session('pedidos_count') ?? 0,
+                   'cliente_id' => session('cliente_id') ?? 0];
+        @endphp
+        setTimeout(function() {
+            mostrarErrorPedidos(
+                '{{ $errorData["cliente_nombre"] }}', 
+                {{ $errorData["pedidos_count"] }},
+                {{ $errorData["cliente_id"] }}
+            );
+        }, 100);
+    @endif
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+}
 
-    // Rotar la flecha del botón expandir al hacer clic
+function setupExpandButtons() {
     document.querySelectorAll('.btn-expand-cliente').forEach(button => {
         button.addEventListener('click', function() {
             const icon = this.querySelector('i');
             const isExpanded = this.getAttribute('aria-expanded') === 'true';
             
-            // Rotar el icono
             if (icon) {
-                if (isExpanded) {
-                    icon.style.transform = 'rotate(0deg)';
-                } else {
-                    icon.style.transform = 'rotate(180deg)';
-                }
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
                 icon.style.transition = 'transform 0.3s ease';
             }
             
-            // Cambiar clase del botón
             if (isExpanded) {
                 this.classList.remove('btn-primary');
                 this.classList.add('btn-outline-secondary');
@@ -524,25 +1008,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
 
-    // Cerrar detalles cuando se hace clic en otro botón
-    document.querySelectorAll('.btn-expand-cliente').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('data-bs-target');
-            
-            // Cerrar otros acordeones abiertos
-            document.querySelectorAll('.collapse.show').forEach(collapse => {
-                if (collapse.id !== targetId.replace('#', '')) {
-                    const collapseButton = document.querySelector(`[data-bs-target="#${collapse.id}"]`);
-                    if (collapseButton) {
-                        collapseButton.click();
-                    }
-                }
-            });
-        });
-    });
-
-    // Elementos del filtro
+function setupFilters() {
     const searchInput = document.getElementById('searchInput');
     const filterSexo = document.getElementById('filterSexo');
     const sortBy = document.getElementById('sortBy');
@@ -550,12 +1018,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFilters = document.getElementById('applyFilters');
     const resetFilters = document.getElementById('resetFilters');
     const clientesRows = document.querySelectorAll('.cliente-row');
-    const totalCount = document.getElementById('totalCount');
     const visibleCount = document.getElementById('visibleCount');
     const filterCount = document.getElementById('filterCount');
     const sortDisplay = document.getElementById('sortDisplay');
+    const totalClientes = document.getElementById('totalCount');
+    const totalHombres = document.getElementById('totalHombres')?.textContent;
+    const totalMujeres = document.getElementById('totalMujeres')?.textContent;
+    const totalOtros = document.getElementById('totalOtros')?.textContent;
 
-    // Función para actualizar contador de filtros
     function updateFilterCount() {
         let count = 0;
         if (searchInput.value.trim()) count++;
@@ -563,7 +1033,6 @@ document.addEventListener('DOMContentLoaded', function() {
         filterCount.textContent = count;
     }
 
-    // Función para aplicar filtros
     function applyTableFilters() {
         const searchText = searchInput.value.toLowerCase();
         const sexoValue = filterSexo.value;
@@ -590,18 +1059,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         visibleCount.textContent = visibleRows;
+        totalClientes.textContent = visibleRows;
+        
         updateFilterCount();
         updateSortDisplay();
     }
 
-    // Función para actualizar display de ordenamiento
     function updateSortDisplay() {
         const sortText = sortBy.options[sortBy.selectedIndex].text;
         const orderIcon = sortOrder.value === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down';
         sortDisplay.innerHTML = `${sortText} <i class="fas ${orderIcon} ms-1"></i>`;
     }
 
-    // Función para ordenar la tabla
     function sortTable() {
         const sortColumn = sortBy.value;
         const order = sortOrder.value;
@@ -625,8 +1094,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     bValue = b.dataset.telefono;
                     break;
                 default: // ID
-                    aValue = parseInt(a.querySelector('td:first-child').textContent.replace('#', ''));
-                    bValue = parseInt(b.querySelector('td:first-child').textContent.replace('#', ''));
+                    aValue = parseInt(a.dataset.id);
+                    bValue = parseInt(b.dataset.id);
             }
 
             if (order === 'asc') {
@@ -636,11 +1105,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Reordenar filas en la tabla
         const tbody = document.querySelector('#clientesTable tbody');
         rowsArray.forEach(row => {
             tbody.appendChild(row);
-            // Mover también la fila expandible correspondiente
             const detallesRow = row.nextElementSibling;
             if (detallesRow && detallesRow.classList.contains('detalle-cliente-row')) {
                 tbody.appendChild(detallesRow);
@@ -648,7 +1115,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Event Listeners
     applyFilters.addEventListener('click', function() {
         applyTableFilters();
         sortTable();
@@ -665,37 +1131,259 @@ document.addEventListener('DOMContentLoaded', function() {
 
     sortBy.addEventListener('change', sortTable);
     sortOrder.addEventListener('change', sortTable);
-
-    // Aplicar filtros en tiempo real
     searchInput.addEventListener('input', applyTableFilters);
     filterSexo.addEventListener('change', applyTableFilters);
 
-    // Inicializar
     applyTableFilters();
     updateSortDisplay();
-});
-
-// CORRECCIÓN: Función para el modal de eliminación - USANDO EL MÉTODO DE PROVEEDORES
-function setDeleteCliente(clienteId, nombreCompleto) {
-    // Actualizar el nombre en el modal
-    document.getElementById('deleteClienteNombre').textContent = nombreCompleto;
-    
-    // Obtener el formulario
-    const deleteForm = document.getElementById('deleteForm');
-    
-    // FORMA CORRECTA: Usar el mismo método que en proveedores
-    // "{{ route('clientes.destroy', ':id') }}" se reemplaza :id con el clienteId
-    const actionUrl = "{{ route('clientes.destroy', ':id') }}".replace(':id', clienteId);
-    
-    // Asignar la acción al formulario
-    deleteForm.action = actionUrl;
-    
-    // Mostrar el modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    deleteModal.show();
 }
+
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spin');
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+}
+
+function setupModalCleanup() {
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('hidden.bs.modal', function() {
+            forceCleanupModals();
+        });
+    }
+    
+    const errorModal = document.getElementById('foreignKeyErrorModal');
+    if (errorModal) {
+        errorModal.addEventListener('hidden.bs.modal', function() {
+            forceCleanupModals();
+        });
+    }
+    
+    const loadingModal = document.getElementById('loadingModal');
+    if (loadingModal) {
+        loadingModal.addEventListener('hidden.bs.modal', function() {
+            forceCleanupModals();
+        });
+    }
+}
+
+function forceCleanupModals() {
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    document.documentElement.style.overflow = '';
+}
+
+let loadingModalInstance = null;
+
+function showLoadingModal() {
+    const modalElement = document.getElementById('loadingModal');
+    if (!modalElement) return;
+    
+    if (loadingModalInstance) {
+        loadingModalInstance.hide();
+        loadingModalInstance.dispose();
+    }
+    
+    forceCleanupModals();
+    
+    loadingModalInstance = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: false
+    });
+    
+    setTimeout(() => {
+        if (loadingModalInstance) {
+            loadingModalInstance.show();
+        }
+    }, 10);
+}
+
+function hideLoadingModal() {
+    return new Promise((resolve) => {
+        if (loadingModalInstance) {
+            const modalElement = document.getElementById('loadingModal');
+            const handler = function() {
+                modalElement.removeEventListener('hidden.bs.modal', handler);
+                loadingModalInstance = null;
+                forceCleanupModals();
+                resolve();
+            };
+            
+            modalElement.addEventListener('hidden.bs.modal', handler);
+            loadingModalInstance.hide();
+        } else {
+            forceCleanupModals();
+            resolve();
+        }
+    });
+}
+
+async function verificarPedidosYeliminar(clienteId, nombreCompleto) {
+    showLoadingModal();
+    
+    try {
+        const response = await fetch(`/clientes/${clienteId}/pedidos`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        
+        const data = await response.json();
+        
+        await hideLoadingModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        if (data.tienePedidos) {
+            mostrarErrorPedidos(nombreCompleto, data.cantidadPedidos, clienteId);
+        } else {
+            mostrarModalEliminacion(clienteId, nombreCompleto);
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        
+        await hideLoadingModal();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        mostrarModalEliminacion(clienteId, nombreCompleto);
+    }
+}
+
+function mostrarModalEliminacion(clienteId, nombreCompleto) {
+    try {
+        forceCleanupModals();
+        
+        document.getElementById('deleteClienteNombre').textContent = nombreCompleto;
+        document.getElementById('deleteClienteNombreDisplay').textContent = `¿Eliminar "${nombreCompleto}"?`;
+        document.getElementById('deleteClienteId').innerHTML = `<small class="text-muted">ID: #${clienteId}</small>`;
+        
+        const deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.action = `/clientes/${clienteId}`;
+        }
+        
+        setTimeout(() => {
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }, 50);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al preparar la eliminación. Por favor, recarga la página.');
+    }
+}
+
+function mostrarErrorPedidos(clienteNombre, pedidosCount, clienteId) {
+    try {
+        forceCleanupModals();
+        
+        const existingModal = document.getElementById('foreignKeyErrorModal');
+        const modalInstance = bootstrap.Modal.getInstance(existingModal);
+        if (modalInstance) {
+            modalInstance.hide();
+            forceCleanupModals();
+        }
+        
+        setTimeout(() => {
+            document.getElementById('errorClienteNombre').innerHTML = `
+                <span class="text-warning">${clienteNombre}</span>
+                <small class="d-block text-muted mt-1">Cliente con pedidos asociados</small>
+            `;
+            document.getElementById('errorPedidosCount').textContent = pedidosCount;
+            
+            const verPedidosBtn = document.getElementById('verPedidosBtn');
+            if (verPedidosBtn && clienteId) {
+                verPedidosBtn.href = `/pedidos?cliente_id=${clienteId}`;
+            }
+            
+            const errorModal = new bootstrap.Modal(existingModal, {
+                backdrop: 'static',
+                keyboard: true
+            });
+            
+            errorModal.show();
+        }, 50);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function clearFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    window.location.href = url.toString();
+}
+
+const spinStyle = document.createElement('style');
+spinStyle.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 0.5s linear infinite;
+    }
+    
+    [title] {
+        cursor: help;
+    }
+    
+    .stat-card:hover .stat-decoration {
+        transform: scale(1.2);
+    }
+    
+    .btn-expand-cliente:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+    
+    .cliente-protegido {
+        background-color: rgba(255, 193, 7, 0.02);
+    }
+    
+    .cliente-protegido:hover {
+        background-color: rgba(255, 193, 7, 0.08) !important;
+    }
+    
+    .detail-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .empty-state {
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    #loadingModal .modal-content {
+        border-radius: 20px !important;
+    }
+`;
+document.head.appendChild(spinStyle);
 </script>
 @endpush
+
 <style>
 #clientes-page {
     padding-top: 20px;
@@ -706,22 +1394,6 @@ function setDeleteCliente(clienteId, nombreCompleto) {
     height: 48px;
 }
 
-#clientes-page .cliente-avatar-md {
-    width: 40px;
-    height: 40px;
-}
-
-#clientes-page .cliente-avatar-sm {
-    width: 36px;
-    height: 36px;
-}
-
-#clientes-page .cliente-avatar-xs {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-}
-
 #clientes-page .table th { 
     border-top: none; 
     font-weight: 600; 
@@ -729,6 +1401,7 @@ function setDeleteCliente(clienteId, nombreCompleto) {
     text-transform: uppercase; 
     letter-spacing: 0.5px; 
     border-bottom: 2px solid #dee2e6;
+    background: #f8fafc;
 }
 
 #clientes-page .table tbody tr {
@@ -736,9 +1409,9 @@ function setDeleteCliente(clienteId, nombreCompleto) {
 }
 
 #clientes-page .table tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
+    background-color: rgba(102, 126, 234, 0.02);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 #clientes-page .btn-group .btn { 
@@ -763,27 +1436,6 @@ function setDeleteCliente(clienteId, nombreCompleto) {
     font-weight: 600;
 }
 
-/* Estilos para el botón expandir */
-#clientes-page .btn-expand-cliente {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    border-radius: 6px !important;
-}
-
-#clientes-page .btn-expand-cliente:hover {
-    transform: scale(1.1);
-}
-
-#clientes-page .btn-expand-cliente i {
-    transition: transform 0.3s ease;
-}
-
-/* Estilos para la fila expandible */
 #clientes-page .detalle-cliente-row {
     background-color: #f8fafc;
 }
@@ -796,26 +1448,12 @@ function setDeleteCliente(clienteId, nombreCompleto) {
     transition: height 0.35s ease;
 }
 
-/* Estilos para búsqueda */
-#clientes-page .form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+#clientes-page .form-control:focus,
+#clientes-page .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
-/* Colores personalizados */
-#clientes-page .text-pink {
-    color: #e83e8c !important;
-}
-
-#clientes-page .bg-pink {
-    background-color: #e83e8c !important;
-}
-
-#clientes-page .bg-pink.bg-opacity-10 {
-    background-color: rgba(232, 62, 140, 0.1) !important;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
     #clientes-page .btn-expand-cliente {
         width: 28px;
@@ -823,17 +1461,10 @@ function setDeleteCliente(clienteId, nombreCompleto) {
         font-size: 0.8rem;
     }
     
-    #clientes-page .cliente-avatar, 
-    #clientes-page .cliente-avatar-md, 
-    #clientes-page .cliente-avatar-sm {
+    #clientes-page .cliente-avatar {
         width: 32px;
         height: 32px;
-    }
-    
-    #clientes-page .cliente-avatar-xs {
-        width: 20px;
-        height: 20px;
-        font-size: 0.6rem;
+        font-size: 1rem;
     }
     
     #clientes-page .table-responsive {
@@ -844,33 +1475,12 @@ function setDeleteCliente(clienteId, nombreCompleto) {
         flex-direction: column;
     }
     
-    #clientes-page .detalle-cliente-row .col-md-8,
-    #clientes-page .detalle-cliente-row .col-md-4 {
-        width: 100% !important;
-        margin-bottom: 1rem;
-    }
-    
     #clientes-page .btn-group .btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.8rem;
     }
-    
-    /* Filtros responsive */
-    #clientes-page .card-body .row > div {
-        margin-bottom: 1rem;
-    }
 }
 
-/* Mejorar la legibilidad de los detalles */
-#clientes-page .detalle-cliente-row .card-body {
-    padding: 1.5rem;
-}
-
-#clientes-page .detalle-cliente-row h6 {
-    font-size: 0.95rem;
-}
-
-/* Animación suave para expandir */
 #clientes-page .collapse.show {
     animation: slideDown 0.3s ease;
 }
@@ -886,8 +1496,58 @@ function setDeleteCliente(clienteId, nombreCompleto) {
     }
 }
 
-/* Tooltips para direcciones truncadas */
 #clientes-page .text-truncate[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+/* Animación para los iconos de los modales */
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.delete-icon-circle, .error-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+/* Hover effects para botones de acción */
+#clientes-page .btn-outline-primary:hover,
+#clientes-page .btn-outline-danger:hover,
+#clientes-page .btn-outline-warning:hover,
+#clientes-page .btn-outline-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Estilos para la paginación (si aplica) */
+.pagination {
+    gap: 5px;
+}
+
+.page-link {
+    border-radius: 10px !important;
+    border: 1px solid #e5e7eb !important;
+    color: #4b5563 !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Tooltips personalizados */
+[data-bs-toggle="tooltip"] {
     cursor: help;
 }
 </style>

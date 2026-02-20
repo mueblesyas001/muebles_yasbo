@@ -7,8 +7,11 @@ use App\Models\DetallePedido;
 use App\Models\Cliente;
 use App\Models\Empleado;
 use App\Models\Producto;
+use App\Models\Venta;
+use App\Models\DetalleVenta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class PedidoController extends Controller
@@ -120,6 +123,7 @@ class PedidoController extends Controller
                 'Hora_entrega' => 'required',
                 'Lugar_entrega' => 'required',
                 'Prioridad' => 'required|in:Baja,Media,Alta,Urgente',
+                'comentario' => 'nullable|string|max:500',
                 'productos' => 'required|array|min:1',
                 'productos.*.id' => 'required|exists:productos,id',
                 'productos.*.cantidad' => 'required|integer|min:1'
@@ -150,13 +154,14 @@ class PedidoController extends Controller
                 'Prioridad' => $request->Prioridad,
                 'Total' => $total,
                 'Cliente_idCliente' => $request->Cliente_idCliente,
-                'Empleado_idEmpleado' => $request->Empleado_idEmpleado
+                'Empleado_idEmpleado' => $request->Empleado_idEmpleado,
+                'comentario' => $request->comentario
             ]);
 
             foreach ($detallesPedido as $detalle) {
                 DetallePedido::create([
                     'Producto' => $detalle['Producto'],
-                    'Pedido' => $pedido->id, // Cambiado de idPedido a id
+                    'Pedido' => $pedido->id,
                     'Cantidad' => $detalle['Cantidad'],
                     'PrecioUnitario' => $detalle['PrecioUnitario']
                 ]);
@@ -165,7 +170,7 @@ class PedidoController extends Controller
             DB::commit();
 
             return redirect()->route('pedidos.index')
-                        ->with('success', 'Pedido creado exitosamente. ID: ' . $pedido->id); // Cambiado de idPedido a id
+                        ->with('success', 'Pedido creado exitosamente. ID: ' . $pedido->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -173,176 +178,268 @@ class PedidoController extends Controller
         }
     }
 
-        public function edit($id){
-            $pedido = Pedido::with('detallePedidos.producto')->findOrFail($id);
-            $clientes = Cliente::orderBy('Nombre')->get();
-            $empleados = Empleado::orderBy('Nombre')->get();
-            $productos = Producto::where('Cantidad', '>', 0)
-                            ->orWhereHas('detallePedidos', function($query) use ($pedido) {
-                                $query->where('Pedido', $pedido->id); // Cambiado de idPedido a id
-                            })
-                            ->orderBy('Nombre')
-                            ->get();
+    public function edit($id){
+        $pedido = Pedido::with('detallePedidos.producto')->findOrFail($id);
+        $clientes = Cliente::orderBy('Nombre')->get();
+        $empleados = Empleado::orderBy('Nombre')->get();
+        $productos = Producto::where('Cantidad', '>', 0)
+                        ->orWhereHas('detallePedidos', function($query) use ($pedido) {
+                            $query->where('Pedido', $pedido->id);
+                        })
+                        ->orderBy('Nombre')
+                        ->get();
 
-            return view('pedidos.edit', compact('pedido', 'clientes', 'empleados', 'productos'));
-        }
+        return view('pedidos.edit', compact('pedido', 'clientes', 'empleados', 'productos'));
+    }
 
-    public function update(Request $request, $id){
-    $validated = $request->validate([
-        'Cliente_idCliente' => 'required|exists:clientes,id',
-        'Empleado_idEmpleado' => 'required|exists:empleados,id',
-        'Fecha_entrega' => 'required|date',
-        'Hora_entrega' => 'required',
-        'Lugar_entrega' => 'required|string|max:200',
-        'Prioridad' => 'required|string|in:Baja,Media,Alta,Urgente',
-        'Estado' => 'required|string|in:Pendiente,En proceso,Completado,Cancelado',
-        'productos' => 'required|array|min:1',
-        'productos.*.id' => 'required|exists:productos,id',
-        'productos.*.cantidad' => 'required|integer|min:1|max:1000',
-        'productos.*.precio_unitario' => 'required|numeric|min:0'
-    ]);
-
-    try {
-        DB::beginTransaction();
-
-        $pedido = Pedido::with('detallePedidos')->findOrFail($id);
-
-        // Obtener el estado anterior antes de cualquier cambio
-        $estadoAnterior = $pedido->Estado;
-        
-        // REGLAS DE VALIDACIÓN DE ESTADO CORREGIDAS:
-        
-        // 1. Si el pedido está Cancelado, solo permitir mantener Cancelado
-        if ($estadoAnterior === 'Cancelado' && $request->Estado !== 'Cancelado') {
-            throw new \Exception('No se puede modificar un pedido cancelado. Solo puede mantenerse como Cancelado.');
-        }
-        
-        // 2. Si el pedido está Completado, solo permitir mantener Completado o cambiar a Cancelado
-        if ($estadoAnterior === 'Completado' && !in_array($request->Estado, ['Completado', 'Cancelado'])) {
-            throw new \Exception('No se puede reabrir un pedido completado. Solo puede mantenerse como Completado o cambiarse a Cancelado.');
-        }
-        
-        // 3. Si se intenta cambiar a Cancelado y está Completado, no permitir
-        if ($estadoAnterior === 'Completado' && $request->Estado === 'Cancelado') {
-            throw new \Exception('No se puede cancelar un pedido ya completado.');
-        }
-
-        // Guardar los detalles antiguos para restaurar stock si es necesario
-        $detallesAntiguos = $pedido->detallePedidos->toArray();
-
-        // Eliminar los detalles actuales
-        $pedido->detallePedidos()->delete();
-
-        $total = 0;
-        $detallesPedido = [];
-
-        foreach ($request->productos as $productoData) {
-            $producto = Producto::findOrFail($productoData['id']);
-            
-            // Usar el precio_unitario enviado desde el formulario
-            $precioUnitario = $productoData['precio_unitario'];
-            $cantidad = $productoData['cantidad'];
-            $subtotal = $precioUnitario * $cantidad;
-            $total += $subtotal;
-
-            $detallesPedido[] = [
-                'Producto' => $productoData['id'],
-                'Cantidad' => $cantidad,
-                'PrecioUnitario' => $precioUnitario,
-                'Subtotal' => $subtotal
-            ];
-        }
-
-        // Actualizar el pedido CON EL ESTADO
-        $pedido->update([
-            'Fecha_entrega' => $request->Fecha_entrega,
-            'Hora_entrega' => $request->Hora_entrega,
-            'Lugar_entrega' => $request->Lugar_entrega,
-            'Prioridad' => $request->Prioridad,
-            'Estado' => $request->Estado,
-            'Total' => $total,
-            'Cliente_idCliente' => $request->Cliente_idCliente,
-            'Empleado_idEmpleado' => $request->Empleado_idEmpleado
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'Cliente_idCliente' => 'required|exists:clientes,id',
+            'Empleado_idEmpleado' => 'required|exists:empleados,id',
+            'Fecha_entrega' => 'required|date',
+            'Hora_entrega' => 'required',
+            'Lugar_entrega' => 'required|string|max:200',
+            'Prioridad' => 'required|string|in:Baja,Media,Alta,Urgente',
+            'comentario' => 'nullable|string|max:500',
+            'productos' => 'required|array|min:1',
+            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|integer|min:1|max:1000',
+            'productos.*.precio_unitario' => 'required|numeric|min:0'
         ]);
 
-        // Crear nuevos detalles del pedido
-        foreach ($detallesPedido as $detalle) {
-            DetallePedido::create([
-                'Producto' => $detalle['Producto'],
-                'Pedido' => $pedido->id,
-                'Cantidad' => $detalle['Cantidad'],
-                'PrecioUnitario' => $detalle['PrecioUnitario'],
-                'Subtotal' => $detalle['Subtotal']
+        try {
+            DB::beginTransaction();
+
+            $pedido = Pedido::with('detallePedidos')->findOrFail($id);
+
+            // Guardar el estado actual para usarlo después
+            $estadoActual = $pedido->Estado;
+
+            // Guardar los detalles antiguos
+            $detallesAntiguos = $pedido->detallePedidos->toArray();
+
+            // Eliminar los detalles actuales
+            $pedido->detallePedidos()->delete();
+
+            $total = 0;
+            $detallesPedido = [];
+
+            foreach ($request->productos as $productoData) {
+                $producto = Producto::findOrFail($productoData['id']);
+                
+                // Usar el precio_unitario enviado desde el formulario
+                $precioUnitario = $productoData['precio_unitario'];
+                $cantidad = $productoData['cantidad'];
+                $subtotal = $precioUnitario * $cantidad;
+                $total += $subtotal;
+
+                $detallesPedido[] = [
+                    'Producto' => $productoData['id'],
+                    'Cantidad' => $cantidad,
+                    'PrecioUnitario' => $precioUnitario
+                ];
+            }
+
+            // Actualizar el pedido (MANTENIENDO EL ESTADO ACTUAL)
+            $pedido->update([
+                'Fecha_entrega' => $request->Fecha_entrega,
+                'Hora_entrega' => $request->Hora_entrega,
+                'Lugar_entrega' => $request->Lugar_entrega,
+                'Prioridad' => $request->Prioridad,
+                'Total' => $total,
+                'Cliente_idCliente' => $request->Cliente_idCliente,
+                'Empleado_idEmpleado' => $request->Empleado_idEmpleado,
+                'comentario' => $request->comentario
+                // NO SE ACTUALIZA EL ESTADO
             ]);
-        }
-        
-        // LÓGICA DE GESTIÓN DE STOCK MEJORADA:
-        
-        // Caso 1: Si se marca como Completado (desde cualquier estado excepto Completado)
-        if ($request->Estado === 'Completado' && $estadoAnterior !== 'Completado') {
-            foreach ($detallesPedido as $detalle) {
-                $producto = Producto::find($detalle['Producto']);
-                if ($producto) {
-                    // Restar la cantidad del stock
-                    $producto->decrement('Cantidad', $detalle['Cantidad']);
-                }
-            }
-        }
-        
-        // Caso 2: Si se cancela y estaba En proceso
-        elseif ($request->Estado === 'Cancelado' && $estadoAnterior === 'En proceso') {
-            foreach ($detallesPedido as $detalle) {
-                $producto = Producto::find($detalle['Producto']);
-                if ($producto) {
-                    // Restaurar el stock que se había reservado
-                    $producto->increment('Cantidad', $detalle['Cantidad']);
-                }
-            }
-        }
-        
-        // Caso 3: Si se cambia de Completado a Cancelado
-        elseif ($request->Estado === 'Cancelado' && $estadoAnterior === 'Completado') {
-            foreach ($detallesPedido as $detalle) {
-                $producto = Producto::find($detalle['Producto']);
-                if ($producto) {
-                    // Restaurar el stock que se había descontado al completar
-                    $producto->increment('Cantidad', $detalle['Cantidad']);
-                }
-            }
-        }
-        
-        // Caso 4: Si se cambia de Pendiente a En proceso (reservar stock)
-        elseif ($request->Estado === 'En proceso' && $estadoAnterior === 'Pendiente') {
-            foreach ($detallesPedido as $detalle) {
-                $producto = Producto::find($detalle['Producto']);
-                if ($producto) {
-                    // Reservar stock (reducir cantidad disponible)
-                    $producto->decrement('Cantidad', $detalle['Cantidad']);
-                }
-            }
-        }
-        
-        // Caso 5: Si se cambia de En proceso a Pendiente (liberar stock)
-        elseif ($request->Estado === 'Pendiente' && $estadoAnterior === 'En proceso') {
-            foreach ($detallesPedido as $detalle) {
-                $producto = Producto::find($detalle['Producto']);
-                if ($producto) {
-                    // Liberar stock que estaba reservado
-                    $producto->increment('Cantidad', $detalle['Cantidad']);
-                }
-            }
-        }
 
-        DB::commit();
+            // Crear nuevos detalles del pedido
+            foreach ($detallesPedido as $detalle) {
+                DetallePedido::create([
+                    'Producto' => $detalle['Producto'],
+                    'Pedido' => $pedido->id,
+                    'Cantidad' => $detalle['Cantidad'],
+                    'PrecioUnitario' => $detalle['PrecioUnitario']
+                ]);
+            }
 
-        return redirect()->route('pedidos.index')
-                       ->with('success', 'Pedido actualizado exitosamente. Estado: ' . $request->Estado);
+            DB::commit();
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Error al actualizar el pedido: ' . $e->getMessage())->withInput();
+            return redirect()->route('pedidos.index')
+                           ->with('success', 'Pedido #' . $pedido->id . ' actualizado exitosamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar pedido: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar el pedido: ' . $e->getMessage())->withInput();
+        }
     }
-}
+
+    /**
+     * Método separado para cambiar el estado del pedido
+     */
+    public function cambiarEstado(Request $request, $id)
+    {
+        $request->validate([
+            'Estado' => 'required|string|in:Pendiente,En proceso,Completado,Cancelado'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $pedido = Pedido::with('detallePedidos.producto')->findOrFail($id);
+            $estadoAnterior = $pedido->Estado;
+            $nuevoEstado = $request->Estado;
+            
+            $venta = null; // Variable para almacenar la venta si se crea
+
+            // Validaciones de estado
+            if ($estadoAnterior === 'Cancelado' && $nuevoEstado !== 'Cancelado') {
+                throw new \Exception('No se puede modificar un pedido cancelado.');
+            }
+
+            if ($estadoAnterior === 'Completado' && $nuevoEstado !== 'Completado') {
+                throw new \Exception('No se puede modificar un pedido completado.');
+            }
+
+            // Actualizar el estado
+            $pedido->update(['Estado' => $nuevoEstado]);
+
+            // GESTIÓN DE STOCK
+            $detalles = $pedido->detallePedidos;
+            
+            // Si se marca como Completado
+            if ($nuevoEstado === 'Completado' && $estadoAnterior !== 'Completado') {
+                // Verificar stock primero
+                foreach ($detalles as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto && $producto->Cantidad < $detalle->Cantidad) {
+                        throw new \Exception("Stock insuficiente para {$producto->Nombre}. Disponible: {$producto->Cantidad}, Requerido: {$detalle->Cantidad}");
+                    }
+                }
+                
+                // Descontar stock
+                foreach ($detalles as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto) {
+                        $producto->decrement('Cantidad', $detalle->Cantidad);
+                        Log::info("Stock descontado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades");
+                    }
+                }
+                
+                // CREAR VENTA AUTOMÁTICAMENTE USANDO EL TOTAL DEL PEDIDO
+                $venta = $this->crearVentaDesdePedido($pedido);
+            }
+            
+            // Si se cancela y estaba En proceso
+            elseif ($nuevoEstado === 'Cancelado' && $estadoAnterior === 'En proceso') {
+                foreach ($detalles as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto) {
+                        $producto->increment('Cantidad', $detalle->Cantidad);
+                        Log::info("Stock restaurado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades");
+                    }
+                }
+            }
+            
+            // Si se cambia de Pendiente a En proceso
+            elseif ($nuevoEstado === 'En proceso' && $estadoAnterior === 'Pendiente') {
+                foreach ($detalles as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto) {
+                        if ($producto->Cantidad < $detalle->Cantidad) {
+                            throw new \Exception("Stock insuficiente para {$producto->Nombre}. Disponible: {$producto->Cantidad}, Requerido: {$detalle->Cantidad}");
+                        }
+                        $producto->decrement('Cantidad', $detalle->Cantidad);
+                        Log::info("Stock reservado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades");
+                    }
+                }
+            }
+            
+            // Si se cambia de En proceso a Pendiente
+            elseif ($nuevoEstado === 'Pendiente' && $estadoAnterior === 'En proceso') {
+                foreach ($detalles as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto) {
+                        $producto->increment('Cantidad', $detalle->Cantidad);
+                        Log::info("Stock liberado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades");
+                    }
+                }
+            }
+
+            DB::commit();
+
+            // Mensaje personalizado según el estado
+            $mensaje = $nuevoEstado === 'Completado' 
+                ? '✅ Pedido completado exitosamente. Se ha generado la venta #' . $venta->id . ' por un total de $' . number_format($pedido->Total, 2)
+                : '✅ Estado del pedido actualizado a: ' . $nuevoEstado;
+
+            return redirect()->route('pedidos.index')
+                           ->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al cambiar estado del pedido: ' . $e->getMessage());
+            return back()->with('error', 'Error al cambiar estado: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Crear una venta automáticamente cuando un pedido se completa
+     * RESPETA EL TOTAL DEL PEDIDO DIRECTAMENTE
+     */
+    private function crearVentaDesdePedido($pedido)
+    {
+        try {
+            // Verificar si ya existe una venta similar recientemente (para evitar duplicados)
+            $ventaExistente = Venta::where('Fecha', '>=', Carbon::now()->subMinutes(5))
+                ->where('Total', $pedido->Total)
+                ->where('Empleado_idEmpleado', $pedido->Empleado_idEmpleado)
+                ->first();
+                
+            if ($ventaExistente) {
+                Log::info('Ya existe una venta similar recientemente para el pedido ID: ' . $pedido->id);
+                return $ventaExistente;
+            }
+
+            // Crear la venta SOLO con los campos que existen en la tabla ventas
+            // RESPETANDO EL TOTAL DEL PEDIDO DIRECTAMENTE
+            $fechaHoraActual = Carbon::now('America/Mexico_City');
+            
+            Log::info('Creando venta para pedido ID: ' . $pedido->id . ' - Total del pedido: $' . $pedido->Total);
+            
+            $venta = Venta::create([
+                'Fecha' => $fechaHoraActual,
+                'Total' => $pedido->Total, // RESPETA EL TOTAL DEL PEDIDO DIRECTAMENTE
+                'Empleado_idEmpleado' => $pedido->Empleado_idEmpleado
+                // NO incluimos Pedido_id ni comentario porque no existen en la tabla
+            ]);
+
+            Log::info('Venta creada con ID: ' . $venta->id . ' - Total asignado: $' . $venta->Total);
+
+            // Crear los detalles de la venta a partir de los detalles del pedido
+            foreach ($pedido->detallePedidos as $detalle) {
+                DetalleVenta::create([
+                    'Producto' => $detalle->Producto,
+                    'Venta' => $venta->id,
+                    'Cantidad' => $detalle->Cantidad
+                    // El precio se obtiene del producto en el accesor del modelo DetalleVenta
+                ]);
+                
+                Log::info("Detalle de venta creado: Producto {$detalle->Producto}, Cantidad {$detalle->Cantidad}");
+            }
+
+            Log::info('Venta #' . $venta->id . ' creada desde Pedido #' . $pedido->id . ' con total de $' . $pedido->Total);
+
+            return $venta;
+
+        } catch (\Exception $e) {
+            Log::error('Error al crear venta desde pedido: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            throw $e;
+        }
+    }
 
     public function destroy($id)
     {
@@ -351,15 +448,25 @@ class PedidoController extends Controller
 
             $pedido = Pedido::with('detallePedidos')->findOrFail($id);
 
+            // Si el pedido está completado, no se puede eliminar
             if ($pedido->Estado === 'Completado') {
                 return back()->with('error', 'No se puede eliminar un pedido completado.');
             }
 
-            if ($pedido->Estado === 'Cancelado') {
-                return back()->with('error', 'No se puede eliminar un pedido cancelado.');
+            // Si el pedido está en proceso, restaurar stock antes de eliminar
+            if ($pedido->Estado === 'En proceso') {
+                foreach ($pedido->detallePedidos as $detalle) {
+                    $producto = Producto::find($detalle->Producto);
+                    if ($producto) {
+                        $producto->increment('Cantidad', $detalle->Cantidad);
+                    }
+                }
             }
 
+            // Eliminar detalles del pedido
             $pedido->detallePedidos()->delete();
+            
+            // Eliminar el pedido
             $pedido->delete();
 
             DB::commit();
@@ -396,7 +503,8 @@ class PedidoController extends Controller
 
             return response()->json([
                 'success' => true,
-                'detalles' => $detalles
+                'detalles' => $detalles,
+                'comentario' => $pedido->comentario
             ]);
             
         } catch (\Exception $e) {

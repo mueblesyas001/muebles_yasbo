@@ -191,9 +191,12 @@
                                                                 
                                                                 $total = $pedido['total'] ?? 0;
                                                                 $total = is_numeric($total) ? floatval($total) : 0;
+                                                                
+                                                                // Verificar si tiene comentario
+                                                                $tieneComentario = isset($pedido['comentario']) && !empty($pedido['comentario']);
                                                             @endphp
                                                             
-                                                            <div class="pedido-card" 
+                                                            <div class="pedido-card {{ $tieneComentario ? 'has-comentario' : '' }}" 
                                                                  onclick="verDetallePedido({{ $pedidoId }})"
                                                                  style="--bg-color: {{ $bgColor }}; --border-color: {{ $borderColor }};"
                                                                  data-pedido-id="{{ $pedidoId }}">
@@ -225,6 +228,14 @@
                                                                         <span class="prioridad-badge" style="border-color: {{ $borderColor }};">
                                                                             {{ ucfirst($prioridad) }}
                                                                         </span>
+                                                                        @if($tieneComentario)
+                                                                            <span class="comentario-indicador" 
+                                                                                  data-bs-toggle="tooltip" 
+                                                                                  data-bs-placement="top"
+                                                                                  title="Este pedido tiene comentarios">
+                                                                                <i class="fas fa-comment-dots"></i>
+                                                                            </span>
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -287,6 +298,7 @@
                                             <th>Hora Entrega</th>
                                             <th>Total</th>
                                             <th>Estado</th>
+                                            <th>Comentario</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -295,6 +307,7 @@
                                             @php
                                                 $total = $pedido['total'] ?? 0;
                                                 $total = is_numeric($total) ? floatval($total) : 0;
+                                                $tieneComentario = isset($pedido['comentario']) && !empty($pedido['comentario']);
                                             @endphp
                                             <tr>
                                                 <td><strong>#{{ $pedido['id'] ?? 'N/A' }}</strong></td>
@@ -318,6 +331,19 @@
                                                     <span class="badge bg-{{ $color }}">
                                                         {{ ucfirst($estado) }}
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    @if($tieneComentario)
+                                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25" 
+                                                              data-bs-toggle="tooltip" 
+                                                              data-bs-placement="top"
+                                                              title="{{ $pedido['comentario'] ?? 'Tiene comentarios' }}">
+                                                            <i class="fas fa-comment-dots me-1"></i>
+                                                            Ver
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">—</span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <button class="btn btn-sm btn-outline-primary" 
@@ -378,6 +404,16 @@
                                     <small class="text-muted">Entrega estándar</small>
                                 </div>
                             </div>
+                            <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                                <div class="leyenda-color me-3" style="background: #ffc107; opacity: 0.2;"></div>
+                                <div>
+                                    <small class="fw-bold d-block">
+                                        <i class="fas fa-comment-dots text-warning me-1"></i>
+                                        Comentarios
+                                    </small>
+                                    <small class="text-muted">Pedidos con notas especiales</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -386,30 +422,30 @@
     </div>
 </div>
 
-<!-- Modales -->
+<!-- MODAL MEJORADO - CON TÍTULO VISIBLE -->
 <div class="modal fade" id="modalDetallePedido" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content border-0 rounded-4">
-            <div class="modal-header" style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-bottom: none;
-                border-radius: 1rem 1rem 0 0;
-                padding: 1.5rem 2rem;
-            ">
-                <div class="d-flex align-items-center">
-                    <div class="modal-icon me-3">
-                        <i class="fas fa-box-open text-white fa-2x"></i>
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-3">
+            <!-- Header con gradiente visible -->
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-bottom: none;">
+                <div class="d-flex align-items-center w-100">
+                    <div class="bg-white bg-opacity-20 rounded-2 p-2 me-3">
+                        <i class="fas fa-box-open fa-2x text-white"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title text-white mb-0 fw-bold">
-                            Detalles del Pedido #<span id="pedidoId"></span>
+                        <h5 class="modal-title text-white fw-bold mb-0">
+                            Detalles del Pedido #<span id="pedidoId" class="text-white"></span>
                         </h5>
-                        <small class="text-white-80">Información completa del pedido</small>
+                        <small class="text-white opacity-75">
+                            <i class="fas fa-calendar-alt me-1"></i> <span id="fechaModal">{{ now()->format('d/m/Y') }}</span>
+                        </small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" id="detallePedidoContent">
+
+            <!-- Cuerpo del modal -->
+            <div class="modal-body p-4" id="detallePedidoContent" style="max-height: 70vh; overflow-y: auto;">
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                         <span class="visually-hidden">Cargando...</span>
@@ -417,22 +453,33 @@
                     <p class="mt-3 text-muted">Cargando detalles del pedido...</p>
                 </div>
             </div>
+
+            <!-- Footer simple -->
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cerrar
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Modal de pedidos del día mejorado -->
 <div class="modal fade" id="modalPedidosDia" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 rounded-4">
-            <div class="modal-header bg-primary text-white border-0 rounded-top-4">
-                <h5 class="modal-title fw-bold">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-3">
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); border-bottom: none;">
+                <h5 class="modal-title text-white fw-bold">
                     <i class="fas fa-calendar-day me-2"></i>
-                    Pedidos del <span id="fechaDia"></span>
+                    Pedidos del <span id="fechaDia" class="text-white"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="pedidosDiaContent">
-                <!-- Contenido dinámico -->
+            <div class="modal-body p-4" id="pedidosDiaContent">
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Selecciona un día para ver sus pedidos</p>
+                </div>
             </div>
         </div>
     </div>
@@ -440,26 +487,22 @@
 
 <style>
 /* ====== RESET COMPLETO DEL NAVBAR ====== */
-/* Eliminar cualquier efecto del navbar en esta vista */
 body {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
 
-/* Si el navbar tiene fixed-top, lo convertimos a static */
 .navbar.fixed-top {
     position: static !important;
     top: auto !important;
     z-index: auto !important;
 }
 
-/* Asegurar que no haya elementos superpuestos */
 .calendar-container {
     position: relative;
     z-index: 1;
 }
 
-/* Header normal */
 .bg-white.border-bottom.shadow-sm {
     position: static;
     top: auto;
@@ -486,12 +529,11 @@ body {
     transform: scale(1.1);
 }
 
-/* Calendario */
 .calendar-header-days {
     background: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
     position: sticky;
-    top: 0; /* Se pega al top del contenedor */
+    top: 0;
     z-index: 10;
 }
 
@@ -539,7 +581,6 @@ body {
     border-right: none;
 }
 
-/* Encabezado del día */
 .day-header {
     margin-bottom: 0.75rem;
 }
@@ -572,7 +613,6 @@ body {
     text-align: center;
 }
 
-/* Tarjetas de pedidos */
 .pedidos-container {
     max-height: 140px;
     overflow-y: auto;
@@ -605,6 +645,18 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     position: relative;
     overflow: hidden;
+}
+
+.pedido-card.has-comentario::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: #ffc107;
+    border-radius: 0 0 0 20px;
+    opacity: 0.3;
 }
 
 .pedido-card::before {
@@ -661,6 +713,7 @@ body {
 .pedido-footer {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 
 .estado-badge, .prioridad-badge {
@@ -678,12 +731,17 @@ body {
     color: var(--border-color, #0d6efd);
 }
 
+.comentario-indicador {
+    color: #ffc107;
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+
 .more-pedidos .btn {
     font-size: 0.8rem;
     padding: 0.25rem 0.75rem;
 }
 
-/* Leyenda */
 .leyenda-color {
     width: 24px;
     height: 24px;
@@ -691,12 +749,66 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Table */
 .table-hover tbody tr:hover {
     background: rgba(13, 110, 253, 0.05);
 }
 
-/* Responsive */
+/* Estilos adicionales para el modal */
+.bg-opacity-20 {
+    --bs-bg-opacity: 0.2;
+}
+
+.opacity-75 {
+    opacity: 0.75;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-day {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.pedido-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.7s;
+}
+
+.pedido-card:hover::after {
+    left: 100%;
+}
+
+.calendar-day.weekend {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.calendar-day.today {
+    animation: pulseToday 2s infinite;
+}
+
+@keyframes pulseToday {
+    0%, 100% {
+        box-shadow: inset 0 0 0 1px #ffc107;
+    }
+    50% {
+        box-shadow: inset 0 0 0 1px #ffc107, 0 0 15px rgba(255, 193, 7, 0.2);
+    }
+}
+
 @media (max-width: 768px) {
     .calendar-week {
         min-height: 150px;
@@ -715,101 +827,29 @@ body {
         font-size: 0.7rem;
     }
 }
-
-/* Animaciones */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.calendar-day {
-    animation: fadeInUp 0.5s ease-out;
-}
-
-/* Efecto de brillo en hover */
-.pedido-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.7s;
-}
-
-.pedido-card:hover::after {
-    left: 100%;
-}
-
-/* Días de fin de semana */
-.calendar-day.weekend {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-/* Efecto de resaltado para día actual */
-.calendar-day.today {
-    animation: pulseToday 2s infinite;
-}
-
-@keyframes pulseToday {
-    0%, 100% {
-        box-shadow: inset 0 0 0 1px #ffc107;
-    }
-    50% {
-        box-shadow: inset 0 0 0 1px #ffc107, 0 0 15px rgba(255, 193, 7, 0.2);
-    }
-}
 </style>
 
 @push('scripts')
 <script>
-// SOLUCIÓN DEFINITIVA PARA EL NAVBAR
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Identificar el navbar
-    const navbar = document.querySelector('.navbar');
-    
-    if (navbar) {
-        console.log('Navbar encontrado:', navbar);
-        
-        // 2. Quitar clases que causen problemas
-        navbar.classList.remove('fixed-top');
-        navbar.classList.remove('sticky-top');
-        
-        // 3. Aplicar estilos seguros
-        navbar.style.position = 'static';
-        navbar.style.top = 'auto';
-        navbar.style.zIndex = '1';
-        
-        // 4. Asegurar que el body no tenga padding
-        document.body.style.paddingTop = '0';
-        document.body.style.marginTop = '0';
-        
-        // 5. Verificar si hay otros elementos fixed
-        document.querySelectorAll('*').forEach(el => {
-            const style = window.getComputedStyle(el);
-            if (style.position === 'fixed') {
-                console.log('Elemento fixed encontrado:', el);
-                el.style.position = 'relative';
-            }
-        });
-    }
-    
-    // 6. Inicializar tooltips
+    // Inicializar tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+    
+    // Efecto hover en tarjetas de pedido
+    document.querySelectorAll('.pedido-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
 });
 
-// FUNCIÓN MEJORADA CON ESTILOS Y SOLUCIÓN DE DATOS
-// FUNCIÓN SIMPLIFICADA QUE FUNCIONA MEJOR
 function verDetallePedido(pedidoId) {
     if (!pedidoId || pedidoId === 0) {
         showNotification('ID de pedido inválido', 'error');
@@ -819,7 +859,6 @@ function verDetallePedido(pedidoId) {
     const modal = new bootstrap.Modal(document.getElementById('modalDetallePedido'));
     document.getElementById('pedidoId').textContent = pedidoId;
     
-    // Mostrar loading simple
     document.getElementById('detallePedidoContent').innerHTML = `
         <div class="text-center py-5">
             <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
@@ -831,12 +870,8 @@ function verDetallePedido(pedidoId) {
     
     modal.show();
 
-    // URL usando la ruta de Laravel
     const url = "{{ route('calendario.pedido.detalle', ':id') }}".replace(':id', pedidoId);
     
-    console.log('Solicitando detalles del pedido:', url);
-    
-    // Realizar la petición
     fetch(url)
     .then(response => {
         if (!response.ok) {
@@ -845,166 +880,8 @@ function verDetallePedido(pedidoId) {
         return response.json();
     })
     .then(data => {
-        console.log('Datos recibidos:', data);
-        
         if (data.success) {
-            // Agregar los estilos CSS directamente
-            const styles = `
-            <style>
-                .detalle-completo {
-                    padding: 20px;
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    border-radius: 12px;
-                }
-                
-                .seccion-pedido, .seccion-cliente, .seccion-productos, .seccion-notas {
-                    background: white;
-                    padding: 25px;
-                    margin-bottom: 20px;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-                    border-left: 5px solid;
-                }
-                
-                .seccion-pedido {
-                    border-left-color: #667eea;
-                }
-                
-                .seccion-cliente {
-                    border-left-color: #4facfe;
-                }
-                
-                .seccion-productos {
-                    border-left-color: #43e97b;
-                }
-                
-                .seccion-notas {
-                    border-left-color: #ff9a9e;
-                }
-                
-                .titulo-seccion {
-                    color: #495057;
-                    font-weight: 600;
-                    margin-bottom: 20px;
-                    padding-bottom: 10px;
-                    border-bottom: 2px solid #dee2e6;
-                    font-size: 1.1rem;
-                }
-                
-                .info-item {
-                    margin-bottom: 15px;
-                    padding: 10px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    transition: all 0.3s ease;
-                }
-                
-                .info-item:hover {
-                    background: #e9ecef;
-                    transform: translateX(5px);
-                }
-                
-                .info-label {
-                    display: block;
-                    font-size: 0.85rem;
-                    color: #6c757d;
-                    font-weight: 500;
-                    margin-bottom: 5px;
-                }
-                
-                .info-value {
-                    display: block;
-                    font-size: 1rem;
-                    color: #212529;
-                    font-weight: 600;
-                }
-                
-                .tabla-productos {
-                    width: 100%;
-                    background: white;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                }
-                
-                .tabla-productos thead {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                }
-                
-                .tabla-productos th {
-                    border: none;
-                    padding: 15px;
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                }
-                
-                .tabla-productos tbody tr {
-                    border-bottom: 1px solid #e9ecef;
-                    transition: background-color 0.3s ease;
-                }
-                
-                .tabla-productos tbody tr:hover {
-                    background-color: rgba(102, 126, 234, 0.05);
-                }
-                
-                .tabla-productos td {
-                    padding: 15px;
-                    vertical-align: middle;
-                }
-                
-                .total-row {
-                    background: #f8f9fa;
-                    font-size: 1.1rem;
-                }
-                
-                .total-pedido {
-                    color: #198754;
-                    font-size: 1.2rem;
-                }
-                
-                .observacion-box {
-                    background: #fff3cd;
-                    padding: 20px;
-                    border-radius: 8px;
-                    border-left: 4px solid #ffc107;
-                    font-style: italic;
-                }
-                
-                .estado-badge, .prioridad-badge {
-                    padding: 8px 16px;
-                    font-size: 0.9rem;
-                    border-radius: 20px;
-                    font-weight: 600;
-                }
-                
-                .badge.bg-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%) !important; }
-                .badge.bg-warning { background: linear-gradient(135deg, #ffd93d 0%, #ffb347 100%) !important; }
-                .badge.bg-success { background: linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%) !important; }
-                .badge.bg-primary { background: linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%) !important; }
-                .badge.bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
-                
-                @media (max-width: 768px) {
-                    .detalle-completo {
-                        padding: 10px;
-                    }
-                    
-                    .seccion-pedido, .seccion-cliente, .seccion-productos, .seccion-notas {
-                        padding: 15px;
-                    }
-                    
-                    .tabla-productos th, 
-                    .tabla-productos td {
-                        padding: 8px;
-                        font-size: 0.85rem;
-                    }
-                }
-            </style>
-            `;
-            
-            // Insertar los estilos y el contenido
-            document.getElementById('detallePedidoContent').innerHTML = styles + data.html;
-            
+            document.getElementById('detallePedidoContent').innerHTML = data.html;
         } else {
             document.getElementById('detallePedidoContent').innerHTML = `
                 <div class="alert alert-danger m-4">
@@ -1027,200 +904,14 @@ function verDetallePedido(pedidoId) {
                     <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
                     <div>
                         <h5 class="alert-heading">Error de conexión</h5>
-                        <p class="mb-0">No se pudo conectar con el servidor. Verifica:</p>
-                        <ul class="mt-2 mb-0">
-                            <li>Que tengas conexión a internet</li>
-                            <li>Que el servidor esté funcionando</li>
-                            <li>Que la ruta exista: ${url}</li>
-                        </ul>
+                        <p class="mb-0">No se pudo conectar con el servidor.</p>
                     </div>
                 </div>
             </div>
         `;
     });
 }
-// Función para mostrar error en modal
-function showErrorModal(message) {
-    document.getElementById('detallePedidoContent').innerHTML = `
-        <div class="error-container p-5 text-center">
-            <div class="error-icon mb-4">
-                <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
-            </div>
-            <h4 class="text-danger fw-bold mb-3">¡Error!</h4>
-            <p class="text-muted mb-4">${message}</p>
-            <button class="btn btn-primary" onclick="verDetallePedido(${document.getElementById('pedidoId').textContent})">
-                <i class="fas fa-redo me-2"></i>Reintentar
-            </button>
-        </div>
-    `;
-}
 
-// Función para agregar estilos personalizados
-function addCustomStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        /* Estilos personalizados para detalles del pedido */
-        .detalle-pedido-container {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 500px;
-        }
-        
-        .card {
-            border-radius: 12px;
-            border: none;
-            transition: transform 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-header.bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px 12px 0 0 !important;
-        }
-        
-        .card-header.bg-gradient-info {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 12px 12px 0 0 !important;
-        }
-        
-        .card-header.bg-gradient-success {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            border-radius: 12px 12px 0 0 !important;
-        }
-        
-        .table-details {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .table-details th {
-            background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-            font-weight: 600;
-            color: #495057;
-            padding: 0.75rem;
-        }
-        
-        .table-details td {
-            padding: 0.75rem;
-            vertical-align: middle;
-            border-color: #e9ecef;
-        }
-        
-        .table-details tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .products-table {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .products-table thead {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-        }
-        
-        .products-table th {
-            border: none;
-            font-weight: 600;
-            padding: 1rem;
-        }
-        
-        .products-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-        
-        .products-table tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05);
-        }
-        
-        .products-table td {
-            padding: 1rem;
-            border-color: #e9ecef;
-        }
-        
-        .products-table tfoot {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-        
-        .detail-label {
-            color: #6c757d;
-            font-weight: 600;
-            width: 40%;
-        }
-        
-        .detail-value {
-            color: #212529;
-            font-weight: 500;
-        }
-        
-        .section-title {
-            color: #495057;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #dee2e6;
-        }
-        
-        .badge {
-            padding: 0.5em 1em;
-            font-size: 0.85em;
-            border-radius: 20px;
-        }
-        
-        .loading-container {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .error-container {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .detalle-pedido-container {
-                padding: 1rem;
-            }
-            
-            .card-body {
-                padding: 1rem;
-            }
-            
-            .products-table th,
-            .products-table td {
-                padding: 0.5rem;
-                font-size: 0.9rem;
-            }
-        }
-    `;
-    
-    // Solo agregar si no existe ya
-    if (!document.getElementById('pedido-detalle-styles')) {
-        style.id = 'pedido-detalle-styles';
-        document.head.appendChild(style);
-    }
-}
-
-// Función para ver pedidos del día
 function verPedidosDia(fecha) {
     if (!fecha) {
         showNotification('Fecha no especificada', 'error');
@@ -1263,25 +954,6 @@ function verPedidosDia(fecha) {
     }, 1000);
 }
 
-// Funciones adicionales
-function imprimirDetalles() {
-    window.print();
-}
-
-function marcarComoCompletado(pedidoId) {
-    if (confirm('¿Marcar este pedido como completado?')) {
-        showNotification('Pedido marcado como completado', 'success');
-        // Aquí iría la lógica para actualizar el estado del pedido
-    }
-}
-
-function editarPedido(pedidoId) {
-    showNotification('Redirigiendo a edición del pedido...', 'info');
-    // Aquí iría la lógica para redirigir a la edición del pedido
-    // window.location.href = `/pedidos/${pedidoId}/edit`;
-}
-
-// Función para mostrar notificaciones
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -1312,44 +984,6 @@ function showNotification(message, type = 'info') {
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-// Agregar estilos de animación
-const animationStyle = document.createElement('style');
-animationStyle.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`;
-document.head.appendChild(animationStyle);
-
-// Efecto hover en tarjetas de pedido
-document.querySelectorAll('.pedido-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateX(5px)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateX(0)';
-    });
-});
 </script>
 @endpush
 @endsection

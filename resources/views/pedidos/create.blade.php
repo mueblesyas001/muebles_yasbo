@@ -99,6 +99,37 @@
                         </div>
                     </div>
 
+                    <!-- NUEVO: Campo de Comentario -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-comment-dots me-2"></i>Comentarios del Pedido
+                            </h5>
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Aquí puedes agregar notas especiales como cambios de color, dimensiones personalizadas, instrucciones de entrega, etc.
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="comentario" class="form-label">
+                                Comentarios / Notas especiales
+                                <span class="text-muted small">(opcional)</span>
+                            </label>
+                            <textarea class="form-control @error('comentario') is-invalid @enderror" 
+                                      id="comentario" 
+                                      name="comentario" 
+                                      rows="4" 
+                                      placeholder="Ej: El cliente quiere el mueble en color caoba en lugar de negro. Las dimensiones son 2m de alto en lugar de 1.80m. El respaldo debe ser acolchado en tela gris.">{{ old('comentario') }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-lightbulb text-warning me-1"></i>
+                                Sé específico con los detalles para evitar confusiones en la producción y entrega.
+                            </div>
+                            @error('comentario')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <!-- Selección de Productos -->
                     <div class="row mb-4">
                         <div class="col-12">
@@ -110,6 +141,10 @@
                                     <i class="fas fa-plus me-1"></i> Agregar Producto
                                 </button>
                             </div>
+                            <div class="alert alert-warning border-0 bg-warning bg-opacity-10 mb-3" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                El precio se puede editar manualmente en caso de modificaciones o personalizaciones.
+                            </div>
                         </div>
 
                         <div class="col-12">
@@ -118,8 +153,8 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th width="35%">Producto</th>
-                                            <th width="20%">Precio Unitario</th>
-                                            <th width="20%">Cantidad</th>
+                                            <th width="20%">Precio Unitario *</th>
+                                            <th width="20%">Cantidad *</th>
                                             <th width="15%">Subtotal</th>
                                             <th width="10%">Acciones</th>
                                         </tr>
@@ -195,22 +230,33 @@
                     <option value="{{ $producto->id }}" 
                             data-precio="{{ $producto->Precio }}"
                             data-nombre="{{ $producto->Nombre }}">
-                        {{ $producto->Nombre }} <!-- SOLO EL NOMBRE -->
+                        {{ $producto->Nombre }} - Precio base: ${{ number_format($producto->Precio, 2) }}
                     </option>
                 @endforeach
             </select>
         </td>
         <td>
-            <input type="text" class="form-control precio-unitario" readonly>
-            <!-- INPUT OCULTO PARA PRECIO UNITARIO -->
-            <input type="hidden" class="input-precio-unitario" name="productos[INDEX][precio_unitario]">
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" 
+                       class="form-control precio-unitario" 
+                       name="productos[INDEX][precio_unitario]" 
+                       step="0.01" 
+                       min="0" 
+                       value="0"
+                       required>
+            </div>
+            <small class="text-muted precio-base-indicator"></small>
         </td>
         <td>
             <input type="number" class="form-control cantidad" name="productos[INDEX][cantidad]" 
                    min="1" value="1" required>
         </td>
         <td>
-            <input type="text" class="form-control subtotal" readonly>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control subtotal" readonly value="0.00">
+            </div>
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar">
@@ -266,6 +312,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         • Fecha de entrega: <strong>${datosPedido.fechaEntrega}</strong><br>
                         • Prioridad: <strong>${datosPedido.prioridad}</strong>
                     </div>
+                    ${datosPedido.tieneComentario ? `
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-comment-dots me-2"></i>
+                        <strong>Comentario:</strong><br>
+                        <small>${datosPedido.comentario}</small>
+                    </div>
+                    ` : ''}
                 </div>
             `,
             icon: 'question',
@@ -310,8 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para inicializar eventos de una fila
     function inicializarEventosFila(fila, index) {
         const selectProducto = fila.querySelector('.select-producto');
-        const displayPrecio = fila.querySelector('.precio-unitario');
-        const inputPrecioUnitario = fila.querySelector('.input-precio-unitario');
+        const inputPrecio = fila.querySelector('.precio-unitario');
+        const precioBaseIndicator = fila.querySelector('.precio-base-indicator');
         const inputCantidad = fila.querySelector('.cantidad');
         const displaySubtotal = fila.querySelector('.subtotal');
         const btnEliminar = fila.querySelector('.btn-eliminar');
@@ -320,10 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selectProducto.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const productoId = this.value;
-            const precio = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
+            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
             const nombre = selectedOption ? selectedOption.getAttribute('data-nombre') : '';
-
-            console.log('Producto seleccionado:', { productoId, precio, nombre, index });
 
             if (productoId && productoId !== '') {
                 // Verificar si el producto ya fue seleccionado
@@ -341,11 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 productosSeleccionados.add(productoId);
                 
-                // ACTUALIZAR PRECIO UNITARIO (display y hidden input)
-                displayPrecio.value = '$' + precio.toFixed(2);
-                inputPrecioUnitario.value = precio; // Guardar el precio real para el formulario
+                // Establecer precio base como valor inicial
+                inputPrecio.value = precioBase.toFixed(2);
                 
-                // Calcular subtotal inicial
+                // Mostrar precio base como referencia
+                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
+                
+                // Calcular subtotal
                 calcularSubtotal();
             } else {
                 limpiarFila();
@@ -355,13 +408,14 @@ document.addEventListener('DOMContentLoaded', function() {
             actualizarResumen();
         });
 
-        // Eventos para cantidad
-        inputCantidad.addEventListener('input', function() {
+        // Evento para cambio de precio
+        inputPrecio.addEventListener('input', function() {
             calcularSubtotal();
             actualizarResumen();
         });
 
-        inputCantidad.addEventListener('change', function() {
+        // Evento para cantidad
+        inputCantidad.addEventListener('input', function() {
             calcularSubtotal();
             actualizarResumen();
         });
@@ -393,19 +447,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         function limpiarFila() {
-            displayPrecio.value = '';
-            inputPrecioUnitario.value = '';
-            displaySubtotal.value = '';
+            inputPrecio.value = '0';
+            precioBaseIndicator.textContent = '';
+            displaySubtotal.value = '0.00';
             inputCantidad.value = '1';
         }
 
         function calcularSubtotal() {
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
-            const precio = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) : 0;
+            const precio = parseFloat(inputPrecio.value) || 0;
             const cantidad = parseInt(inputCantidad.value) || 0;
             const subtotal = precio * cantidad;
             
-            displaySubtotal.value = '$' + subtotal.toFixed(2);
+            displaySubtotal.value = subtotal.toFixed(2);
         }
     }
 
@@ -434,12 +487,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         filas.forEach(fila => {
             const selectProducto = fila.querySelector('.select-producto');
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
+            const precio = parseFloat(fila.querySelector('.precio-unitario').value) || 0;
             const cantidad = parseInt(fila.querySelector('.cantidad').value) || 0;
             const productoSeleccionado = selectProducto.value;
             
-            if (productoSeleccionado && productoSeleccionado !== '' && selectedOption) {
-                const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+            if (productoSeleccionado && productoSeleccionado !== '') {
                 const subtotal = precio * cantidad;
                 
                 totalPedido += subtotal;
@@ -497,6 +549,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             lugarEntrega.classList.remove('is-invalid');
         }
+
+        // Validar comentario
+        const comentario = document.getElementById('comentario');
+        if (comentario.value && comentario.value.length > 1000) {
+            isValid = false;
+            errores.push('• El comentario no puede exceder los 1000 caracteres.');
+            comentario.classList.add('is-invalid');
+        } else {
+            comentario.classList.remove('is-invalid');
+        }
         
         // Validar productos
         const filasProductos = cuerpoTabla.querySelectorAll('.fila-producto');
@@ -508,8 +570,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let productosValidos = 0;
         filasProductos.forEach(fila => {
             const selectProducto = fila.querySelector('.select-producto');
+            const inputPrecio = fila.querySelector('.precio-unitario');
             const inputCantidad = fila.querySelector('.cantidad');
             const productoId = selectProducto.value;
+            const precio = parseFloat(inputPrecio.value) || 0;
             const cantidad = parseInt(inputCantidad.value) || 0;
             const selectedOption = selectProducto.options[selectProducto.selectedIndex];
             const productoNombre = selectedOption ? selectedOption.getAttribute('data-nombre') : 'Producto';
@@ -520,6 +584,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 errores.push(`• Hay productos sin seleccionar.`);
             } else {
                 selectProducto.classList.remove('is-invalid');
+                
+                if (precio <= 0) {
+                    isValid = false;
+                    inputPrecio.classList.add('is-invalid');
+                    errores.push(`• El precio para "${productoNombre}" debe ser mayor a 0.`);
+                } else {
+                    inputPrecio.classList.remove('is-invalid');
+                }
                 
                 if (cantidad < 1) {
                     isValid = false;
@@ -548,12 +620,15 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             mostrarError(mensajeErrores);
         } else {
+            const comentario = document.getElementById('comentario').value;
             const datosPedido = {
                 total: document.getElementById('montoTotal').textContent,
                 totalProductos: document.getElementById('totalProductos').textContent,
                 totalUnidades: document.getElementById('totalUnidades').textContent,
                 fechaEntrega: document.getElementById('fecha_entrega').value,
-                prioridad: document.getElementById('prioridad').options[document.getElementById('prioridad').selectedIndex].text
+                prioridad: document.getElementById('prioridad').options[document.getElementById('prioridad').selectedIndex].text,
+                tieneComentario: comentario.trim() !== '',
+                comentario: comentario.trim() ? comentario.substring(0, 150) + (comentario.length > 150 ? '...' : '') : ''
             };
             
             mostrarConfirmacionPedido(datosPedido);
@@ -607,7 +682,8 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-.form-control:focus {
+.form-control:focus,
+.input-group-text:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
@@ -626,8 +702,55 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
 }
 
-.text-sm {
+/* Estilos para los inputs de precio */
+.input-group .input-group-text {
+    background-color: #e9ecef;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-color: #ced4da #ced4da #ced4da #007bff;
+}
+
+/* Precio base indicator */
+.precio-base-indicator {
+    display: block;
+    margin-top: 0.25rem;
     font-size: 0.75rem;
+}
+
+/* Estilo para el campo de comentario */
+#comentario {
+    resize: vertical;
+    min-height: 100px;
+    background-color: #fff9e6;
+    border: 1px solid #ffc107;
+}
+
+#comentario:focus {
+    background-color: #fff;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Alert de información */
+.alert-info.bg-opacity-10,
+.alert-warning.bg-opacity-10 {
+    border-left: 4px solid;
+}
+
+.alert-info.bg-opacity-10 {
+    background-color: rgba(13, 202, 240, 0.1) !important;
+    border-left-color: #0dcaf0;
+}
+
+.alert-warning.bg-opacity-10 {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border-left-color: #ffc107;
 }
 
 /* Estilos para loading */
@@ -638,6 +761,27 @@ document.addEventListener('DOMContentLoaded', function() {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Tooltip para el campo de comentario */
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.form-text i {
+    font-size: 0.9rem;
+}
+
+/* Resaltar precio editable */
+.precio-unitario {
+    background-color: #fff3cd !important;
+    font-weight: 500;
+}
+
+.precio-unitario:focus {
+    background-color: #fff !important;
 }
 </style>
 @endsection

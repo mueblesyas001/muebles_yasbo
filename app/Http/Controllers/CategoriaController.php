@@ -126,12 +126,38 @@ class CategoriaController extends Controller
             ->with('success', 'Categoría actualizada exitosamente.');
     }
 
-    public function destroy($id)
-    {
-        $categoria = Categoria::findOrFail($id);
-        $categoria->delete();
-
-        return redirect()->route('categorias.index')
-            ->with('success', 'Categoría eliminada exitosamente.');
+    public function destroy($id){
+        try {
+            $categoria = Categoria::findOrFail($id);
+            
+            // Verificar si tiene productos asociados
+            if ($categoria->productos()->count() > 0) {
+                return redirect()->route('categorias.index')
+                    ->with('foreign_key_error', 'No se puede eliminar la categoría "' . $categoria->Nombre . '" porque tiene ' . $categoria->productos()->count() . ' productos asociados.')
+                    ->with('categoria_nombre', $categoria->Nombre)
+                    ->with('productos_count', $categoria->productos()->count());
+            }
+            
+            $categoria->delete();
+            
+            return redirect()->route('categorias.index')
+                ->with('success', 'Categoría eliminada correctamente.');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Capturar error de foreign key
+            if ($e->errorInfo[1] == 1451) {
+                return redirect()->route('categorias.index')
+                    ->with('foreign_key_error', 'No se puede eliminar la categoría porque tiene productos asociados.')
+                    ->with('categoria_nombre', $categoria->Nombre ?? '')
+                    ->with('productos_count', $categoria->productos()->count() ?? 0);
+            }
+            
+            return redirect()->route('categorias.index')
+                ->with('error', 'Error al eliminar la categoría: ' . $e->getMessage());
+                
+        } catch (\Exception $e) {
+            return redirect()->route('categorias.index')
+                ->with('error', 'Error al eliminar la categoría: ' . $e->getMessage());
+        }
     }
 }

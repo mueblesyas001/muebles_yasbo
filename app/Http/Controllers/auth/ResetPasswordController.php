@@ -72,7 +72,6 @@ class ResetPasswordController extends Controller
             ])->withInput();
         }
         
-        // Buscar usuario
         $usuario = Usuario::where('correo', $request->email)->first();
         
         if (!$usuario) {
@@ -82,18 +81,24 @@ class ResetPasswordController extends Controller
             ])->withInput();
         }
         
-        // Actualizar contraseña
-        $usuario->update([
-            'password' => Hash::make($request->password),
-            'updated_at' => now()
-        ]);
+        try {
+            $usuario->contrasena = Hash::make($request->password);
+            $usuario->updated_at = now();
+            $usuario->save();
+            
+            Log::info('Contraseña actualizada exitosamente para: ' . $request->email . ' - Hash: ' . $usuario->contrasena);
+            
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar contraseña: ' . $e->getMessage());
+            return back()->withErrors([
+                'error' => 'Error al actualizar la contraseña. Intenta de nuevo.'
+            ])->withInput();
+        }
         
         // Eliminar token usado
         DB::table('password_resets')
             ->where('email', $request->email)
             ->delete();
-        
-        Log::info('Contraseña actualizada exitosamente para: ' . $request->email);
         
         // Redirigir con mensaje de éxito
         return redirect()->route('login')

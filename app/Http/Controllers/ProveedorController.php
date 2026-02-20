@@ -19,13 +19,14 @@ class ProveedorController extends Controller
         if ($request->filled('nombre')) {
             $query->where(function($q) use ($request) {
                 $q->where('Nombre', 'LIKE', '%' . $request->nombre . '%')
-                ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
-                ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
+                  ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
+                  ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
             });
         }
         
+        // CORRECCIÓN: Aquí debe ser 'empresa' que viene del formulario
         if ($request->filled('empresa')) {
-            $query->where('Empresa_asociada', $request->empresa);
+            $query->where('Empresa_asociada', 'LIKE', '%' . $request->empresa . '%');
         }
         
         if ($request->filled('correo')) {
@@ -61,19 +62,16 @@ class ProveedorController extends Controller
             ->values()
             ->toArray();
         
-        // Obtener todos los proveedores sin filtros para estadísticas
-        $proveedoresTodos = Proveedor::with('compras')->get();
-        
         // Paginación
         $proveedoresPaginated = $query->paginate(10)->appends($request->query());
         
-        // Proveedores filtrados sin paginación para estadísticas
+        // Obtener proveedores filtrados sin paginación para estadísticas
+        // USAMOS LA MISMA CONSULTA PERO SIN PAGINAR
         $proveedoresFiltrados = $query->get();
         
         return view('proveedores.index', compact(
             'proveedoresPaginated',
             'proveedoresFiltrados',
-            'proveedoresTodos',
             'empresasUnicas'
         ));
     }
@@ -88,7 +86,7 @@ class ProveedorController extends Controller
         $request->validate([
             'Nombre' => 'required|string|max:255',
             'ApPaterno' => 'required|string|max:255',
-            'ApMaterno' => 'required|string|max:255', // Cambiado a required
+            'ApMaterno' => 'required|string|max:255',
             'Telefono' => 'required|string|max:10',
             'Empresa_asociada' => 'required|string|max:255',
             'Correo' => 'required|email|max:255',
@@ -112,7 +110,7 @@ class ProveedorController extends Controller
         $request->validate([
             'Nombre' => 'required|string|max:255',
             'ApPaterno' => 'required|string|max:255',
-            'ApMaterno' => 'required|string|max:255', // Cambiado a required
+            'ApMaterno' => 'required|string|max:255',
             'Telefono' => 'required|string|max:10',
             'Empresa_asociada' => 'required|string|max:255',
             'Correo' => 'required|email|max:255',
@@ -128,10 +126,38 @@ class ProveedorController extends Controller
 
     public function destroy($id)
     {
-        $proveedor = Proveedor::findOrFail($id);
-        $proveedor->delete();
+        try {
+            $proveedor = Proveedor::findOrFail($id);
+            
+            // Verificar si tiene compras asociadas
+            if ($proveedor->compras()->count() > 0) {
+                return redirect()->route('proveedores.index')
+                    ->with('foreign_key_error', [
+                        'mensaje' => 'No se puede eliminar el proveedor "' . $proveedor->Nombre . ' ' . $proveedor->ApPaterno . '" porque tiene ' . $proveedor->compras()->count() . ' compras asociadas.',
+                        'proveedor_nombre' => $proveedor->Nombre . ' ' . $proveedor->ApPaterno,
+                        'proveedor_id' => $proveedor->id,
+                        'compras_count' => $proveedor->compras()->count()
+                    ]);
+            }
+            
+            $proveedor->delete();
+            
+            return redirect()->route('proveedores.index')
+                ->with('success', 'Proveedor eliminado exitosamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('proveedores.index')
+                ->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
+        }
+    }
 
-        return redirect()->route('proveedores.index')
-            ->with('success', 'Proveedor eliminado exitosamente.');
+    public function verificarCompras($id)
+    {
+        $proveedor = Proveedor::withCount('compras')->findOrFail($id);
+        
+        return response()->json([
+            'tieneCompras' => $proveedor->compras_count > 0,
+            'comprasCount' => $proveedor->compras_count
+        ]);
     }
 }

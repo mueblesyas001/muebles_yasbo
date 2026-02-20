@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Reporte de Inventario | Documento Ejecutivo</title>
+    <title>Reporte de Compras | Documento Ejecutivo</title>
     <style>
         /* ===== ESTILO CORPORATIVO DE ALTA GAMA ===== */
         * {
@@ -54,6 +54,13 @@
             border-bottom: 1px solid #dcdde1;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+        }
+        
+        h3 {
+            font-size: 11pt;
+            font-weight: 400;
+            color: #2c3e50;
+            margin: 25px 0 15px 0;
         }
         
         /* ===== ENCABEZADO MINIMALISTA ===== */
@@ -236,7 +243,7 @@
         .legend-dot.primary { background: #2c3e50; }
         .legend-dot.secondary { background: #95a5a6; }
         .legend-dot.accent { background: #e67e22; }
-        .legend-dot.danger { background: #c0392b; }
+        .legend-dot.info { background: #3498db; }
         
         /* ===== BARRAS GRANDES Y CLARAS ===== */
         .chart-content {
@@ -285,6 +292,14 @@
             top: auto;
         }
         
+        .bar-fill.accent {
+            background: #e67e22;
+        }
+        
+        .bar-fill.info {
+            background: #3498db;
+        }
+        
         .chart-value {
             width: 25%;
             font-size: 10pt;
@@ -298,20 +313,6 @@
             font-size: 8pt;
             color: #95a5a6;
             margin-left: 5px;
-        }
-        
-        .dual-indicator {
-            margin-top: 5px;
-            height: 12px;
-            background: #f5f6fa;
-            position: relative;
-        }
-        
-        .dual-indicator .fill {
-            height: 12px;
-            background: #95a5a6;
-            position: absolute;
-            left: 0;
         }
         
         .chart-footer {
@@ -333,52 +334,6 @@
             color: #2c3e50;
             margin: 0 5px;
         }
-        
-        /* ===== ALERTAS Y ESTADOS ===== */
-        .alert-card {
-            margin: 25px 0;
-            border: 1px solid #ecf0f1;
-        }
-        
-        .alert-header {
-            background: #f5f6fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #ecf0f1;
-            font-size: 11pt;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .alert-content {
-            padding: 20px;
-        }
-        
-        .alert-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-        
-        .alert-item {
-            text-align: center;
-        }
-        
-        .alert-item .label {
-            font-size: 8pt;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        
-        .alert-item .value {
-            font-size: 18pt;
-            font-weight: 200;
-            color: #2c3e50;
-        }
-        
-        .alert-item .value.warning { color: #e67e22; }
-        .alert-item .value.danger { color: #c0392b; }
         
         /* ===== SPOTLIGHT ===== */
         .spotlight {
@@ -444,38 +399,8 @@
             color: #34495e;
         }
         
-        /* Estados de stock */
-        .stock-status {
-            display: inline-block;
-            padding: 3px 8px;
-            font-size: 6pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-radius: 2px;
-        }
-        
-        .stock-critical {
-            background: #fdeded;
-            color: #c0392b;
-            border-left: 2px solid #c0392b;
-        }
-        
-        .stock-low {
-            background: #fff4e6;
-            color: #e67e22;
-            border-left: 2px solid #e67e22;
-        }
-        
-        .stock-medium {
-            background: #f5f6fa;
-            color: #7f8c8d;
-            border-left: 2px solid #7f8c8d;
-        }
-        
-        .stock-optimal {
-            background: #e8f5e9;
-            color: #27ae60;
-            border-left: 2px solid #27ae60;
+        .table-compact td {
+            padding: 6px 8px;
         }
         
         .rank {
@@ -511,8 +436,8 @@
             letter-spacing: 0.5px;
         }
         
-        .badge-danger {
-            background: #c0392b;
+        .badge-info {
+            background: #3498db;
             color: #ffffff;
             padding: 3px 8px;
             font-size: 6pt;
@@ -520,18 +445,13 @@
             letter-spacing: 0.5px;
         }
         
-        .micro-bar {
-            display: inline-block;
-            width: 40px;
-            height: 2px;
-            background: #dfe6e9;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-        
-        .micro-fill {
-            height: 100%;
-            background: #2c3e50;
+        .badge-success {
+            background: #27ae60;
+            color: #ffffff;
+            padding: 3px 8px;
+            font-size: 6pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .summary {
@@ -581,14 +501,17 @@
             max-width: 200px;
         }
         
-        .col-rank { width: 8%; }
-        .col-producto { width: 35%; }
-        .col-stock { width: 12%; }
-        .col-min { width: 10%; }
-        .col-max { width: 10%; }
-        .col-precio { width: 15%; }
-        .col-valor { width: 15%; }
-        .col-estado { width: 10%; }
+        .font-mono {
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+        }
+        
+        .col-fecha { width: 12%; }
+        .col-proveedor { width: 20%; }
+        .col-factura { width: 12%; }
+        .col-productos { width: 10%; }
+        .col-total { width: 12%; }
+        .col-detalle { width: 34%; }
     </style>
 </head>
 <body>
@@ -596,235 +519,196 @@
     <div class="page-content">
         <!-- ===== REFERENCIA ===== -->
         <div class="reference">
-            <span>REPORTE EJECUTIVO</span> · {{ $fechaGeneracion }} · INV-{{ date('Ymd') }}
+            <span>REPORTE DE COMPRAS</span> · {{ $fechaGeneracion }} · CMP-{{ date('Ymd') }}
         </div>
         
         <!-- ===== HEADER ===== -->
         <div class="header">
-            <h1>INVENTARIO</h1>
-            <div class="subtitle">CONTROL DE STOCK</div>
+            <h1>COMPRAS</h1>
+            <div class="subtitle">REGISTRO DE ADQUISICIONES</div>
             <div class="periodo">
-                <strong>CIERRE AL {{ date('d/m/Y', strtotime($fechaGeneracion)) }}</strong>
-                @if(isset($categoriaSeleccionada) && $categoriaSeleccionada)
-                    <span style="margin-left: 12px;" class="badge-dark">{{ $categoriaSeleccionada->nombre ?? 'Categoría' }}</span>
+                <strong>{{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</strong>
+                @if(isset($proveedorSeleccionado) && $proveedorSeleccionado)
+                    <span style="margin-left: 12px;" class="badge-dark">{{ $proveedorSeleccionado->nombre_completo ?? 'Proveedor' }}</span>
                 @endif
             </div>
         </div>
         
         <!-- ===== MÉTRICAS CLAVE ===== -->
-        @php
-            $totalProductos = $productos->count();
-            $totalValorInventario = $productos->sum(function($producto) use ($stockField, $precioField) {
-                return $producto->$stockField * $producto->$precioField;
-            });
-            $productosBajoStock = $productos->filter(function($producto) use ($stockField, $minField) {
-                $min = $producto->$minField ?? 5;
-                return $producto->$stockField <= $min;
-            })->count();
-            $productosSinStock = $productos->filter(function($producto) use ($stockField) {
-                return $producto->$stockField <= 0;
-            })->count();
-        @endphp
-        
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-label">Total Productos</div>
-                <div class="metric-value">{{ number_format($totalProductos) }}</div>
-                <div class="metric-desc">SKUs activos</div>
+                <div class="metric-label">Total Compras</div>
+                <div class="metric-value">{{ number_format($totalCompras) }}</div>
+                <div class="metric-desc">transacciones</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Valor Inventario</div>
-                <div class="metric-value">${{ number_format($totalValorInventario, 0) }}</div>
-                <div class="metric-desc">costo total</div>
+                <div class="metric-label">Total Egresos</div>
+                <div class="metric-value">${{ number_format($totalEgresos, 0) }}</div>
+                <div class="metric-desc">inversión total</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Stock Promedio</div>
-                <div class="metric-value">{{ number_format($productos->avg($stockField), 1) }}</div>
-                <div class="metric-desc">unidades/ producto</div>
+                <div class="metric-label">Compra Promedio</div>
+                <div class="metric-value">${{ number_format($compraPromedio, 0) }}</div>
+                <div class="metric-desc">por transacción</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Bajo Stock</div>
-                <div class="metric-value" style="color: {{ $productosBajoStock > 0 ? '#e67e22' : '#2c3e50' }};">{{ $productosBajoStock }}</div>
-                <div class="metric-desc">productos críticos</div>
+                <div class="metric-label">Días del período</div>
+                <div class="metric-value">{{ $diasPeriodo ?? 0 }}</div>
+                <div class="metric-desc">días analizados</div>
             </div>
         </div>
-        
-        <!-- ===== ALERTAS DE STOCK ===== -->
-        @if($productosBajoStock > 0)
-        <div class="alert-card">
-            <div class="alert-header">
-                <span style="color: #e67e22;">⚠️ ALERTAS DE INVENTARIO</span>
-            </div>
-            <div class="alert-content">
-                <div class="alert-grid">
-                    <div class="alert-item">
-                        <div class="label">Stock Crítico</div>
-                        <div class="value danger">{{ $productosSinStock }}</div>
-                        <div style="font-size: 7pt; color: #95a5a6;">productos agotados</div>
-                    </div>
-                    <div class="alert-item">
-                        <div class="label">Bajo Mínimo</div>
-                        <div class="value warning">{{ $productosBajoStock - $productosSinStock }}</div>
-                        <div style="font-size: 7pt; color: #95a5a6;">requieren reposición</div>
-                    </div>
-                    <div class="alert-item">
-                        <div class="label">Stock Óptimo</div>
-                        <div class="value">{{ $totalProductos - $productosBajoStock }}</div>
-                        <div style="font-size: 7pt; color: #95a5a6;">nivel adecuado</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
         
         <!-- ===== SPOTLIGHT ===== -->
         <div class="spotlight">
             @php
-                $productoMasValioso = $productos->sortByDesc(function($producto) use ($stockField, $precioField) {
-                    return $producto->$stockField * $producto->$precioField;
-                })->first();
-                
-                $productoMayorStock = $productos->sortByDesc($stockField)->first();
+                $compraMayor = $compras->sortByDesc('Total')->first();
+                $proveedorTop = $comprasPorProveedor->first();
             @endphp
             
-            @if($productoMasValioso)
+            @if($compraMayor)
             <div class="spotlight-card">
-                <div class="spotlight-label">Producto más valioso</div>
-                <div class="spotlight-value truncate">{{ $productoMasValioso->nombre }}</div>
+                <div class="spotlight-label">Compra más alta</div>
+                <div class="spotlight-value">${{ number_format($compraMayor->Total, 0) }}</div>
                 <div class="spotlight-detail">
-                    ${{ number_format($productoMasValioso->$stockField * $productoMasValioso->$precioField, 0) }} · 
-                    {{ $productoMasValioso->$stockField }} unidades
+                    {{ $compraMayor->proveedor->nombre_completo ?? 'Proveedor' }} · 
+                    {{ \Carbon\Carbon::parse($compraMayor->Fecha_compra)->format('d/m/Y') }}
                 </div>
             </div>
             @endif
             
-            @if($productoMayorStock)
+            @if($proveedorTop)
             <div class="spotlight-card">
-                <div class="spotlight-label">Mayor volumen</div>
-                <div class="spotlight-value truncate">{{ $productoMayorStock->nombre }}</div>
-                <div class="spotlight-detail">{{ $productoMayorStock->$stockField }} unidades en stock</div>
+                <div class="spotlight-label">Principal proveedor</div>
+                <div class="spotlight-value truncate">{{ $proveedorTop->proveedor->nombre_completo ?? 'Proveedor' }}</div>
+                <div class="spotlight-detail">
+                    {{ $proveedorTop->total_compras }} compras · 
+                    ${{ number_format($proveedorTop->total_egresos, 0) }}
+                </div>
             </div>
             @endif
         </div>
+        
+        <!-- ===== DÍA PICO ===== -->
+        @if(isset($diaPico) && $diaPico)
+        <div style="margin-top: 15px; padding: 15px; background: #f5f6fa; border-left: 3px solid #3498db;">
+            <div style="font-size: 7pt; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                DÍA DE MAYOR ACTIVIDAD
+            </div>
+            <div style="font-size: 14pt; font-weight: 200;">
+                {{ \Carbon\Carbon::parse($diaPico->fecha)->format('d/m/Y') }}
+            </div>
+            <div style="font-size: 9pt; color: #34495e;">
+                {{ $diaPico->cantidad }} compras · ${{ number_format($diaPico->total, 0) }}
+            </div>
+        </div>
+        @endif
     </div>
     
-    <!-- ===== PÁGINA 2: DASHBOARD DE INVENTARIO ===== -->
+    <!-- ===== PÁGINA 2: DASHBOARD DE COMPRAS ===== -->
     <div class="dashboard-page">
         <div class="page-content">
             <div class="dashboard-container">
-                <div class="dashboard-title">ANÁLISIS DE INVENTARIO</div>
+                <div class="dashboard-title">ANÁLISIS DE COMPRAS</div>
                 <div class="dashboard-subtitle">
-                    Distribución y valorización del stock
+                    Distribución por proveedor y productos más adquiridos
                 </div>
                 
                 <div class="dashboard-grid">
-                    <!-- GRÁFICA 1: PRODUCTOS POR RANGO DE STOCK -->
+                    <!-- GRÁFICA 1: COMPRAS POR PROVEEDOR -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3>Distribución por Nivel</h3>
+                            <h3>Compras por Proveedor</h3>
                             <div class="legend">
                                 <div class="legend-item">
                                     <span class="legend-dot primary"></span>
-                                    <span>Stock Actual</span>
+                                    <span>Monto</span>
                                 </div>
                                 <div class="legend-item">
                                     <span class="legend-dot secondary"></span>
-                                    <span>Stock Máx</span>
+                                    <span>Transacciones</span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="chart-content">
                             @php
-                                $topProductosStock = $productos->sortByDesc($stockField)->take(8);
-                                $maxStock = $topProductosStock->max($stockField) ?: 1;
+                                $topProveedores = $comprasPorProveedor->take(6);
+                                $maxMonto = $topProveedores->max('total_egresos') ?: 1;
                             @endphp
                             
-                            @forelse($topProductosStock as $producto)
+                            @forelse($topProveedores as $proveedor)
                             @php
-                                $stockActual = $producto->$stockField;
-                                $stockMaximo = $producto->$maxField ?? ($stockActual * 2);
-                                $porcentajeActual = ($stockActual / $maxStock) * 100;
-                                $porcentajeMaximo = ($stockMaximo / $maxStock) * 100;
+                                $porcentajeMonto = ($proveedor->total_egresos / $maxMonto) * 100;
                             @endphp
                             <div class="chart-row">
-                                <div class="chart-label">{{ $producto->nombre }}</div>
+                                <div class="chart-label">{{ $proveedor->proveedor->nombre_completo ?? 'Proveedor' }}</div>
                                 <div class="chart-bars">
                                     <div class="bar-bg">
-                                        <div class="bar-fill" style="width: {{ $porcentajeActual }}%;"></div>
-                                    </div>
-                                    <div class="dual-indicator">
-                                        <div class="fill" style="width: {{ $porcentajeMaximo }}%; background: #95a5a6;"></div>
+                                        <div class="bar-fill" style="width: {{ $porcentajeMonto }}%;"></div>
                                     </div>
                                 </div>
                                 <div class="chart-value">
-                                    {{ $stockActual }} <small>unid.</small>
+                                    ${{ number_format($proveedor->total_egresos, 0) }} <small>({{ $proveedor->total_compras }})</small>
                                 </div>
                             </div>
                             @empty
-                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos de inventario</div>
+                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos por proveedor</div>
                             @endforelse
                         </div>
                         
                         <div class="chart-footer">
                             <div class="total-stats">
-                                <span>Total unidades: <strong>{{ $productos->sum($stockField) }}</strong></span>
+                                <span>Proveedores activos: <strong>{{ $comprasPorProveedor->count() }}</strong></span>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- GRÁFICA 2: VALORIZACIÓN POR CATEGORÍA -->
+                    <!-- GRÁFICA 2: PRODUCTOS MÁS COMPRADOS -->
                     <div class="chart-card">
                         <div class="chart-header">
-                            <h3>Valor por Categoría</h3>
+                            <h3>Productos más adquiridos</h3>
                             <div class="legend">
                                 <div class="legend-item">
-                                    <span class="legend-dot primary"></span>
-                                    <span>Valor Inventario</span>
+                                    <span class="legend-dot accent"></span>
+                                    <span>Cantidad</span>
                                 </div>
                                 <div class="legend-item">
-                                    <span class="legend-dot accent"></span>
-                                    <span>% del Total</span>
+                                    <span class="legend-dot info"></span>
+                                    <span>Costo</span>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="chart-content">
                             @php
-                                $categoriasValor = $productos->groupBy(function($producto) {
-                                    return $producto->categoria->nombre ?? 'Sin categoría';
-                                })->map(function($items) use ($stockField, $precioField) {
-                                    return $items->sum(function($producto) use ($stockField, $precioField) {
-                                        return $producto->$stockField * $producto->$precioField;
-                                    });
-                                })->sortDesc()->take(5);
-                                
-                                $maxValorCategoria = $categoriasValor->max() ?: 1;
+                                $topProductos = $productosMasComprados->take(6);
+                                $maxCantidad = $topProductos->max('total_comprado') ?: 1;
                             @endphp
                             
-                            @forelse($categoriasValor as $nombre => $valor)
+                            @forelse($topProductos as $producto)
                             @php
-                                $porcentajeValor = ($valor / $maxValorCategoria) * 100;
+                                $porcentajeCantidad = ($producto->total_comprado / $maxCantidad) * 100;
+                                $nombreProducto = $producto->producto->Nombre ?? 'Producto';
                             @endphp
                             <div class="chart-row">
-                                <div class="chart-label">{{ $nombre }}</div>
+                                <div class="chart-label truncate">{{ $nombreProducto }}</div>
                                 <div class="chart-bars">
                                     <div class="bar-bg">
-                                        <div class="bar-fill" style="width: {{ $porcentajeValor }}%; background: #e67e22;"></div>
+                                        <div class="bar-fill" style="width: {{ $porcentajeCantidad }}%; background: #e67e22;"></div>
                                     </div>
                                 </div>
                                 <div class="chart-value">
-                                    ${{ number_format($valor, 0) }}
+                                    {{ $producto->total_comprado }} <small>unid.</small>
                                 </div>
                             </div>
                             @empty
-                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos por categoría</div>
+                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos de productos</div>
                             @endforelse
                         </div>
                         
                         <div class="chart-footer">
                             <div class="total-stats">
-                                <span>Valor total: <strong>${{ number_format($categoriasValor->sum(), 0) }}</strong></span>
+                                <span>Productos distintos: <strong>{{ $productosMasComprados->count() }}</strong></span>
                             </div>
                         </div>
                     </div>
@@ -833,93 +717,79 @@
         </div>
     </div>
     
-    <!-- ===== PÁGINA 3: TABLA DE INVENTARIO ===== -->
+    <!-- ===== PÁGINA 3: LISTADO DE COMPRAS ===== -->
     <div class="page-content">
-        <h2>INVENTARIO DETALLADO</h2>
+        <h2>COMPRAS REALIZADAS</h2>
         
-        @if(isset($nivelStock) && $nivelStock)
-        <div style="margin-bottom: 15px;">
-            <span class="badge-dark">Filtro: {{ $nivelStock }}</span>
+        @if($compras->isEmpty())
+        <div style="text-align: center; padding: 50px; color: #95a5a6; border: 1px solid #ecf0f1;">
+            No hay compras en el período seleccionado
         </div>
+        @else
+        
+        @foreach($compras as $compra)
+        <div style="margin-bottom: 25px; border: 1px solid #ecf0f1;">
+            <div style="background: #f5f6fa; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 10pt; font-weight: 400;">Compra #{{ $compra->id }}</span>
+                    <span style="margin-left: 15px; font-size: 8pt; color: #7f8c8d;">
+                        {{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('d/m/Y H:i') }}
+                    </span>
+                </div>
+                <div>
+                    <span class="badge-info">{{ $compra->proveedor->nombre_completo ?? 'Proveedor' }}</span>
+                    <span style="margin-left: 10px; font-weight: 400;">Total: ${{ number_format($compra->Total, 0) }}</span>
+                </div>
+            </div>
+            
+            <div style="padding: 15px;">
+                <table style="font-size: 8pt; width: 100%;">
+                    <thead>
+                        <tr style="background: none; border-bottom: 1px solid #ecf0f1;">
+                            <th style="padding: 8px 5px; width: 50%;">Producto</th>
+                            <th style="padding: 8px 5px; text-align: right; width: 15%;">Cantidad</th>
+                            <th style="padding: 8px 5px; text-align: right; width: 15%;">Precio Unit.</th>
+                            <th style="padding: 8px 5px; text-align: right; width: 20%;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $detallesCompra = $detalleCompras->where('Compra_idCompra', $compra->id);
+                        @endphp
+                        @forelse($detallesCompra as $detalle)
+                        <tr>
+                            <td style="padding: 6px 5px;">{{ $detalle->producto->Nombre ?? 'Producto' }}</td>
+                            <td style="padding: 6px 5px; text-align: right;">{{ $detalle->Cantidad }}</td>
+                            <td style="padding: 6px 5px; text-align: right;">${{ number_format($detalle->Precio_unitario, 0) }}</td>
+                            <td style="padding: 6px 5px; text-align: right;">${{ number_format($detalle->Cantidad * $detalle->Precio_unitario, 0) }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 15px; color: #95a5a6;">
+                                Sin detalles disponibles
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endforeach
         @endif
-        
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-rank">#</th>
-                        <th class="col-producto">Producto</th>
-                        <th class="col-stock text-right">Stock</th>
-                        <th class="col-min text-right">Mínimo</th>
-                        <th class="col-max text-right">Máximo</th>
-                        <th class="col-precio text-right">Precio</th>
-                        <th class="col-valor text-right">Valor Total</th>
-                        <th class="col-estado">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($productos as $index => $producto)
-                    @php
-                        $stockActual = $producto->$stockField;
-                        $minimo = $producto->$minField ?? 5;
-                        $maximo = $producto->$maxField ?? ($stockActual * 2);
-                        $valorTotal = $stockActual * $producto->$precioField;
-                        
-                        if($stockActual <= 0) {
-                            $estado = 'Agotado';
-                            $estadoClass = 'stock-critical';
-                        } elseif($stockActual <= $minimo) {
-                            $estado = 'Crítico';
-                            $estadoClass = 'stock-critical';
-                        } elseif($stockActual <= $minimo * 2) {
-                            $estado = 'Bajo';
-                            $estadoClass = 'stock-low';
-                        } elseif($stockActual <= $maximo) {
-                            $estado = 'Óptimo';
-                            $estadoClass = 'stock-optimal';
-                        } else {
-                            $estado = 'Excedente';
-                            $estadoClass = 'stock-medium';
-                        }
-                    @endphp
-                    <tr>
-                        <td class="text-center">
-                            <span class="rank {{ $index < 3 ? 'rank-' . ($index + 1) : '' }}">{{ $index + 1 }}</span>
-                        </td>
-                        <td class="truncate">{{ $producto->nombre }}</td>
-                        <td class="text-right"><strong>{{ number_format($stockActual) }}</strong></td>
-                        <td class="text-right">{{ number_format($minimo) }}</td>
-                        <td class="text-right">{{ number_format($maximo) }}</td>
-                        <td class="text-right">${{ number_format($producto->$precioField, 0) }}</td>
-                        <td class="text-right">${{ number_format($valorTotal, 0) }}</td>
-                        <td>
-                            <span class="stock-status {{ $estadoClass }}">{{ $estado }}</span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 30px; color: #95a5a6;">
-                            No hay productos para mostrar
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
         
         <!-- ===== SÍNTESIS ===== -->
         <div class="summary">
-            <div style="margin-bottom: 15px; font-size: 11pt; font-weight: 400;">RESUMEN DE INVENTARIO</div>
+            <div style="margin-bottom: 15px; font-size: 11pt; font-weight: 400;">RESUMEN DE COMPRAS</div>
             <div class="summary-grid">
                 <div class="summary-item">
-                    <p><strong>Total SKUs activos:</strong> {{ $totalProductos }}</p>
-                    <p><strong>Unidades en stock:</strong> {{ number_format($productos->sum($stockField)) }}</p>
-                    <p><strong>Valor promedio x SKU:</strong> ${{ number_format($totalValorInventario / max($totalProductos, 1), 0) }}</p>
+                    <p><strong>Total compras:</strong> {{ $totalCompras }}</p>
+                    <p><strong>Total invertido:</strong> ${{ number_format($totalEgresos, 0) }}</p>
+                    <p><strong>Promedio por compra:</strong> ${{ number_format($compraPromedio, 0) }}</p>
                 </div>
                 <div class="summary-item">
-                    <p><strong>Productos agotados:</strong> {{ $productosSinStock }}</p>
-                    <p><strong>Productos bajo mínimo:</strong> {{ $productosBajoStock - $productosSinStock }}</p>
-                    <p><strong>Rotación estimada:</strong> {{ $resumenEjecutivo['rotacion_estimada'] ?? 'N/A' }}</p>
+                    <p><strong>Proveedores distintos:</strong> {{ $comprasPorProveedor->count() }}</p>
+                    <p><strong>Productos adquiridos:</strong> {{ $productosMasComprados->count() }}</p>
+                    <p><strong>Días con compras:</strong> {{ $comprasPorDia->count() }}</p>
                 </div>
             </div>
         </div>
@@ -927,7 +797,7 @@
     
     <!-- ===== FOOTER ===== -->
     <htmlpagefooter name="footer" class="footer">
-        <span class="page-number"></span> · {{ $fechaGeneracion }} · CONFIDENCIAL
+        <span class="page-number"></span> · {{ $fechaGeneracion }} · REPORTE DE COMPRAS
     </htmlpagefooter>
 </body>
 </html>

@@ -1,831 +1,572 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Reporte de Ventas | Documento Ejecutivo</title>
-    <style>
-        /* ===== ESTILO CORPORATIVO DE ALTA GAMA ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        @page {
-            margin: 2.5cm 2.2cm 2.2cm 2.2cm;
-            size: A4;
-            footer: html_footer;
-        }
-        
-        body {
-            font-family: 'Helvetica', 'Arial', 'Segoe UI', sans-serif;
-            font-size: 10pt;
-            line-height: 1.5;
-            color: #2c3e50;
-            background: #ffffff;
-            font-weight: 300;
-        }
-        
-        /* ===== CONTENEDOR PRINCIPAL ===== */
-        .page-content {
-            width: 100%;
-            max-width: 17cm;
-            margin: 0 auto;
-        }
-        
-        /* ===== TIPOGRAFÍA ELEGANTE ===== */
-        h1 {
-            font-size: 28pt;
-            font-weight: 200;
-            letter-spacing: 2px;
-            color: #1e272e;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            text-align: center;
-        }
-        
-        h2 {
-            font-size: 14pt;
-            font-weight: 400;
-            color: #1e272e;
-            margin: 35px 0 20px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #dcdde1;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        /* ===== ENCABEZADO MINIMALISTA ===== */
-        .header {
-            text-align: center;
-            margin-bottom: 35px;
-            position: relative;
-        }
-        
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 25%;
-            width: 50%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #b2bec3, transparent);
-        }
-        
-        .header h1 {
-            color: #1e272e;
-        }
-        
-        .header .subtitle {
-            color: #7f8c8d;
-            font-size: 10pt;
-            font-weight: 300;
-            margin-top: 3px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        
-        .header .periodo {
-            margin-top: 20px;
-            color: #636e72;
-            font-size: 10pt;
-            font-weight: 300;
-            padding: 8px 0;
-        }
-        
-        .header .periodo strong {
-            color: #2c3e50;
-            font-weight: 400;
-        }
-        
-        /* ===== REFERENCIA ===== */
-        .reference {
-            text-align: right;
-            font-size: 8pt;
-            color: #95a5a6;
-            margin-bottom: 25px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #ecf0f1;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        /* ===== MÉTRICAS CLAVE ===== */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin: 30px 0 30px 0;
-        }
-        
-        .metric-card {
-            background: #ffffff;
-            border: 1px solid #ecf0f1;
-            padding: 20px 10px 15px 10px;
-            text-align: center;
-        }
-        
-        .metric-label {
-            font-size: 7.5pt;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-        
-        .metric-value {
-            font-size: 20pt;
-            font-weight: 200;
-            color: #2c3e50;
-            line-height: 1.2;
-        }
-        
-        .metric-desc {
-            font-size: 7pt;
-            color: #b2bec3;
-            margin-top: 5px;
-            text-transform: uppercase;
-        }
-        
-        /* ===== PÁGINA COMPLETA PARA DASHBOARD ===== */
-        .dashboard-page {
-            page-break-before: always;
-            page-break-after: always;
-            margin-top: 0.5cm;
-        }
-        
-        .dashboard-container {
-            background: #ffffff;
-            border: 1px solid #ecf0f1;
-            padding: 30px 25px;
-            min-height: 22cm;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .dashboard-title {
-            font-size: 18pt;
-            font-weight: 200;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #2c3e50;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-        }
-        
-        .dashboard-subtitle {
-            font-size: 11pt;
-            color: #7f8c8d;
-            text-align: center;
-            margin-bottom: 25px;
-            font-weight: 300;
-        }
-        
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 35px;
-            flex: 1;
-        }
-        
-        .chart-card {
-            background: #ffffff;
-            border: 1px solid #ecf0f1;
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        
-        .chart-header h3 {
-            font-size: 12pt;
-            font-weight: 400;
-            color: #2c3e50;
-            margin: 0;
-        }
-        
-        .legend {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            font-size: 8pt;
-            color: #7f8c8d;
-        }
-        
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            margin-right: 6px;
-        }
-        
-        .legend-dot.primary { background: #2c3e50; }
-        .legend-dot.secondary { background: #95a5a6; }
-        
-        /* ===== BARRAS GRANDES Y CLARAS ===== */
-        .chart-content {
-            flex: 1;
-        }
-        
-        .chart-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-        
-        .chart-label {
-            width: 30%;
-            font-size: 9pt;
-            color: #34495e;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 15px;
-        }
-        
-        .chart-bars {
-            width: 45%;
-            position: relative;
-        }
-        
-        .bar-bg {
-            height: 32px;
-            background: #f5f6fa;
-            position: relative;
-        }
-        
-        .bar-fill {
-            height: 32px;
-            background: #2c3e50;
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-        
-        .bar-fill.secondary {
-            background: #95a5a6;
-            height: 12px;
-            bottom: 0;
-            top: auto;
-        }
-        
-        .chart-value {
-            width: 25%;
-            font-size: 10pt;
-            color: #2c3e50;
-            text-align: right;
-            padding-left: 15px;
-            font-weight: 400;
-        }
-        
-        .chart-value small {
-            font-size: 8pt;
-            color: #95a5a6;
-            margin-left: 5px;
-        }
-        
-        .dual-indicator {
-            margin-top: 5px;
-            height: 12px;
-            background: #f5f6fa;
-            position: relative;
-        }
-        
-        .dual-indicator .fill {
-            height: 12px;
-            background: #95a5a6;
-            position: absolute;
-            left: 0;
-        }
-        
-        .chart-footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-            text-align: right;
-        }
-        
-        .total-stats {
-            background: #f5f6fa;
-            padding: 12px 20px;
-            display: inline-block;
-            font-size: 9pt;
-        }
-        
-        .total-stats strong {
-            font-weight: 500;
-            color: #2c3e50;
-            margin: 0 5px;
-        }
-        
-        /* ===== RESTO DE ESTILOS (TABLAS, SPOTLIGHT, ETC) ===== */
-        .spotlight {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 25px 0 20px 0;
-        }
-        
-        .spotlight-card {
-            background: #f5f6fa;
-            padding: 18px 15px;
-            border-left: 3px solid #2c3e50;
-        }
-        
-        .spotlight-label {
-            font-size: 7pt;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-        
-        .spotlight-value {
-            font-size: 16pt;
-            font-weight: 200;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        
-        .table-container {
-            margin: 20px 0 30px 0;
-            border: 1px solid #ecf0f1;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 8.5pt;
-        }
-        
-        th {
-            background: #f5f6fa;
-            color: #2c3e50;
-            font-weight: 400;
-            text-transform: uppercase;
-            font-size: 7pt;
-            letter-spacing: 1px;
-            padding: 12px 8px;
-            border-bottom: 1px solid #dcdde1;
-            text-align: left;
-        }
-        
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #ecf0f1;
-            color: #34495e;
-        }
-        
-        .rank {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            text-align: center;
-            background: #f5f6fa;
-            color: #2c3e50;
-            font-size: 8pt;
-        }
-        
-        .rank-1 { background: #2c3e50; color: #ffffff; }
-        .rank-2 { background: #7f8c8d; color: #ffffff; }
-        .rank-3 { background: #b2bec3; color: #ffffff; }
-        
-        .badge-dark {
-            background: #2c3e50;
-            color: #ffffff;
-            padding: 3px 8px;
-            font-size: 6pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .micro-bar {
-            display: inline-block;
-            width: 40px;
-            height: 2px;
-            background: #dfe6e9;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-        
-        .micro-fill {
-            height: 100%;
-            background: #2c3e50;
-        }
-        
-        .summary {
-            background: #f5f6fa;
-            padding: 22px;
-            margin: 30px 0 20px 0;
-        }
-        
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        
-        .summary-item {
-            border-left: 2px solid #b2bec3;
-            padding-left: 15px;
-        }
-        
-        .footer {
-            position: fixed;
-            bottom: -25px;
-            left: 2.2cm;
-            right: 2.2cm;
-            text-align: center;
-            font-size: 7.5pt;
-            color: #95a5a6;
-            padding-top: 8px;
-            border-top: 1px solid #ecf0f1;
-        }
-        
-        .page-number:before {
-            content: counter(page);
-        }
-        
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .truncate {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .col-rank { width: 8%; }
-        .col-producto { width: 40%; }
-        .col-unidades { width: 12%; }
-        .col-ventas { width: 12%; }
-        .col-ingresos { width: 15%; }
-        .col-folio { width: 10%; }
-        .col-fecha { width: 15%; }
-        .col-empleado { width: 30%; }
-        .col-monto { width: 18%; }
-        .col-items { width: 12%; }
-    </style>
+<meta charset="UTF-8">
+<title>Reporte de Ventas</title>
+
+<style>
+@page {
+    margin: 2.2cm;
+}
+
+body {
+    font-family: 'DejaVu Sans', 'Helvetica', 'Arial', sans-serif;
+    font-size: 10px;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+h1 {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 5px;
+    color: #1e272e;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+h2 {
+    font-size: 14px;
+    margin-top: 25px;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 6px;
+    color: #1e272e;
+    font-weight: 500;
+}
+
+.header-info {
+    text-align: center;
+    font-size: 9px;
+    margin-bottom: 25px;
+    color: #7f8c8d;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #bdc3c7;
+}
+
+/* ===== MÉTRICAS (IGUAL A TU DISEÑO) ===== */
+.metrics {
+    width: 100%;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.metric-box {
+    width: 23%;
+    display: inline-block;
+    background: #f4f6f9;
+    padding: 12px 5px;
+    margin-right: 1%;
+    text-align: center;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.metric-box:last-child {
+    margin-right: 0;
+}
+
+.metric-title {
+    font-size: 8px;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 5px;
+    color: #2c3e50;
+}
+
+/* ===== GRÁFICAS - EXACTAMENTE TUS COLORES ===== */
+.chart-container {
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
+.bar-row {
+    margin-bottom: 15px;
+}
+
+.bar-label {
+    font-size: 10px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #34495e;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bar-label .rank-number {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: #ecf0f1;
+    color: #2c3e50;
+    text-align: center;
+    line-height: 18px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.bar-label .rank-1 {
+    background: #2c3e50;
+    color: white;
+}
+
+.bar-label .rank-2 {
+    background: #7f8c8d;
+    color: white;
+}
+
+.bar-label .rank-3 {
+    background: #95a5a6;
+    color: white;
+}
+
+.bar-wrapper {
+    width: 100%;
+    background: #ecf0f1;
+    height: 16px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+/* ===== COLORES ESPECÍFICOS QUE PEDISTE ===== */
+.bar-fill-blue {
+    height: 16px;
+    background: #3498db;  /* AZUL PARA EMPLEADOS */
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.bar-fill-green {
+    height: 16px;
+    background: #2ecc71;  /* VERDE PARA PRODUCTOS */
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.bar-value {
+    font-size: 9px;
+    margin-top: 4px;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+}
+
+.bar-value strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* ===== TABLAS (MEJORADAS PERO CONSERVANDO ESENCIA) ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 9px;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+    padding: 8px 6px;
+    font-size: 9px;
+    font-weight: 500;
+    text-align: left;
+}
+
+th:first-child {
+    padding-left: 10px;
+    border-radius: 4px 0 0 0;
+}
+
+th:last-child {
+    padding-right: 10px;
+    border-radius: 0 4px 0 0;
+}
+
+td {
+    padding: 7px 6px;
+    border-bottom: 1px solid #ecf0f1;
+    font-size: 9px;
+}
+
+td:first-child {
+    padding-left: 10px;
+}
+
+td:last-child {
+    padding-right: 10px;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: #f8f9fa;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    display: inline-block;
+    background: #ecf0f1;
+    color: #2c3e50;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 8px;
+    font-weight: 600;
+}
+
+.badge-dark {
+    background: #2c3e50;
+    color: white;
+}
+
+.badge-blue {
+    background: #3498db;
+    color: white;
+}
+
+.badge-green {
+    background: #2ecc71;
+    color: white;
+}
+
+/* ===== RESUMEN ===== */
+.summary-box {
+    margin-top: 25px;
+    padding: 15px;
+    background: #f4f6f9;
+    border-left: 4px solid #2c3e50;
+    border-radius: 0 4px 4px 0;
+}
+
+.summary-title {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.summary-grid {
+    display: flex;
+    gap: 30px;
+    font-size: 9px;
+}
+
+.summary-item p {
+    margin-bottom: 5px;
+    color: #34495e;
+}
+
+.summary-item strong {
+    color: #2c3e50;
+    font-weight: 600;
+    min-width: 100px;
+    display: inline-block;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    position: fixed;
+    bottom: -15px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8px;
+    color: #95a5a6;
+    padding-top: 8px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.page-number:before {
+    content: "Página " counter(page);
+}
+
+/* ===== UTILIDADES ===== */
+.truncate {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.separator {
+    height: 1px;
+    background: #ecf0f1;
+    margin: 15px 0;
+}
+</style>
 </head>
+
 <body>
-    <!-- ===== PÁGINA 1: RESUMEN EJECUTIVO Y MÉTRICAS ===== -->
-    <div class="page-content">
-        <!-- ===== REFERENCIA ===== -->
-        <div class="reference">
-            <span>REPORTE EJECUTIVO</span> · {{ $fechaGeneracion }} · VTS-{{ date('Ymd') }}
+
+<h1>REPORTE DE VENTAS</h1>
+
+<div class="header-info">
+    Periodo: {{ date('d/m/Y', strtotime($fechaInicio)) }} — {{ date('d/m/Y', strtotime($fechaFin)) }} 
+    <span style="margin:0 8px;">|</span> 
+    Generado: {{ $fechaGeneracion }}
+    @if($empleadoSeleccionado ?? false)
+    <span class="badge-dark" style="margin-left: 8px; padding:2px 8px;">{{ $empleadoSeleccionado->nombre_completo ?? $empleadoSeleccionado->Nombre }}</span>
+    @endif
+</div>
+
+<!-- ===== MÉTRICAS ===== -->
+<div class="metrics">
+    <div class="metric-box">
+        <div class="metric-title">Ventas</div>
+        <div class="metric-value">{{ number_format($totalVentas) }}</div>
+    </div>
+
+    <div class="metric-box">
+        <div class="metric-title">Ingresos</div>
+        <div class="metric-value">${{ number_format($totalIngresos, 0) }}</div>
+    </div>
+
+    <div class="metric-box">
+        <div class="metric-title">Promedio</div>
+        <div class="metric-value">${{ number_format($ventaPromedio, 2) }}</div>
+    </div>
+
+    <div class="metric-box">
+        <div class="metric-title">Ventas/Día</div>
+        <div class="metric-value">{{ number_format($resumenEjecutivo['ventas_por_dia'], 1) }}</div>
+    </div>
+</div>
+
+<!-- ===== SPOTLIGHT (DESTACADOS) ===== -->
+@if(($mejorVenta ?? false) || ($resumenEjecutivo['empleado_top'] ?? false))
+<div style="display: flex; gap: 15px; margin-bottom: 25px;">
+    @if($mejorVenta ?? false)
+    <div style="flex:1; background:#f4f6f9; padding:12px 15px; border-left:4px solid #3498db;">
+        <div style="font-size:7px; text-transform:uppercase; color:#7f8c8d;">Mejor Venta</div>
+        <div style="font-size:16px; font-weight:600; color:#2c3e50;">${{ number_format($mejorVenta->Total, 2) }}</div>
+        <div style="font-size:8px; color:#95a5a6;">Venta #{{ $mejorVenta->id }} · {{ date('d/m/Y', strtotime($mejorVenta->Fecha)) }}</div>
+    </div>
+    @endif
+    
+    @if($resumenEjecutivo['empleado_top'] ?? false)
+    @php
+        $empleado = $resumenEjecutivo['empleado_top']->empleado;
+        $nombreCompleto = $empleado ? trim(($empleado->Nombre ?? '') . ' ' . ($empleado->ApPaterno ?? '')) : '—';
+    @endphp
+    <div style="flex:1; background:#f4f6f9; padding:12px 15px; border-left:4px solid #2ecc71;">
+        <div style="font-size:7px; text-transform:uppercase; color:#7f8c8d;">Mejor Desempeño</div>
+        <div style="font-size:14px; font-weight:600; color:#2c3e50;" class="truncate">{{ $nombreCompleto }}</div>
+        <div style="font-size:8px; color:#95a5a6;">{{ $resumenEjecutivo['empleado_top']->total_ventas }} ventas · ${{ number_format($resumenEjecutivo['empleado_top']->total_ingresos, 0) }}</div>
+    </div>
+    @endif
+</div>
+@endif
+
+<!-- ============================= -->
+<!-- ===== GRÁFICA EMPLEADOS ===== -->
+<!-- ===== COLOR AZUL #3498db ===== -->
+<!-- ============================= -->
+
+<h2>Rendimiento por Empleado</h2>
+
+<div class="chart-container">
+@php
+$maxVentas = $datosGraficaEmpleados->max('ventas') ?: 1;
+$totalIngresosEmpleados = $datosGraficaEmpleados->sum('ingresos');
+$totalVentasEmpleados = $datosGraficaEmpleados->sum('ventas');
+@endphp
+
+@foreach($datosGraficaEmpleados as $index => $empleado)
+@php
+$porcentaje = ($empleado['ventas'] / $maxVentas) * 100;
+$promedio = $empleado['ventas'] > 0 ? $empleado['ingresos'] / $empleado['ventas'] : 0;
+@endphp
+
+<div class="bar-row">
+    <div class="bar-label">
+        <span>
+            <span class="rank-number {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : '')) }}">{{ $index + 1 }}</span>
+            {{ $empleado['nombre'] }}
+        </span>
+        <span class="badge-blue" style="font-size:8px;">{{ $empleado['ventas'] }} ventas</span>
+    </div>
+    <div class="bar-wrapper">
+        <div class="bar-fill-blue" style="width: {{ $porcentaje }}%;"></div>
+    </div>
+    <div class="bar-value">
+        <span>💵 <strong>${{ number_format($empleado['ingresos'], 2) }}</strong></span>
+        <span>📊 Prom. <strong>${{ number_format($promedio, 2) }}</strong></span>
+    </div>
+</div>
+
+@endforeach
+
+<div class="bar-value" style="margin-top: 10px; padding-top: 8px; border-top: 2px solid #ecf0f1;">
+    <span><strong>TOTALES:</strong> {{ $totalVentasEmpleados }} ventas</span>
+    <span><strong>${{ number_format($totalIngresosEmpleados, 2) }}</strong></span>
+</div>
+</div>
+
+<!-- ============================= -->
+<!-- ===== GRÁFICA PRODUCTOS ===== -->
+<!-- ===== COLOR VERDE #2ecc71 ===== -->
+<!-- ============================= -->
+
+<h2>Top Productos</h2>
+
+<div class="chart-container">
+@php
+$maxCantidad = $datosGraficaProductos->max('cantidad') ?: 1;
+$totalUnidades = $datosGraficaProductos->sum('cantidad');
+$totalIngresosProductos = $datosGraficaProductos->sum('ingresos');
+@endphp
+
+@foreach($datosGraficaProductos as $index => $producto)
+@php
+$porcentaje = ($producto['cantidad'] / $maxCantidad) * 100;
+$precioPromedio = $producto['cantidad'] > 0 ? $producto['ingresos'] / $producto['cantidad'] : 0;
+@endphp
+
+<div class="bar-row">
+    <div class="bar-label">
+        <span>
+            <span class="rank-number {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : '')) }}">{{ $index + 1 }}</span>
+            {{ $producto['nombre'] }}
+        </span>
+        <span class="badge-green" style="font-size:8px;">{{ $producto['cantidad'] }} unid.</span>
+    </div>
+    <div class="bar-wrapper">
+        <div class="bar-fill-green" style="width: {{ $porcentaje }}%;"></div>
+    </div>
+    <div class="bar-value">
+        <span>💵 <strong>${{ number_format($producto['ingresos'], 2) }}</strong></span>
+        <span>🏷️ <strong>${{ number_format($precioPromedio, 2) }}</strong> c/u</span>
+    </div>
+</div>
+
+@endforeach
+
+<div class="bar-value" style="margin-top: 10px; padding-top: 8px; border-top: 2px solid #ecf0f1;">
+    <span><strong>TOTALES:</strong> {{ $totalUnidades }} unidades</span>
+    <span><strong>${{ number_format($totalIngresosProductos, 2) }}</strong></span>
+</div>
+</div>
+
+<!-- ============================= -->
+<!-- ===== TABLA EMPLEADOS ===== -->
+<!-- ============================= -->
+
+@if($ventasPorEmpleado->count() > 0)
+<h2>Detalle por Colaborador</h2>
+
+<table>
+<thead>
+<tr>
+    <th>Nombre</th>
+    <th class="text-right">Ventas</th>
+    <th class="text-right">Ingresos</th>
+    <th class="text-right">Promedio</th>
+    <th class="text-right">%</th>
+</tr>
+</thead>
+<tbody>
+@foreach($ventasPorEmpleado as $index => $ventaEmpleado)
+@php
+$porcentaje = $totalIngresos > 0 ? ($ventaEmpleado->total_ingresos / $totalIngresos) * 100 : 0;
+$empleado = $ventaEmpleado->empleado;
+$nombreEmpleado = $empleado 
+    ? trim(($empleado->Nombre ?? '') . ' ' . ($empleado->ApPaterno ?? ''))
+    : '—';
+@endphp
+<tr>
+    <td>
+        @if($index == 0)
+            <span class="badge-dark" style="margin-right:5px;">TOP</span>
+        @endif
+        {{ $nombreEmpleado }}
+    </td>
+    <td class="text-right">{{ $ventaEmpleado->total_ventas }}</td>
+    <td class="text-right">${{ number_format($ventaEmpleado->total_ingresos, 2) }}</td>
+    <td class="text-right">${{ number_format($ventaEmpleado->promedio_venta, 2) }}</td>
+    <td class="text-right">{{ number_format($porcentaje, 1) }}%</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+@endif
+
+<!-- ============================= -->
+<!-- ===== TABLA VENTAS ===== -->
+<!-- ============================= -->
+
+@if($ventas->count() > 0)
+<h2>Últimas Transacciones</h2>
+
+<table>
+<thead>
+<tr>
+    <th>Folio</th>
+    <th>Fecha</th>
+    <th>Empleado</th>
+    <th class="text-right">Total</th>
+    <th class="text-center">Items</th>
+</tr>
+</thead>
+<tbody>
+@foreach($ventas->take(12) as $venta)
+<tr>
+    <td>#{{ str_pad($venta->id, 4, '0', STR_PAD_LEFT) }}</td>
+    <td>{{ date('d/m', strtotime($venta->Fecha)) }}</td>
+    <td class="truncate">
+        {{ $venta->empleado 
+            ? trim(($venta->empleado->Nombre ?? '') . ' ' . ($venta->empleado->ApPaterno ?? ''))
+            : '—' }}
+    </td>
+    <td class="text-right">${{ number_format($venta->Total, 2) }}</td>
+    <td class="text-center">{{ $venta->detalleVentas->count() }}</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+@endif
+
+<!-- ============================= -->
+<!-- ===== RESUMEN EJECUTIVO ===== -->
+<!-- ============================= -->
+
+<div class="summary-box">
+    <div class="summary-title">RESUMEN EJECUTIVO</div>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <p><strong>Período analizado:</strong> {{ $resumenEjecutivo['dias_periodo'] }} días</p>
+            <p><strong>Días con ventas:</strong> {{ $resumenEjecutivo['dias_con_ventas'] }}</p>
+            <p><strong>Días sin ventas:</strong> {{ $resumenEjecutivo['dias_sin_ventas'] }}</p>
         </div>
-        
-        <!-- ===== HEADER ===== -->
-        <div class="header">
-            <h1>VENTAS</h1>
-            <div class="subtitle">INFORME DE GESTIÓN</div>
-            <div class="periodo">
-                <strong>{{ date('d/m/Y', strtotime($fechaInicio)) }}</strong> — <strong>{{ date('d/m/Y', strtotime($fechaFin)) }}</strong>
-                @if($empleadoSeleccionado)
-                    <span style="margin-left: 12px;" class="badge-dark">{{ $empleadoSeleccionado->nombre_completo ?? $empleadoSeleccionado->Nombre }}</span>
-                @endif
-            </div>
-        </div>
-        
-        <!-- ===== MÉTRICAS CLAVE ===== -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">Ventas</div>
-                <div class="metric-value">{{ number_format($totalVentas) }}</div>
-                <div class="metric-desc">transacciones</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Ingresos</div>
-                <div class="metric-value">${{ number_format($totalIngresos, 0) }}</div>
-                <div class="metric-desc">totales</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Ticket Prom.</div>
-                <div class="metric-value">${{ number_format($ventaPromedio, 0) }}</div>
-                <div class="metric-desc">por venta</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Frecuencia</div>
-                <div class="metric-value">{{ number_format($resumenEjecutivo['ventas_por_dia'], 1) }}</div>
-                <div class="metric-desc">ventas/día</div>
-            </div>
-        </div>
-        
-        <!-- ===== SPOTLIGHT ===== -->
-        <div class="spotlight">
-            @if($mejorVenta)
-            <div class="spotlight-card">
-                <div class="spotlight-label">Mejor venta</div>
-                <div class="spotlight-value">${{ number_format($mejorVenta->Total, 2) }}</div>
-                <div class="spotlight-detail">Venta #{{ $mejorVenta->id }} · {{ date('d/m/Y', strtotime($mejorVenta->Fecha)) }}</div>
-            </div>
+        <div class="summary-item">
+            <p><strong>Ingreso promedio diario:</strong> ${{ number_format($resumenEjecutivo['ingresos_por_dia'], 2) }}</p>
+            @if($productosMasVendidos->first() ?? false)
+            <p><strong>Producto más vendido:</strong> {{ $productosMasVendidos->first()->producto->Nombre ?? '—' }}</p>
             @endif
-            
-            @if($resumenEjecutivo['empleado_top'] && $resumenEjecutivo['empleado_top']->empleado)
-            @php
-                $empleado = $resumenEjecutivo['empleado_top']->empleado;
-                $nombreCompleto = trim($empleado->Nombre . ' ' . ($empleado->ApPaterno ?? '') . ' ' . ($empleado->ApMaterno ?? ''));
-            @endphp
-            <div class="spotlight-card">
-                <div class="spotlight-label">Mejor desempeño</div>
-                <div class="spotlight-value truncate">{{ $nombreCompleto }}</div>
-                <div class="spotlight-detail">{{ $resumenEjecutivo['empleado_top']->total_ventas }} ventas · ${{ number_format($resumenEjecutivo['empleado_top']->total_ingresos, 0) }}</div>
-            </div>
-            @endif
         </div>
     </div>
-    
-    <!-- ===== PÁGINA 2: DASHBOARD COMPLETO DE GRÁFICAS ===== -->
-    <div class="dashboard-page">
-        <div class="page-content">
-            <div class="dashboard-container">
-                <div class="dashboard-title">ANÁLISIS DE RENDIMIENTO</div>
-                <div class="dashboard-subtitle">
-                    {{ date('d/m/Y', strtotime($fechaInicio)) }} — {{ date('d/m/Y', strtotime($fechaFin)) }}
-                </div>
-                
-                <div class="dashboard-grid">
-                    <!-- GRÁFICA 1: VENTAS POR EMPLEADO (COMPLETA) -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Rendimiento por Colaborador</h3>
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <span class="legend-dot primary"></span>
-                                    <span>Ventas</span>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="legend-dot secondary"></span>
-                                    <span>Ingresos</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="chart-content">
-                            @forelse($datosGraficaEmpleados as $empleado)
-                            @php
-                                $maxVentas = $datosGraficaEmpleados->max('ventas');
-                                $maxIngresos = $datosGraficaEmpleados->max('ingresos');
-                                $porcentajeVentas = $maxVentas > 0 ? ($empleado['ventas'] / $maxVentas) * 100 : 0;
-                                $porcentajeIngresos = $maxIngresos > 0 ? ($empleado['ingresos'] / $maxIngresos) * 100 : 0;
-                            @endphp
-                            <div class="chart-row">
-                                <div class="chart-label">{{ $empleado['nombre'] }}</div>
-                                <div class="chart-bars">
-                                    <div class="bar-bg">
-                                        <div class="bar-fill" style="width: {{ $porcentajeVentas }}%;"></div>
-                                    </div>
-                                    <div class="dual-indicator">
-                                        <div class="fill" style="width: {{ $porcentajeIngresos }}%;"></div>
-                                    </div>
-                                </div>
-                                <div class="chart-value">
-                                    {{ $empleado['ventas'] }} <small>ventas</small>
-                                </div>
-                            </div>
-                            @empty
-                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos de empleados</div>
-                            @endforelse
-                        </div>
-                        
-                        <div class="chart-footer">
-                            <div class="total-stats">
-                                <span>Total: <strong>{{ $datosGraficaEmpleados->sum('ventas') }}</strong> ventas · <strong>${{ number_format($datosGraficaEmpleados->sum('ingresos'), 0) }}</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- GRÁFICA 2: PRODUCTOS MÁS VENDIDOS (COMPLETA) -->
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Top Productos</h3>
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <span class="legend-dot primary"></span>
-                                    <span>Unidades</span>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="legend-dot secondary"></span>
-                                    <span>Ingresos</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="chart-content">
-                            @forelse($datosGraficaProductos as $producto)
-                            @php
-                                $maxCantidad = $datosGraficaProductos->max('cantidad');
-                                $maxIngresosProd = $datosGraficaProductos->max('ingresos');
-                                $porcentajeCantidad = $maxCantidad > 0 ? ($producto['cantidad'] / $maxCantidad) * 100 : 0;
-                                $porcentajeIngresosProd = $maxIngresosProd > 0 ? ($producto['ingresos'] / $maxIngresosProd) * 100 : 0;
-                            @endphp
-                            <div class="chart-row">
-                                <div class="chart-label">{{ $producto['nombre'] }}</div>
-                                <div class="chart-bars">
-                                    <div class="bar-bg">
-                                        <div class="bar-fill" style="width: {{ $porcentajeCantidad }}%;"></div>
-                                    </div>
-                                    <div class="dual-indicator">
-                                        <div class="fill" style="width: {{ $porcentajeIngresosProd }}%;"></div>
-                                    </div>
-                                </div>
-                                <div class="chart-value">
-                                    {{ $producto['cantidad'] }} <small>unid.</small>
-                                </div>
-                            </div>
-                            @empty
-                            <div style="text-align: center; color: #95a5a6; padding: 50px;">Sin datos de productos</div>
-                            @endforelse
-                        </div>
-                        
-                        <div class="chart-footer">
-                            <div class="total-stats">
-                                <span>Total: <strong>{{ $datosGraficaProductos->sum('cantidad') }}</strong> unidades · <strong>${{ number_format($datosGraficaProductos->sum('ingresos'), 0) }}</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ===== PÁGINA 3: TABLAS Y DETALLE ===== -->
-    <div class="page-content">
-        <!-- ===== TOP PRODUCTOS ===== -->
-        @if($productosMasVendidos->count() > 0)
-        <h2>PRODUCTOS</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-rank">#</th>
-                        <th class="col-producto">Producto</th>
-                        <th class="col-unidades text-right">Unidades</th>
-                        <th class="col-ventas text-right">Ventas</th>
-                        <th class="col-ingresos text-right">Ingresos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($productosMasVendidos->take(10) as $index => $item)
-                    <tr>
-                        <td class="text-center">
-                            <span class="rank {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : '')) }}">{{ $index + 1 }}</span>
-                        </td>
-                        <td class="truncate">{{ $item->producto->Nombre ?? 'Producto eliminado' }}</td>
-                        <td class="text-right">{{ number_format($item->total_vendido) }}</td>
-                        <td class="text-right">{{ $item->veces_vendido }}</td>
-                        <td class="text-right">${{ number_format($item->total_ingresos, 2) }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-        
-        <!-- ===== RENDIMIENTO POR EMPLEADO ===== -->
-        @if($ventasPorEmpleado->count() > 0)
-        <h2>COLABORADORES</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 35%;">Nombre</th>
-                        <th style="width: 13%;" class="text-right">Ventas</th>
-                        <th style="width: 20%;" class="text-right">Ingresos</th>
-                        <th style="width: 15%;" class="text-right">Promedio</th>
-                        <th style="width: 17%;" class="text-right">Contribución</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($ventasPorEmpleado as $index => $ventaEmpleado)
-                    @php
-                        $porcentaje = $totalIngresos > 0 ? ($ventaEmpleado->total_ingresos / $totalIngresos) * 100 : 0;
-                        $empleado = $ventaEmpleado->empleado;
-                        $nombreEmpleado = $empleado 
-                            ? trim(($empleado->Nombre ?? '') . ' ' . ($empleado->ApPaterno ?? '') . ' ' . ($empleado->ApMaterno ?? ''))
-                            : '—';
-                    @endphp
-                    <tr>
-                        <td class="truncate">
-                            @if($index == 0)
-                                <span class="badge-dark" style="margin-right: 5px;">TOP</span>
-                            @endif
-                            {{ $nombreEmpleado }}
-                        </td>
-                        <td class="text-right">{{ $ventaEmpleado->total_ventas }}</td>
-                        <td class="text-right">${{ number_format($ventaEmpleado->total_ingresos, 2) }}</td>
-                        <td class="text-right">${{ number_format($ventaEmpleado->promedio_venta, 2) }}</td>
-                        <td class="text-right">
-                            {{ number_format($porcentaje, 1) }}%
-                            <span class="micro-bar">
-                                <span class="micro-fill" style="width: {{ $porcentaje }}%;"></span>
-                            </span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-        
-        <!-- ===== TRANSACCIONES ===== -->
-        @if($ventas->count() > 0)
-        <h2>TRANSACCIONES</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-folio">Folio</th>
-                        <th class="col-fecha">Fecha</th>
-                        <th class="col-empleado">Empleado</th>
-                        <th class="col-monto text-right">Monto</th>
-                        <th class="col-items text-center">Items</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($ventas->take(12) as $venta)
-                    @php
-                        $nombreEmpleado = $venta->empleado 
-                            ? trim(($venta->empleado->Nombre ?? '') . ' ' . ($venta->empleado->ApPaterno ?? '') . ' ' . ($venta->empleado->ApMaterno ?? ''))
-                            : '—';
-                    @endphp
-                    <tr>
-                        <td>#{{ str_pad($venta->id, 4, '0', STR_PAD_LEFT) }}</td>
-                        <td>{{ date('d/m', strtotime($venta->Fecha)) }}</td>
-                        <td class="truncate">{{ $nombreEmpleado }}</td>
-                        <td class="text-right">${{ number_format($venta->Total, 2) }}</td>
-                        <td class="text-center">{{ $venta->detalleVentas->count() }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-        
-        <!-- ===== DETALLE ===== -->
-        @if($detalleVentas->count() > 0)
-        <h2>DETALLE</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 35%;">Producto</th>
-                        <th style="width: 15%;" class="text-right">Precio</th>
-                        <th style="width: 12%;" class="text-right">Cantidad</th>
-                        <th style="width: 20%;" class="text-right">Subtotal</th>
-                        <th style="width: 18%;" class="text-center">Venta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($detalleVentas->take(15) as $detalle)
-                    <tr>
-                        <td class="truncate">{{ $detalle->producto->Nombre ?? '—' }}</td>
-                        <td class="text-right">${{ number_format($detalle->producto->Precio ?? 0, 2) }}</td>
-                        <td class="text-right">{{ $detalle->Cantidad }}</td>
-                        <td class="text-right">${{ number_format(($detalle->producto->Precio ?? 0) * $detalle->Cantidad, 2) }}</td>
-                        <td class="text-center">#{{ str_pad($detalle->Venta, 4, '0', STR_PAD_LEFT) }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-        
-        <!-- ===== SÍNTESIS ===== -->
-        <div class="summary">
-            <div style="margin-bottom: 15px; font-size: 11pt; font-weight: 400;">RESUMEN EJECUTIVO</div>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <p><strong>Período analizado:</strong> {{ $resumenEjecutivo['dias_periodo'] }} días</p>
-                    <p><strong>Días con ventas:</strong> {{ $resumenEjecutivo['dias_con_ventas'] }}</p>
-                    <p><strong>Días sin ventas:</strong> {{ $resumenEjecutivo['dias_sin_ventas'] }}</p>
-                </div>
-                <div class="summary-item">
-                    <p><strong>Ingreso promedio diario:</strong> ${{ number_format($resumenEjecutivo['ingresos_por_dia'], 2) }}</p>
-                    <p><strong>Producto más vendido:</strong> <span class="truncate">{{ $productosMasVendidos->first()->producto->Nombre ?? '—' }}</span></p>
-                    <p><strong>Contribución top producto:</strong> {{ number_format(($productosMasVendidos->first()->total_ingresos / $totalIngresos) * 100, 1) }}%</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ===== FOOTER ===== -->
-    <htmlpagefooter name="footer" class="footer">
-        <span class="page-number"></span> · {{ $fechaGeneracion }} · CONFIDENCIAL
-    </htmlpagefooter>
+</div>
+
+<div class="footer">
+    CONFIDENCIAL · <span class="page-number"></span> · {{ $fechaGeneracion }}
+</div>
+
 </body>
 </html>

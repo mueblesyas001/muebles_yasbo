@@ -1,582 +1,949 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8 col-xl-6">
-        <div class="card border-0 shadow-sm password-change-card">
-            <!-- Header minimalista -->
-            <div class="card-header border-0 pt-5 pb-4 position-relative overflow-hidden">
-                <div class="header-background"></div>
-                <div class="position-relative d-flex align-items-center">
-                    <div class="me-4">
-                        <div class="icon-wrapper rounded-3 d-flex align-items-center justify-content-center" 
-                             style="width: 64px; height: 64px; background: linear-gradient(135deg, #f0b429 0%, #f09329 100%);">
-                            <i class="fas fa-lock text-white fs-3"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-2 text-dark fw-semibold fs-2">Cambiar Contraseña</h4>
-                        <p class="mb-0 text-muted fs-6">Actualiza tus credenciales de seguridad</p>
-                    </div>
-                    <div class="ms-auto">
-                        <div class="security-level">
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3 rounded-pill">
-                                <i class="fas fa-badge-check me-2"></i>
-                                Seguridad Alta
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card-body p-4 p-xl-5">
-                <!-- Indicador de progreso minimalista -->
-                <div class="progress-indicator mb-5">
-                    <div class="d-flex align-items-center position-relative">
-                        <div class="step active">
-                            <div class="step-number">1</div>
-                            <div class="step-label">Verificación</div>
-                        </div>
-                        <div class="step-line"></div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-label">Nueva Contraseña</div>
-                        </div>
-                        <div class="step-line"></div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-label">Confirmar</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mensaje de éxito -->
-                @if(session('success'))
-                <div class="alert alert-success border-0 bg-success bg-opacity-10 border-start-4 border-success mb-4 d-flex align-items-center" role="alert">
-                    <i class="fas fa-check-circle text-success fs-4 me-3"></i>
-                    <div>
-                        <h6 class="fw-semibold mb-1">¡Contraseña actualizada!</h6>
-                        <p class="mb-0 small">{{ session('success') }}</p>
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-                @endif
-
-                <form method="POST" action="{{ route('perfil.actualizar-password') }}" id="passwordForm" novalidate>
-                    @csrf
-                    @method('PUT')
-
-                    <!-- Contraseña Actual -->
-                    <div class="mb-5">
-                        <h5 class="mb-4 fw-semibold text-dark d-flex align-items-center">
-                            <i class="fas fa-user-shield text-warning me-2"></i>
-                            Verificar identidad
-                        </h5>
-                        
-                        <div class="form-group mb-3">
-                            <label for="current_password" class="form-label text-muted small fw-semibold mb-2">
-                                CONTRASEÑA ACTUAL
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-key text-muted"></i>
-                                </span>
-                                <input type="password" 
-                                       class="form-control border-start-0 ps-0 @error('current_password') is-invalid @enderror" 
-                                       id="current_password" 
-                                       name="current_password" 
-                                       required
-                                       placeholder="Ingresa tu contraseña actual"
-                                       autocomplete="current-password"
-                                       value="{{ old('current_password') }}">
-                                <button class="btn btn-light border password-toggle" type="button" 
-                                        data-target="current_password">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                            @error('current_password')
-                                <div class="text-danger small mt-2 d-flex align-items-start">
-                                    <i class="fas fa-exclamation-circle mt-1 me-2"></i>
-                                    <span>{{ translatePasswordError($message) }}</span>
+<section class="password-change-section d-flex align-items-center justify-content-center min-vh-100">
+    <!-- Fondo con elementos decorativos -->
+    <div class="password-background">
+        <div class="decorative-shape shape-1"></div>
+        <div class="decorative-shape shape-2"></div>
+        <div class="decorative-shape shape-3"></div>
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <!-- Tarjeta de cambio de contraseña -->
+                <div class="card password-card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <!-- Encabezado con gradiente -->
+                    <div class="card-header-gradient p-4">
+                        <div class="text-center">
+                            <!-- Logo mejorado -->
+                            <div class="logo-container mb-3 mx-auto">
+                                <div class="logo-circle d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-shield-alt logo-main-icon"></i>
                                 </div>
-                            @enderror
+                                <div class="logo-pulse"></div>
+                            </div>
+                            <h1 class="brand-name text-white fw-bold mb-1">CAMBIAR CONTRASEÑA</h1>
+                            <p class="brand-subtitle text-white-80 mb-0">Actualiza tus credenciales de seguridad</p>
                         </div>
                     </div>
-
-                    <!-- Nueva Contraseña -->
-                    <div class="mb-5">
-                        <h5 class="mb-4 fw-semibold text-dark d-flex align-items-center justify-content-between">
-                            <span>
-                                <i class="fas fa-lock text-primary me-2"></i>
-                                Nueva contraseña
-                            </span>
-                            <span class="text-muted small fw-normal" id="passwordScore">0/100</span>
-                        </h5>
-                        
-                        <div class="form-group mb-3">
-                            <label for="new_password" class="form-label text-muted small fw-semibold mb-2">
-                                NUEVA CONTRASEÑA
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-key text-muted"></i>
-                                </span>
-                                <input type="password" 
-                                       class="form-control border-start-0 ps-0 @error('new_password') is-invalid @enderror" 
-                                       id="new_password" 
-                                       name="new_password" 
-                                       required
-                                       placeholder="Crea una nueva contraseña segura"
-                                       autocomplete="new-password"
-                                       value="{{ old('new_password') }}">
-                                <button class="btn btn-light border password-toggle me-1" type="button" 
-                                        data-target="new_password">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-light border generate-password" type="button" 
-                                        title="Generar contraseña segura">
-                                    <i class="fas fa-random"></i>
-                                </button>
-                            </div>
-                            
-                            @error('new_password')
-                                <div class="text-danger small mt-2 d-flex align-items-start">
-                                    <i class="fas fa-exclamation-circle mt-1 me-2"></i>
-                                    <span>{{ translatePasswordError($message) }}</span>
+                    
+                    <!-- Cuerpo del formulario -->
+                    <div class="card-body p-4 p-xl-5">
+                        <!-- Mensajes de estado -->
+                        @if(session('success'))
+                            <div class="alert alert-success alert-elegant alert-dismissible fade show rounded-3 mb-4" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <div class="alert-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <span class="alert-message">{{ session('success') }}</span>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                                 </div>
-                            @enderror
-                            
-                            <!-- Indicador de fortaleza mejorado -->
-                            <div class="mt-3">
+                            </div>
+                        @endif
+
+                        @if(session('error'))
+                            <div class="alert alert-danger alert-elegant alert-dismissible fade show rounded-3 mb-4" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <div class="alert-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <span class="alert-message">{{ session('error') }}</span>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Indicador de seguridad actual -->
+                        <div class="security-status mb-4 p-3 bg-light rounded-3">
+                            <div class="d-flex align-items-center">
+                                <div class="status-icon me-3">
+                                    <i class="fas fa-shield-alt text-primary fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-semibold mb-1">Estado de seguridad actual</h6>
+                                    <p class="small text-muted mb-0">
+                                        Último cambio: 
+                                        @if(auth()->user()->updated_at)
+                                            <span class="fw-semibold text-primary">{{ auth()->user()->updated_at->diffForHumans() }}</span>
+                                        @else
+                                            <span class="fw-semibold text-warning">Nunca</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="security-badge">
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Seguro
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FORMULARIO -->
+                        <form method="POST" action="{{ route('perfil.actualizar-password') }}" id="passwordForm" class="needs-validation" novalidate>
+                            @csrf
+                            @method('PUT')
+
+                            <div class="row g-4">
+                                <!-- Columna izquierda -->
+                                <div class="col-lg-6">
+                                    <!-- Contraseña Actual -->
+                                    <div class="form-group mb-4">
+                                        <label for="current_password" class="form-label text-dark fw-semibold mb-2">
+                                            <i class="fas fa-lock me-2 text-primary"></i>
+                                            Contraseña Actual
+                                        </label>
+                                        <div class="input-group input-group-lg shadow-sm">
+                                            <span class="input-group-text bg-white border-end-0 rounded-start-3 py-3">
+                                                <i class="fas fa-key text-muted"></i>
+                                            </span>
+                                            <input type="password" 
+                                                   class="form-control border-start-0 rounded-end-3 py-3 @error('current_password') is-invalid @enderror" 
+                                                   id="current_password" 
+                                                   name="current_password" 
+                                                   placeholder="Ingresa tu contraseña actual" 
+                                                   required>
+                                            <button class="btn btn-outline-secondary border-start-0 rounded-end-3 py-3 toggle-password" type="button" data-target="current_password">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        @error('current_password')
+                                            <div class="error-message mt-2 d-flex align-items-center">
+                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                <span class="small">{{ translatePasswordError($message) }}</span>
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Generar contraseña -->
+                                    <div class="generate-password-section mb-4">
+                                        <button type="button" class="btn btn-outline-primary w-100 py-2" id="generatePasswordBtn">
+                                            <i class="fas fa-dice me-2"></i>
+                                            Generar contraseña segura
+                                        </button>
+                                    </div>
+
+                                    <!-- Botón copiar (oculto inicialmente) -->
+                                    <div id="copyPasswordContainer" class="mb-4 d-none">
+                                        <button type="button" class="btn btn-outline-success w-100 py-2" id="copyPasswordBtn">
+                                            <i class="fas fa-copy me-2"></i>
+                                            Copiar contraseña generada
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Columna derecha -->
+                                <div class="col-lg-6">
+                                    <!-- Medidor de seguridad -->
+                                    <div class="security-meter p-3 bg-light rounded-3 mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="fw-semibold">
+                                                <i class="fas fa-shield-alt me-2 text-primary"></i>
+                                                Seguridad:
+                                            </span>
+                                            <span class="badge bg-white text-dark px-3 py-2" id="strengthBadge">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Débil
+                                            </span>
+                                        </div>
+                                        <div class="progress mb-3" style="height: 10px;">
+                                            <div id="strengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
+                                        </div>
+                                        
+                                        <!-- Puntuación -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">Fortaleza</small>
+                                            <small class="fw-semibold" id="strengthScore">0/100</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nueva Contraseña y Confirmación en grid -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label for="new_password" class="form-label text-dark fw-semibold mb-2">
+                                        <i class="fas fa-key me-2 text-primary"></i>
+                                        Nueva Contraseña
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-white border-end-0 rounded-start-3 py-3">
+                                            <i class="fas fa-lock text-muted"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control border-start-0 rounded-end-3 py-3 @error('new_password') is-invalid @enderror" 
+                                               id="new_password" 
+                                               name="new_password" 
+                                               placeholder="Crea una nueva contraseña" 
+                                               required>
+                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-3 py-3 toggle-password" type="button" data-target="new_password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    @error('new_password')
+                                        <div class="error-message mt-2 d-flex align-items-center">
+                                            <i class="fas fa-exclamation-circle me-2"></i>
+                                            <span class="small">{{ translatePasswordError($message) }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="new_password_confirmation" class="form-label text-dark fw-semibold mb-2">
+                                        <i class="fas fa-check-circle me-2 text-primary"></i>
+                                        Confirmar Contraseña
+                                    </label>
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <span class="input-group-text bg-white border-end-0 rounded-start-3 py-3">
+                                            <i class="fas fa-lock text-muted"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control border-start-0 rounded-end-3 py-3" 
+                                               id="new_password_confirmation" 
+                                               name="new_password_confirmation" 
+                                               placeholder="Repite la nueva contraseña" 
+                                               required>
+                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-3 py-3 toggle-password" type="button" data-target="new_password_confirmation">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div id="passwordMatch" class="mt-2 small"></div>
+                                </div>
+                            </div>
+
+                            <!-- Requisitos de seguridad -->
+                            <div class="requirements-box p-3 bg-light rounded-3 mb-4">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <small class="text-muted">Seguridad</small>
-                                    <small class="fw-semibold" id="strengthText">Muy débil</small>
+                                    <p class="small fw-semibold text-dark mb-0">
+                                        <i class="fas fa-list-check me-2 text-primary"></i>
+                                        Requisitos de seguridad:
+                                    </p>
+                                    <span class="badge bg-white text-dark border" id="requirementsCount">0/5</span>
                                 </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar" id="passwordStrength" role="progressbar"></div>
+                                <div class="row g-2" id="requirementsList">
+                                    <!-- Requisitos generados dinámicamente -->
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Confirmar Contraseña -->
-                        <div class="form-group mt-4">
-                            <label for="new_password_confirmation" class="form-label text-muted small fw-semibold mb-2">
-                                CONFIRMAR CONTRASEÑA
-                            </label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-key text-muted"></i>
-                                </span>
-                                <input type="password" 
-                                       class="form-control border-start-0 ps-0 @error('new_password') is-invalid @enderror" 
-                                       id="new_password_confirmation" 
-                                       name="new_password_confirmation" 
-                                       required
-                                       placeholder="Repite la nueva contraseña"
-                                       autocomplete="new-password">
-                                <button class="btn btn-light border password-toggle" type="button" 
-                                        data-target="new_password_confirmation">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                            <!-- Botones de acción -->
+                            <div class="row g-3 mt-4">
+                                <div class="col-md-6">
+                                    <a href="{{ route('perfil.edit') }}" class="btn btn-outline-secondary btn-lg w-100 py-3 rounded-3">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Cancelar
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" 
+                                            class="btn btn-primary btn-lg w-100 py-3 rounded-3 reset-btn shadow-sm"
+                                            id="submitBtn" 
+                                            disabled>
+                                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                                        <span class="button-text">
+                                            <i class="fas fa-save me-2"></i>Actualizar Contraseña
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="mt-2" id="matchIndicator">
+                        </form>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-footer bg-light border-0 py-3 px-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 text-center text-md-start">
                                 <small class="text-muted">
-                                    <i class="fas fa-circle me-2" style="font-size: 6px;"></i>
-                                    Las contraseñas deben coincidir
+                                    <i class="fas fa-shield-alt me-2 text-primary"></i>
+                                    Contraseña encriptada SSL
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-center text-md-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Última actualización: 
+                                    <span class="fw-semibold">{{ auth()->user()->updated_at ? auth()->user()->updated_at->format('d/m/Y') : 'Nunca' }}</span>
                                 </small>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Requisitos de seguridad en tarjeta -->
-                    <div class="card border-0 bg-light bg-opacity-50 mb-4">
-                        <div class="card-body p-4">
-                            <h6 class="fw-semibold mb-3 d-flex align-items-center">
-                                <i class="fas fa-clipboard-check text-info me-2"></i>
-                                Requisitos de seguridad
-                                <span class="ms-auto badge bg-white text-dark border" id="requirementsCount">0/5</span>
-                            </h6>
-                            
-                            <div class="row g-3" id="requirementsList">
-                                <!-- Requisitos generados dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tips de seguridad colapsable -->
-                    <div class="card border-0 bg-light bg-opacity-25 mb-4">
-                        <div class="card-body p-0">
-                            <a class="d-flex align-items-center p-4 text-decoration-none" 
-                               data-bs-toggle="collapse" 
-                               href="#securityTips" 
-                               role="button">
-                                <div class="icon-wrapper bg-success bg-opacity-10 rounded-3 p-2 me-3">
-                                    <i class="fas fa-lightbulb text-success"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="fw-semibold mb-1 text-dark">Consejos de seguridad</h6>
-                                    <small class="text-muted">Mejores prácticas para crear contraseñas seguras</small>
-                                </div>
-                                <i class="fas fa-chevron-down text-muted"></i>
-                            </a>
-                            <div class="collapse" id="securityTips">
-                                <div class="p-4 pt-0">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <div class="d-flex align-items-start mb-3">
-                                                <i class="fas fa-check text-success mt-1 me-3"></i>
-                                                <div>
-                                                    <small class="fw-semibold d-block mb-1">Usa una frase larga</small>
-                                                    <small class="text-muted">Combina palabras aleatorias con números</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-start mb-3">
-                                                <i class="fas fa-check text-success mt-1 me-3"></i>
-                                                <div>
-                                                    <small class="fw-semibold d-block mb-1">Caracteres especiales</small>
-                                                    <small class="text-muted">Incluye símbolos como !@#$%^&*</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <div class="d-flex align-items-start mb-3">
-                                                <i class="fas fa-times text-danger mt-1 me-3"></i>
-                                                <div>
-                                                    <small class="fw-semibold d-block mb-1">Evita información personal</small>
-                                                    <small class="text-muted">No uses nombres, fechas o palabras comunes</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-start mb-3">
-                                                <i class="fas fa-times text-danger mt-1 me-3"></i>
-                                                <div>
-                                                    <small class="fw-semibold d-block mb-1">No reutilices contraseñas</small>
-                                                    <small class="text-muted">Usa contraseñas únicas para cada sitio</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Sugerencias rápidas -->
-                                    <div class="mt-3">
-                                        <small class="fw-semibold d-block mb-2">Sugerencias rápidas:</small>
-                                        <div class="d-flex flex-wrap gap-2" id="suggestedPasswords">
-                                            <!-- Generadas dinámicamente -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <div class="d-flex justify-content-between pt-4 mt-5 border-top">
-                        <a href="{{ route('perfil.edit') }}" class="btn btn-outline-secondary px-4">
-                            <i class="fas fa-arrow-left me-2"></i> Volver
-                        </a>
-                        <div class="d-flex gap-3">
-                            <button type="button" class="btn btn-outline-secondary px-4" id="resetForm">
-                                <i class="fas fa-redo me-2"></i> Limpiar
-                            </button>
-                            <button type="submit" class="btn btn-primary px-5 fw-semibold" id="submitBtn" disabled>
-                                <span class="btn-content">
-                                    <i class="fas fa-save me-2"></i> Actualizar
-                                </span>
-                                <span class="btn-loader d-none">
-                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                    Procesando...
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Footer informativo minimalista -->
-            <div class="card-footer bg-transparent border-top py-3">
-                <div class="d-flex justify-content-between align-items-center small text-muted">
-                    <div>
-                        <i class="fas fa-clock me-1"></i>
-                        Último cambio: 
-                        @if(auth()->user()->password_changed_at)
-                            <span class="fw-semibold">{{ auth()->user()->password_changed_at->diffForHumans() }}</span>
-                        @else
-                            <span class="fw-semibold">Nunca</span>
-                        @endif
-                    </div>
-                    <div>
-                        <i class="fas fa-shield-alt me-1"></i>
-                        <span class="fw-semibold">Encriptación SSL</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
+<!-- Estilos -->
+<style>
+:root {
+    --primary-color: #4361ee;
+    --primary-dark: #3a56d4;
+    --secondary-color: #6c757d;
+    --success-color: #4cc9f0;
+    --warning-color: #ffc107;
+    --danger-color: #f72585;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --gradient-primary: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    --gradient-secondary: linear-gradient(135deg, #7209b7 0%, #f72585 100%);
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
+}
+
+.password-change-section {
+    position: relative;
+    min-height: 100vh;
+    padding: 30px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    overflow: hidden;
+}
+
+.password-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.decorative-shape {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 400px;
+    height: 400px;
+    top: -200px;
+    right: -200px;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -150px;
+    left: -150px;
+    background: var(--gradient-secondary);
+    animation-delay: 2s;
+}
+
+.shape-3 {
+    width: 200px;
+    height: 200px;
+    top: 30%;
+    left: 5%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-30px) rotate(5deg);
+    }
+}
+
+.password-card {
+    position: relative;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition);
+    width: 100%;
+}
+
+.password-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.card-header-gradient {
+    background: var(--gradient-primary);
+    position: relative;
+    overflow: hidden;
+    padding: 2rem !important;
+}
+
+.card-header-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.logo-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5rem;
+}
+
+.logo-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 10px 30px rgba(67, 97, 238, 0.3);
+    position: relative;
+    z-index: 2;
+    transition: var(--transition);
+}
+
+.logo-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(67, 97, 238, 0.4);
+}
+
+.logo-main-icon {
+    font-size: 2.8rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo-pulse {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    opacity: 0.3;
+    z-index: 1;
+    animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 0.1;
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+
+.brand-name {
+    font-size: 2rem;
+    letter-spacing: -0.5px;
+}
+
+/* Security Status */
+.security-status {
+    border-left: 4px solid var(--primary-color);
+    background: white !important;
+}
+
+.status-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(67, 97, 238, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Formulario */
+.form-control {
+    border: 2px solid #e9ecef;
+    font-size: 1rem;
+    padding: 1rem 1.25rem;
+    transition: var(--transition);
+    background-color: white;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    background-color: white;
+}
+
+.input-group-text {
+    border: 2px solid #e9ecef;
+    background-color: white;
+    color: var(--secondary-color);
+}
+
+.input-group-lg > .form-control,
+.input-group-lg > .input-group-text,
+.input-group-lg > .btn {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+}
+
+/* Alertas */
+.alert-elegant {
+    border: none;
+    border-left: 4px solid;
+    padding: 1rem 1.25rem;
+}
+
+.alert-success {
+    background-color: rgba(76, 201, 240, 0.1);
+    border-left-color: var(--success-color);
+    color: #0c5460;
+}
+
+.alert-danger {
+    background-color: rgba(247, 37, 133, 0.1);
+    border-left-color: var(--danger-color);
+    color: #721c24;
+}
+
+.alert-icon {
+    font-size: 1.25rem;
+}
+
+/* Security Meter */
+.security-meter {
+    border: 1px solid #e9ecef;
+    background: white !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #f72585, #ffc107, #4cc9f0);
+}
+
+/* Requirements */
+.requirements-box {
+    border: 1px solid #e9ecef;
+    background: white !important;
+}
+
+.requirements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: var(--transition);
+}
+
+.requirement-item i {
+    font-size: 0.95rem;
+    color: #adb5bd;
+    transition: var(--transition);
+}
+
+.requirement-item.valid {
+    border-color: var(--primary-color);
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.requirement-item.valid i {
+    color: var(--primary-color);
+}
+
+/* Generate Password Button */
+.generate-password-section .btn {
+    border: 2px dashed #e9ecef;
+    transition: var(--transition);
+}
+
+.generate-password-section .btn:hover {
+    border-color: var(--primary-color);
+    background: rgba(67, 97, 238, 0.05);
+    transform: translateY(-2px);
+}
+
+.generate-password-section .btn i {
+    transition: transform 0.3s ease;
+}
+
+.generate-password-section .btn:hover i {
+    transform: rotate(180deg);
+}
+
+/* Security Tips */
+.security-tips {
+    border: 1px solid rgba(67, 97, 238, 0.2);
+}
+
+.security-tips ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.security-tips li {
+    padding-left: 0;
+    margin-bottom: 0.5rem;
+}
+
+/* Suggestions */
+.suggestions-box {
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.suggestions-box .btn-outline-primary {
+    border: 1px solid #e9ecef;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.suggestions-box .btn-outline-primary:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Botones */
+.reset-btn {
+    background: var(--gradient-primary);
+    border: none;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.reset-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3a56d4 0%, #2a0a91 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3) !important;
+}
+
+.reset-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.reset-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.7s;
+}
+
+.reset-btn:hover:not(:disabled)::after {
+    left: 100%;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #e9ecef;
+    color: var(--secondary-color);
+    transition: var(--transition);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--light-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline-success {
+    border: 2px solid #4cc9f0;
+    color: #4cc9f0;
+    transition: var(--transition);
+}
+
+.btn-outline-success:hover {
+    background: #4cc9f0;
+    color: white;
+    border-color: #4cc9f0;
+}
+
+/* Error message */
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    background: rgba(247, 37, 133, 0.05);
+    border-radius: 0.5rem;
+    border-left: 3px solid var(--danger-color);
+}
+
+/* Password Match */
+#passwordMatch .text-success {
+    color: #4cc9f0 !important;
+    font-weight: 500;
+}
+
+#passwordMatch .text-danger {
+    color: #f72585 !important;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .password-change-section {
+        padding: 15px;
+    }
+    
+    .card-header-gradient {
+        padding: 1.5rem !important;
+    }
+    
+    .brand-name {
+        font-size: 1.5rem;
+    }
+    
+    .logo-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .logo-main-icon {
+        font-size: 2rem;
+    }
+    
+    .shape-1, .shape-2, .shape-3 {
+        display: none;
+    }
+    
+    .security-status {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .security-status .status-icon {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.password-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Copy button animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#copyPasswordContainer:not(.d-none) {
+    animation: fadeIn 0.3s ease-out;
+}
+</style>
+
+<!-- Scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuración
+    // Configuración de requisitos
     const config = {
         requirements: [
-            { id: 'length', label: 'Mínimo 8 caracteres', regex: /.{8,}/, weight: 20 },
-            { id: 'uppercase', label: '1 letra mayúscula', regex: /[A-Z]/, weight: 20 },
-            { id: 'lowercase', label: '1 letra minúscula', regex: /[a-z]/, weight: 20 },
-            { id: 'number', label: '1 número', regex: /[0-9]/, weight: 20 },
-            { id: 'special', label: '1 carácter especial', regex: /[!@#$%^&*(),.?":{}|<>]/, weight: 20 }
-        ],
-        strengthColors: {
-            0: '#dc3545',
-            20: '#fd7e14',
-            40: '#ffc107',
-            60: '#20c997',
-            80: '#198754'
-        }
-    };
-
-    // Traducción de errores comunes
-    const errorTranslations = {
-        'The current password field is required.': 'La contraseña actual es obligatoria.',
-        'The current password field must be at least 6 characters.': 'La contraseña actual debe tener al menos 6 caracteres.',
-        'The new password field is required.': 'La nueva contraseña es obligatoria.',
-        'The new password field must be at least 8 characters.': 'La nueva contraseña debe tener al menos 8 caracteres.',
-        'The new password confirmation field is required.': 'La confirmación de contraseña es obligatoria.',
-        'The new password confirmation field must match new password.': 'La confirmación de contraseña no coincide.',
-        'The password must be at least 8 characters.': 'La contraseña debe tener al menos 8 caracteres.',
-        'The password must contain at least one uppercase and one lowercase letter.': 'La contraseña debe contener al menos una letra mayúscula y una minúscula.',
-        'The password must contain at least one number.': 'La contraseña debe contener al menos un número.',
-        'The password must contain at least one symbol.': 'La contraseña debe contener al menos un símbolo.',
-        'The current password is incorrect.': 'La contraseña actual es incorrecta.',
-        'Las contraseñas no coinciden': 'Las contraseñas no coinciden'
+            { id: 'length', label: 'Mínimo 8 caracteres', regex: /.{8,}/ },
+            { id: 'uppercase', label: 'Una letra mayúscula', regex: /[A-Z]/ },
+            { id: 'lowercase', label: 'Una letra minúscula', regex: /[a-z]/ },
+            { id: 'number', label: 'Un número', regex: /[0-9]/ },
+            { id: 'special', label: 'Un carácter especial', regex: /[!@#$%^&*(),.?":{}|<>]/ }
+        ]
     };
 
     // Elementos DOM
     const elements = {
-        form: document.getElementById('passwordForm'),
         currentPassword: document.getElementById('current_password'),
         newPassword: document.getElementById('new_password'),
         confirmPassword: document.getElementById('new_password_confirmation'),
         submitBtn: document.getElementById('submitBtn'),
-        strengthBar: document.getElementById('passwordStrength'),
-        strengthText: document.getElementById('strengthText'),
-        passwordScore: document.getElementById('passwordScore'),
-        matchIndicator: document.getElementById('matchIndicator'),
+        strengthBar: document.getElementById('strengthBar'),
+        strengthBadge: document.getElementById('strengthBadge'),
+        strengthScore: document.getElementById('strengthScore'),
+        matchIndicator: document.getElementById('passwordMatch'),
         requirementsList: document.getElementById('requirementsList'),
         requirementsCount: document.getElementById('requirementsCount'),
-        suggestedPasswords: document.getElementById('suggestedPasswords')
+        copyContainer: document.getElementById('copyPasswordContainer'),
+        copyBtn: document.getElementById('copyPasswordBtn'),
+        generateBtn: document.getElementById('generatePasswordBtn')
     };
 
     // Estado
     const state = {
         score: 0,
-        metRequirements: 0,
-        isSubmitting: false
+        metRequirements: 0
     };
 
-    // Función para traducir errores
-    function translateError(message) {
-        return errorTranslations[message] || message;
-    }
-
-    // Inicializar
-    function init() {
-        setupPasswordToggles();
-        setupPasswordGenerator();
-        setupRequirementsList();
-        generateSuggestedPasswords();
-        setupFormValidation();
-        setupResetButton();
-        
-        // Event listeners
-        elements.newPassword.addEventListener('input', updatePasswordAnalysis);
-        elements.confirmPassword.addEventListener('input', updatePasswordAnalysis);
-        elements.currentPassword.addEventListener('input', validateForm);
-        
-        // Mostrar errores del servidor si existen
-        showServerErrors();
-        
-        updatePasswordAnalysis();
-    }
-
-    // Mostrar errores del servidor
-    function showServerErrors() {
-        // Verificar si hay errores en los campos específicos
-        const fields = ['current_password', 'new_password', 'new_password_confirmation'];
-        
-        fields.forEach(field => {
-            const input = document.getElementById(field);
-            const errorContainer = input?.closest('.form-group')?.querySelector('.text-danger');
-            
-            if (input && input.classList.contains('is-invalid') && errorContainer) {
-                // Animar el campo con error
-                input.style.animation = 'shake 0.5s ease-in-out';
-                setTimeout(() => {
-                    input.style.animation = '';
-                }, 500);
-                
-                // Resaltar el campo
-                input.focus();
-            }
-        });
-    }
-
-    // Toggles de contraseña
-    function setupPasswordToggles() {
-        document.querySelectorAll('.password-toggle').forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.dataset.target;
-                const input = document.getElementById(targetId);
-                const icon = this.querySelector('i');
-                
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.className = 'fas fa-eye-slash';
-                    this.classList.add('active');
-                } else {
-                    input.type = 'password';
-                    icon.className = 'fas fa-eye';
-                    this.classList.remove('active');
-                }
-            });
-        });
-    }
-
-    // Generador de contraseñas
-    function setupPasswordGenerator() {
-        document.querySelector('.generate-password')?.addEventListener('click', function() {
-            const password = generateSecurePassword();
-            elements.newPassword.value = password;
-            elements.confirmPassword.value = password;
-            updatePasswordAnalysis();
-            
-            showNotification('Contraseña generada', 'Se ha creado una contraseña segura automáticamente.', 'success');
-        });
-    }
-
-    function generateSecurePassword() {
-        const chars = {
-            lower: 'abcdefghijklmnopqrstuvwxyz',
-            upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-            numbers: '0123456789',
-            symbols: '!@#$%^&*'
-        };
-
-        let password = '';
-        
-        // Asegurar un carácter de cada tipo
-        password += chars.lower[Math.floor(Math.random() * chars.lower.length)];
-        password += chars.upper[Math.floor(Math.random() * chars.upper.length)];
-        password += chars.numbers[Math.floor(Math.random() * chars.numbers.length)];
-        password += chars.symbols[Math.floor(Math.random() * chars.symbols.length)];
-        
-        // Completar hasta 12 caracteres
-        const allChars = chars.lower + chars.upper + chars.numbers + chars.symbols;
-        while (password.length < 12) {
-            password += allChars[Math.floor(Math.random() * allChars.length)];
-        }
-        
-        return password.split('').sort(() => Math.random() - 0.5).join('');
-    }
-
-    // Lista de requisitos
-    function setupRequirementsList() {
+    // Inicializar requisitos
+    function initRequirements() {
         elements.requirementsList.innerHTML = config.requirements.map(req => `
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center requirement-item" data-id="${req.id}">
-                    <div class="requirement-check me-3">
-                        <i class="fas fa-circle" style="font-size: 8px;"></i>
-                    </div>
-                    <small class="text-muted requirement-label">${req.label}</small>
-                    <div class="ms-auto">
-                        <i class="fas fa-times text-danger opacity-50"></i>
-                    </div>
+            <div class="col-6">
+                <div class="requirement-item" data-id="${req.id}">
+                    <i class="fas fa-circle-check"></i>
+                    <span class="small">${req.label}</span>
                 </div>
             </div>
         `).join('');
     }
 
-    // Sugerencias de contraseñas
-    function generateSuggestedPasswords() {
-        const suggestions = [
-            generateMemorablePassword(),
-            generatePatternPassword(),
-            generateSecurePassword()
-        ];
-        
-        suggestions.forEach(password => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'btn btn-sm btn-outline-primary';
-            button.textContent = password.substring(0, 12) + '...';
-            button.title = 'Usar esta contraseña';
+    // Toggle de contraseñas
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const input = document.getElementById(targetId);
+            const icon = this.querySelector('i');
             
-            button.addEventListener('click', function() {
-                elements.newPassword.value = password;
-                elements.confirmPassword.value = password;
-                updatePasswordAnalysis();
-                showNotification('Contraseña aplicada', 'La sugerencia ha sido aplicada.', 'info');
-            });
-            
-            elements.suggestedPasswords.appendChild(button);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         });
+    });
+
+    // Generar contraseña
+    elements.generateBtn.addEventListener('click', generateRandomPassword);
+
+    function generateRandomPassword() {
+        const length = 12;
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const numbers = '0123456789';
+        const symbols = '!@#$%^&*';
+        
+        let password = '';
+        
+        // Asegurar al menos uno de cada tipo
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += numbers[Math.floor(Math.random() * numbers.length)];
+        password += symbols[Math.floor(Math.random() * symbols.length)];
+        
+        // Completar
+        const allChars = uppercase + lowercase + numbers + symbols;
+        while (password.length < length) {
+            password += allChars[Math.floor(Math.random() * allChars.length)];
+        }
+        
+        // Mezclar
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        
+        elements.newPassword.value = password;
+        elements.confirmPassword.value = password;
+        
+        elements.copyContainer.classList.remove('d-none');
+        
+        // Disparar eventos
+        elements.newPassword.dispatchEvent(new Event('input'));
+        elements.confirmPassword.dispatchEvent(new Event('input'));
+        
+        // Feedback
+        showFeedback('¡Contraseña generada!', 'success');
     }
 
-    function generateMemorablePassword() {
-        const words = ['Sol', 'Luna', 'Mar', 'Cielo', 'Montaña'];
-        const numbers = Math.floor(Math.random() * 90) + 10;
-        return words[Math.floor(Math.random() * words.length)] + numbers + '!';
-    }
+    // Copiar contraseña
+    elements.copyBtn.addEventListener('click', function() {
+        elements.newPassword.select();
+        document.execCommand('copy');
+        
+        this.innerHTML = '<i class="fas fa-check me-2"></i>¡Copiada!';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fas fa-copy me-2"></i>Copiar contraseña';
+        }, 2000);
+        
+        window.getSelection().removeAllRanges();
+    });
 
-    function generatePatternPassword() {
-        return 'Aa1!' + Math.floor(Math.random() * 90 + 10) + 'Bb@';
-    }
+    // Analizar contraseña
+    elements.newPassword.addEventListener('input', analyzePassword);
+    elements.confirmPassword.addEventListener('input', checkMatch);
+    elements.currentPassword.addEventListener('input', validateForm);
 
-    // Análisis de contraseña
-    function updatePasswordAnalysis() {
+    function analyzePassword() {
         const password = elements.newPassword.value;
-        const confirmPassword = elements.confirmPassword.value;
         
-        state.score = calculatePasswordScore(password);
-        checkRequirements(password, confirmPassword);
-        updateStrengthIndicator();
-        updateMatchIndicator(password, confirmPassword);
-        validateForm();
-    }
-
-    function calculatePasswordScore(password) {
-        if (!password) return 0;
-        
+        // Calcular score
         let score = 0;
         score += Math.min(password.length * 3, 30);
         
         const checks = [
-            /[a-z]/.test(password),
             /[A-Z]/.test(password),
+            /[a-z]/.test(password),
             /[0-9]/.test(password),
             /[^A-Za-z0-9]/.test(password)
         ];
         
-        score += checks.filter(Boolean).length * 15;
-        return Math.min(100, score);
-    }
-
-    function checkRequirements(password, confirmPassword) {
-        state.metRequirements = 0;
+        score += checks.filter(Boolean).length * 17.5;
+        state.score = Math.min(100, Math.round(score));
         
+        // Actualizar requisitos
+        state.metRequirements = 0;
         config.requirements.forEach(req => {
             const isMet = req.regex.test(password);
             const item = document.querySelector(`.requirement-item[data-id="${req.id}"]`);
             
             if (item) {
-                const icon = item.querySelector('.fa-times');
-                const check = item.querySelector('.requirement-check i');
-                
                 if (isMet) {
-                    icon.className = 'fas fa-check text-success';
-                    check.className = 'fas fa-check-circle text-success';
+                    item.classList.add('valid');
                     state.metRequirements++;
                 } else {
-                    icon.className = 'fas fa-times text-danger opacity-50';
-                    check.className = 'fas fa-circle text-muted opacity-50';
+                    item.classList.remove('valid');
                 }
             }
         });
@@ -586,468 +953,79 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.requirementsCount.className = state.metRequirements === config.requirements.length 
             ? 'badge bg-success text-white' 
             : 'badge bg-white text-dark border';
+        
+        // Actualizar barra
+        elements.strengthBar.style.width = state.score + '%';
+        elements.strengthScore.textContent = state.score + '/100';
+        
+        // Actualizar badge
+        if (state.score < 40) {
+            elements.strengthBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Débil';
+            elements.strengthBadge.className = 'badge bg-danger bg-opacity-10 text-danger px-3 py-2';
+        } else if (state.score < 70) {
+            elements.strengthBadge.innerHTML = '<i class="fas fa-chart-line me-1"></i>Media';
+            elements.strengthBadge.className = 'badge bg-warning bg-opacity-10 text-warning px-3 py-2';
+        } else {
+            elements.strengthBadge.innerHTML = '<i class="fas fa-shield-alt me-1"></i>Fuerte';
+            elements.strengthBadge.className = 'badge bg-success bg-opacity-10 text-success px-3 py-2';
+        }
+        
+        checkMatch();
+        validateForm();
     }
 
-    function updateStrengthIndicator() {
-        elements.strengthBar.style.width = `${state.score}%`;
+    function checkMatch() {
+        const pass = elements.newPassword.value;
+        const conf = elements.confirmPassword.value;
         
-        let color = config.strengthColors[0];
-        if (state.score >= 80) color = config.strengthColors[80];
-        else if (state.score >= 60) color = config.strengthColors[60];
-        else if (state.score >= 40) color = config.strengthColors[40];
-        else if (state.score >= 20) color = config.strengthColors[20];
-        
-        elements.strengthBar.style.backgroundColor = color;
-        elements.passwordScore.textContent = `${state.score}/100`;
-        
-        // Texto descriptivo
-        let text = 'Muy débil';
-        if (state.score >= 80) text = 'Excelente';
-        else if (state.score >= 60) text = 'Buena';
-        else if (state.score >= 40) text = 'Regular';
-        else if (state.score >= 20) text = 'Débil';
-        
-        elements.strengthText.textContent = text;
-        elements.strengthText.style.color = color;
-    }
-
-    function updateMatchIndicator(password, confirmPassword) {
-        if (!password || !confirmPassword) {
-            elements.matchIndicator.innerHTML = `
-                <small class="text-muted">
-                    <i class="fas fa-circle me-2" style="font-size: 6px;"></i>
-                    Las contraseñas deben coincidir
-                </small>
-            `;
+        if (conf === '') {
+            elements.matchIndicator.innerHTML = '';
             return;
         }
         
-        if (password === confirmPassword) {
-            elements.matchIndicator.innerHTML = `
-                <small class="text-success fw-semibold">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Contraseñas coinciden
-                </small>
-            `;
+        if (pass === conf) {
+            elements.matchIndicator.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Las contraseñas coinciden</span>';
         } else {
-            elements.matchIndicator.innerHTML = `
-                <small class="text-danger">
-                    <i class="fas fa-times-circle me-2"></i>
-                    Las contraseñas no coinciden
-                </small>
-            `;
+            elements.matchIndicator.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Las contraseñas no coinciden</span>';
         }
+        
+        validateForm();
     }
 
     function validateForm() {
         const currentValid = elements.currentPassword.value.length >= 6;
-        const passwordValid = state.score >= 60;
+        const passwordValid = state.score >= 70;
         const passwordsMatch = elements.newPassword.value === elements.confirmPassword.value;
         const allRequirementsMet = state.metRequirements === config.requirements.length;
         
-        const isValid = currentValid && passwordValid && passwordsMatch && allRequirementsMet;
-        elements.submitBtn.disabled = !isValid;
-        
-        // Actualizar clases de validación visual
-        if (elements.currentPassword.value) {
-            elements.currentPassword.classList.toggle('is-valid', currentValid);
-            elements.currentPassword.classList.toggle('is-invalid', !currentValid);
-        }
-        
-        if (elements.newPassword.value) {
-            elements.newPassword.classList.toggle('is-valid', passwordValid);
-            elements.newPassword.classList.toggle('is-invalid', !passwordValid);
-        }
+        elements.submitBtn.disabled = !(currentValid && passwordValid && passwordsMatch && allRequirementsMet);
     }
 
-    function setupFormValidation() {
-        elements.form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (state.isSubmitting) return;
-            
-            const isValid = elements.submitBtn.disabled === false;
-            if (!isValid) {
-                showNotification('Error de validación', 'Por favor, corrige los errores en el formulario.', 'error');
-                return;
-            }
-            
-            // Confirmación
-            Swal.fire({
-                title: '¿Actualizar contraseña?',
-                html: `
-                    <p>Se actualizará tu contraseña y deberás iniciar sesión nuevamente.</p>
-                    <div class="alert alert-light border mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Recomendamos guardar la nueva contraseña en un gestor seguro
-                        </small>
-                    </div>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, actualizar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#0d6efd',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    state.isSubmitting = true;
-                    elements.submitBtn.querySelector('.btn-content').classList.add('d-none');
-                    elements.submitBtn.querySelector('.btn-loader').classList.remove('d-none');
-                    elements.submitBtn.disabled = true;
-                    
-                    setTimeout(() => {
-                        elements.form.submit();
-                    }, 1000);
-                }
-            });
-        });
-    }
-
-    function setupResetButton() {
-        document.getElementById('resetForm').addEventListener('click', function() {
-            Swal.fire({
-                title: '¿Limpiar formulario?',
-                text: 'Se borrarán todos los campos ingresados',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, limpiar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#6c757d',
-                cancelButtonColor: '#0d6efd'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    elements.form.reset();
-                    updatePasswordAnalysis();
-                    showNotification('Formulario limpiado', 'Todos los campos han sido restablecidos.', 'info');
-                }
-            });
-        });
-    }
-
-    function showNotification(title, message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
+    function showFeedback(message, type) {
+        const feedback = document.createElement('div');
+        feedback.className = `alert alert-${type} alert-elegant position-fixed top-0 end-0 m-3`;
+        feedback.style.zIndex = '9999';
+        feedback.innerHTML = `
             <div class="d-flex align-items-center">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} 
-                   text-${type} me-3"></i>
-                <div>
-                    <strong>${title}</strong>
-                    <small class="d-block text-muted">${message}</small>
-                </div>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                ${message}
             </div>
         `;
         
-        document.body.appendChild(notification);
+        document.body.appendChild(feedback);
         
         setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+            feedback.style.transition = 'opacity 0.5s';
+            feedback.style.opacity = '0';
+            setTimeout(() => feedback.remove(), 500);
+        }, 2000);
     }
 
-    init();
+    // Inicializar
+    initRequirements();
+    analyzePassword();
 });
 </script>
-
-<style>
-.password-change-card {
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.08);
-}
-
-/* Header minimalista */
-.card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-}
-
-.header-background {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 200px;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 193, 7, 0) 100%);
-    clip-path: polygon(100% 0, 100% 100%, 0 0);
-}
-
-.icon-wrapper {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* Progress indicator */
-.progress-indicator {
-    padding: 0 20px;
-}
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-}
-
-.step-number {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: #6c757d;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-}
-
-.step.active .step-number {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.step-label {
-    font-size: 0.8rem;
-    color: #6c757d;
-    font-weight: 500;
-}
-
-.step.active .step-label {
-    color: #0d6efd;
-    font-weight: 600;
-}
-
-.step-line {
-    flex: 1;
-    height: 2px;
-    background: #e9ecef;
-    margin: 0 10px;
-    position: relative;
-    top: -24px;
-}
-
-/* Formulario mejorado */
-.form-control {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-}
-
-.form-control.is-invalid {
-    border-color: #dc3545;
-    background-image: none;
-}
-
-.form-control.is-valid {
-    border-color: #198754;
-    background-image: none;
-}
-
-.input-group-lg .form-control {
-    border-radius: 8px 0 0 8px;
-}
-
-.input-group-text {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-}
-
-/* Errores mejorados */
-.text-danger {
-    color: #dc3545 !important;
-}
-
-.text-danger i {
-    color: #dc3545;
-}
-
-/* Indicador de fortaleza */
-.progress {
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    transition: width 0.5s ease, background-color 0.5s ease;
-    border-radius: 3px;
-}
-
-/* Requisitos */
-.requirement-item {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.requirement-item:last-child {
-    border-bottom: none;
-}
-
-.requirement-check i {
-    transition: all 0.3s ease;
-}
-
-/* Botones */
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    border: none;
-}
-
-.btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-outline-secondary {
-    border: 1px solid #dee2e6;
-}
-
-.btn-outline-secondary:hover {
-    background: #f8f9fa;
-    border-color: #6c757d;
-}
-
-/* Notificaciones */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: white;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    max-width: 350px;
-    z-index: 9999;
-    border-left: 4px solid;
-    animation: slideIn 0.3s ease;
-}
-
-.notification-success { border-color: #198754; }
-.notification-error { border-color: #dc3545; }
-.notification-info { border-color: #0dcaf0; }
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.fade-out {
-    animation: fadeOut 0.3s ease forwards;
-}
-
-@keyframes fadeOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-/* Animación para campos con error */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-    20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-/* Cards mejoradas */
-.card {
-    border-radius: 12px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .card-body {
-        padding: 1.5rem !important;
-    }
-    
-    .progress-indicator {
-        padding: 0 10px;
-    }
-    
-    .step-number {
-        width: 32px;
-        height: 32px;
-        font-size: 0.9rem;
-    }
-    
-    .step-label {
-        font-size: 0.7rem;
-    }
-    
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .d-flex.justify-content-between > div {
-        width: 100%;
-    }
-    
-    .btn {
-        width: 100%;
-    }
-}
-
-/* Animaciones suaves */
-.form-control, .btn, .card {
-    transition: all 0.2s ease;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-</style>
-
-<!-- Dependencias -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @php
 function translatePasswordError($message) {

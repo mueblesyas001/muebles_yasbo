@@ -23,8 +23,7 @@ class Cliente extends Model
         'Sexo'
     ];
 
-    public function pedidos()
-    {
+    public function pedidos(){
         return $this->hasMany(Pedido::class, 'Cliente_idCliente', 'id');
     }
 }

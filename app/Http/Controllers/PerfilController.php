@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Usuario;
 
 class PerfilController extends Controller
@@ -51,8 +50,7 @@ class PerfilController extends Controller
         return view('perfil.change-password');
     }
 
-    // En tu controlador (app/Http/Controllers/PerfilController.php)
-    public function actualizarPassword(Request $request)
+    public function changePassword(Request $request)
     {
         $request->validate([
             'current_password' => ['required', 'min:6'],
@@ -74,18 +72,18 @@ class PerfilController extends Controller
             'new_password.confirmed' => 'La confirmación de contraseña no coincide.',
         ]);
 
-        // Verificar contraseña actual
-        if (!Hash::check($request->current_password, auth()->$user->contrasena)) {
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->contrasena)) {
             return back()->withErrors([
                 'current_password' => 'La contraseña actual es incorrecta.'
-            ]);
+            ])->withInput();
         }
 
         // Actualizar contraseña
-        auth()->user()->update([
-            'password' => Hash::make($request->new_password),
-            'password_changed_at' => now()
-        ]);
+        $user->contrasena = Hash::make($request->new_password);
+        $user->updated_at = now();
+        $user->save();
 
         return back()->with('success', 'Tu contraseña ha sido actualizada exitosamente.');
     }

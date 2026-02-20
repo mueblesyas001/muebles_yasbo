@@ -1,569 +1,854 @@
 @extends('layouts.app')
 
 @section('content')
-<div id="categorias-page" class="container-fluid">
-    <!-- Encabezado Principal -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="flex-grow-1">
-            <h1 class="h2 mb-1 text-primary fw-bold">Gestión de Categorías</h1>
-            <p class="text-muted mb-0">Administra las categorías de productos del sistema</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button type="button" id="refreshData" class="btn btn-outline-primary">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <a href="{{ route('categorias.create') }}" class="btn btn-primary shadow-sm">
-                <i class="fas fa-plus me-2"></i> Nueva Categoría
-            </a>
+<div id="categorias-page" class="container-fluid px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
+    <!-- Header con Glassmorphism -->
+    <div class="glass-header py-4 px-4 mb-4" style="
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        margin-top: 20px;
+    ">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-4">
+                <div class="header-icon" style="
+                    width: 70px;
+                    height: 70px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+                ">
+                    <i class="fas fa-tags fa-2x"></i>
+                </div>
+                <div>
+                    <h1 class="display-6 fw-bold mb-1" style="
+                        background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        letter-spacing: -0.5px;
+                    ">
+                        Gestión de Categorías
+                    </h1>
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-bolt me-1 text-warning"></i>
+                        Administra las categorías de productos del sistema
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" id="refreshData" class="btn btn-outline-primary" style="
+                    border-radius: 14px;
+                    padding: 12px 20px;
+                    border: 1px solid #e5e7eb;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{{ route('categorias.create') }}" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    border-radius: 14px;
+                    padding: 12px 28px;
+                    font-weight: 600;
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                ">
+                    <i class="fas fa-plus me-2"></i> Nueva Categoría
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Alertas -->
+    <!-- Alertas Mejoradas -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <div>{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-modern alert-success d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #155724;">¡Operación Exitosa!</h6>
+                <p class="mb-0" style="color: #155724;">{{ session('success') }}</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <div>{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-modern alert-danger d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-exclamation-circle fa-2x" style="color: #dc3545;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #721c24;">¡Error!</h6>
+                <p class="mb-0" style="color: #721c24;">{{ session('error') }}</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Total Categorías</h6>
-                            <h3 class="mb-0">{{ $categorias->count() }}</h3>
-                        </div>
-                        <div class="categoria-avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-tags text-primary fa-lg"></i>
-                        </div>
+    @if(session('foreign_key_error'))
+        <div class="alert alert-modern alert-warning d-flex align-items-center mb-4" role="alert" style="
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        ">
+            <div class="alert-icon me-3">
+                <i class="fas fa-exclamation-triangle fa-2x" style="color: #856404;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="alert-heading fw-bold mb-1" style="color: #856404;">Categoría Protegida</h6>
+                <p class="mb-0" style="color: #856404;">{{ session('foreign_key_error') }}</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    <!-- Tarjetas de Estadísticas Mejoradas -->
+    <div class="row g-4 mb-4">
+        @php
+            $stats = [
+                [
+                    'titulo' => 'Total Categorías',
+                    'valor' => $categorias->count(),
+                    'icono' => 'fas fa-tags',
+                    'color' => '#667eea',
+                    'gradiente' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'descripcion' => 'Registradas en el sistema'
+                ],
+                [
+                    'titulo' => 'Con Proveedor',
+                    'valor' => $categorias->whereNotNull('Proveedor_idProveedor')->count(),
+                    'icono' => 'fas fa-truck',
+                    'color' => '#10b981',
+                    'gradiente' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    'descripcion' => 'Tienen proveedor asignado'
+                ],
+                [
+                    'titulo' => 'Con Productos',
+                    'valor' => $categorias->where('productos_count', '>', 0)->count(),
+                    'icono' => 'fas fa-boxes',
+                    'color' => '#3b82f6',
+                    'gradiente' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    'descripcion' => 'Productos asociados'
+                ],
+                [
+                    'titulo' => 'Sin Productos',
+                    'valor' => $categorias->where('productos_count', 0)->count(),
+                    'icono' => 'fas fa-box-open',
+                    'color' => '#f59e0b',
+                    'gradiente' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    'descripcion' => 'Vacías disponibles'
+                ]
+            ];
+        @endphp
+
+        @foreach($stats as $stat)
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card h-100" style="
+                background: white;
+                border-radius: 24px;
+                padding: 1.5rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                border: 1px solid rgba(0,0,0,0.03);
+                transition: all 0.3s ease;
+                cursor: default;
+                position: relative;
+                overflow: hidden;
+            ">
+                <div class="stat-decoration" style="
+                    position: absolute;
+                    top: -50%;
+                    right: -50%;
+                    width: 200px;
+                    height: 200px;
+                    background: {{ $stat['gradiente'] }};
+                    opacity: 0.05;
+                    border-radius: 50%;
+                    transition: all 0.5s ease;
+                "></div>
+                
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge" style="
+                            background: {{ $stat['gradiente'] }};
+                            color: white;
+                            padding: 0.5rem 1rem;
+                            border-radius: 50px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            letter-spacing: 0.5px;
+                        ">
+                            {{ $stat['descripcion'] }}
+                        </span>
                     </div>
+                    <div class="stat-icon" style="
+                        width: 50px;
+                        height: 50px;
+                        background: {{ $stat['gradiente'] }};
+                        border-radius: 16px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 1.5rem;
+                        box-shadow: 0 8px 20px {{ $stat['color'] }}40;
+                    ">
+                        <i class="{{ $stat['icono'] }}"></i>
+                    </div>
+                </div>
+                
+                <h3 class="fw-bold mb-1" style="font-size: 2.5rem; color: #1f2937;">{{ $stat['valor'] }}</h3>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $stat['titulo'] }}</p>
+                
+                <div class="stat-progress mt-3" style="
+                    height: 4px;
+                    background: #e5e7eb;
+                    border-radius: 2px;
+                    overflow: hidden;
+                ">
+                    @php
+                        $porcentaje = $stats[0]['valor'] > 0 ? ($stat['valor'] / $stats[0]['valor']) * 100 : 0;
+                    @endphp
+                    <div class="stat-progress-bar" style="
+                        width: {{ $porcentaje }}%;
+                        height: 100%;
+                        background: {{ $stat['gradiente'] }};
+                        border-radius: 2px;
+                        transition: width 1s ease;
+                    "></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Con Proveedor</h6>
-                            <h3 class="mb-0 text-success">
-                                {{ $categorias->whereNotNull('Proveedor_idProveedor')->count() }}
-                            </h3>
-                        </div>
-                        <div class="categoria-avatar-sm bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-truck text-success fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Con Productos</h6>
-                            <h3 class="mb-0 text-info">
-                                {{ $categorias->where('productos_count', '>', 0)->count() }}
-                            </h3>
-                        </div>
-                        <div class="categoria-avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-boxes text-info fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Sin Productos</h6>
-                            <h3 class="mb-0 text-warning">
-                                {{ $categorias->where('productos_count', 0)->count() }}
-                            </h3>
-                        </div>
-                        <div class="categoria-avatar-sm bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="fas fa-box-open text-warning fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endforeach
     </div>
 
-    <!-- Panel de Búsqueda y Filtros -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold text-dark">
-                <i class="fas fa-search me-2 text-primary"></i>
-                Búsqueda y Filtros
-            </h5>
+    <!-- Panel de Búsqueda y Filtros Mejorado -->
+    <div class="filters-panel mb-4" style="
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.03);
+    ">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="filters-icon" style="
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            ">
+                <i class="fas fa-filter"></i>
+            </div>
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #1f2937;">Filtros de Búsqueda</h5>
+                <p class="text-muted small mb-0">Encuentra categorías específicas usando los siguientes filtros</p>
+            </div>
         </div>
-        <div class="card-body">
-            <form id="filtrosForm" method="GET" action="{{ route('categorias.index') }}">
-                @csrf
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <label class="form-label small text-muted">
-                            <i class="fas fa-search me-1"></i> Buscar Categoría
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="fas fa-search text-muted"></i>
-                            </span>
-                            <input type="text" 
-                                   id="searchInput" 
-                                   class="form-control" 
-                                   name="search"
-                                   placeholder="Nombre o descripción..."
-                                   value="{{ request('search') }}"
-                                   aria-label="Buscar categoría">
-                            @if(request('search'))
-                            <button type="button" 
-                                    class="btn btn-outline-danger" 
-                                    onclick="clearFilter('search')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            @endif
-                        </div>
+
+        <form id="filtrosForm" method="GET" action="{{ route('categorias.index') }}">
+            @csrf
+            <div class="row g-3">
+                <!-- Buscar Categoría -->
+                <div class="col-md-5">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-search me-1" style="color: #667eea;"></i>
+                        Buscar Categoría
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control border-0 bg-light" 
+                               name="search"
+                               placeholder="Nombre o descripción..."
+                               value="{{ request('search') }}"
+                               style="box-shadow: none;">
+                        @if(request('search'))
+                        <button type="button" 
+                                class="btn btn-outline-danger border-0" 
+                                onclick="clearFilter('search')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        @endif
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted">
-                            <i class="fas fa-truck me-1"></i> Proveedor
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="fas fa-user-tie"></i>
-                            </span>
-                            <select id="filterProveedor" class="form-select" name="proveedor_id" aria-label="Proveedor">
-                                <option value="">Todos los proveedores</option>
-                                @foreach($proveedores as $proveedor)
-                                    <option value="{{ $proveedor->idProveedor }}" {{ request('proveedor_id') == $proveedor->idProveedor ? 'selected' : '' }}>
-                                        {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if(request('proveedor_id'))
-                            <button type="button" 
-                                    class="btn btn-outline-danger" 
-                                    onclick="clearFilter('proveedor_id')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-muted">
-                            <i class="fas fa-sort me-1"></i> Ordenar por
-                        </label>
-                        <select id="sortBy" class="form-select" name="sort_by" aria-label="Ordenar por">
-                            <option value="Nombre" {{ request('sort_by', 'Nombre') == 'Nombre' ? 'selected' : '' }}>Nombre</option>
-                            <option value="productos_count" {{ request('sort_by') == 'productos_count' ? 'selected' : '' }}>Productos</option>
-                            <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID</option>
+                </div>
+
+                <!-- Proveedor -->
+                <div class="col-md-4">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-truck me-1" style="color: #667eea;"></i>
+                        Proveedor
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light">
+                            <i class="fas fa-user-tie text-primary"></i>
+                        </span>
+                        <select id="filterProveedor" class="form-select border-0 bg-light" name="proveedor_id">
+                            <option value="">Todos los proveedores</option>
+                            @foreach($proveedores as $proveedor)
+                                <option value="{{ $proveedor->idProveedor }}" {{ request('proveedor_id') == $proveedor->idProveedor ? 'selected' : '' }}>
+                                    {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }}
+                                </option>
+                            @endforeach
                         </select>
+                        @if(request('proveedor_id'))
+                        <button type="button" 
+                                class="btn btn-outline-danger border-0" 
+                                onclick="clearFilter('proveedor_id')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        @endif
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-muted">
-                            <i class="fas fa-sort-amount-down me-1"></i> Dirección
-                        </label>
-                        <select id="sortOrder" class="form-select" name="sort_order" aria-label="Dirección orden">
-                            <option value="asc" {{ request('sort_order', 'asc') == 'asc' ? 'selected' : '' }}>Ascendente</option>
-                            <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Descendente</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-flex justify-content-end align-items-center h-100 gap-2">
-                            <div class="text-muted small">
-                                @php
-                                    $filtrosActivos = collect(request()->all())
-                                        ->filter(function($value, $key) {
-                                            return in_array($key, ['search', 'proveedor_id']) && !empty($value);
-                                        })
-                                        ->count();
-                                @endphp
-                                @if($filtrosActivos > 0)
-                                <span class="badge bg-info text-white">
-                                    <i class="fas fa-filter me-1"></i>
-                                    {{ $filtrosActivos }} filtro(s) activo(s)
-                                </span>
-                                @endif
-                            </div>
-                            <div class="btn-group">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="fas fa-search me-1"></i> Aplicar Filtros
-                                </button>
-                                <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-redo me-1"></i> Limpiar Todo
-                                </a>
-                            </div>
+                </div>
+
+                <!-- Ordenamiento -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-sort me-1" style="color: #667eea;"></i>
+                        Ordenar por
+                    </label>
+                    <select id="sortBy" class="form-select border-0 bg-light" name="sort_by">
+                        <option value="Nombre" {{ request('sort_by', 'Nombre') == 'Nombre' ? 'selected' : '' }}>Nombre</option>
+                        <option value="productos_count" {{ request('sort_by') == 'productos_count' ? 'selected' : '' }}>Productos</option>
+                        <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID</option>
+                    </select>
+                </div>
+
+                <!-- Dirección de orden -->
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-sort-amount-down me-1" style="color: #667eea;"></i>
+                        Dirección
+                    </label>
+                    <select id="sortOrder" class="form-select border-0 bg-light" name="sort_order">
+                        <option value="asc" {{ request('sort_order', 'asc') == 'asc' ? 'selected' : '' }}>Ascendente</option>
+                        <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Descendente</option>
+                    </select>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-end align-items-center h-100 gap-2">
+                        @php
+                            $filtrosActivos = collect(request()->all())
+                                ->filter(function($value, $key) {
+                                    return in_array($key, ['search', 'proveedor_id']) && !empty($value);
+                                })
+                                ->count();
+                        @endphp
+                        
+                        @if($filtrosActivos > 0)
+                        <span class="badge px-3 py-2" style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            border-radius: 50px;
+                            font-size: 0.85rem;
+                        ">
+                            <i class="fas fa-filter me-1"></i>
+                            {{ $filtrosActivos }} filtro(s) activo(s)
+                        </span>
+                        @endif
+                        
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary px-4" style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                border: none;
+                                border-radius: 12px 0 0 12px;
+                            ">
+                                <i class="fas fa-search me-1"></i> Aplicar
+                            </button>
+                            <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary px-4" style="
+                                border-radius: 0 12px 12px 0;
+                                border: 1px solid #e5e7eb;
+                            ">
+                                <i class="fas fa-redo me-1"></i> Limpiar
+                            </a>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
     <!-- Indicadores de Filtros Activos -->
     @php
-        $filtrosActivos = [];
-        if(request('search')) $filtrosActivos[] = ['Búsqueda', request('search')];
+        $filtrosActivosLista = [];
+        if(request('search')) $filtrosActivosLista[] = ['Búsqueda', request('search'), 'search'];
         if(request('proveedor_id')) {
             $proveedor = $proveedores->firstWhere('idProveedor', request('proveedor_id'));
-            $filtrosActivos[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? '') : 'No encontrado'];
+            $filtrosActivosLista[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? '') : 'No encontrado', 'proveedor_id'];
         }
     @endphp
     
-    @if(count($filtrosActivos) > 0)
-    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
-        <div class="d-flex align-items-center">
-            <i class="fas fa-info-circle me-2 fs-5"></i>
-            <div class="flex-grow-1">
-                <strong>Filtros aplicados:</strong>
-                <div class="mt-1 d-flex flex-wrap gap-2">
-                    @foreach($filtrosActivos as $filtro)
-                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 d-flex align-items-center">
-                        <i class="fas fa-check-circle me-1"></i>
-                        {{ $filtro[0] }}: {{ $filtro[1] }}
-                        <button type="button" 
-                                class="btn-close btn-close-sm ms-2" 
-                                onclick="clearFilter('{{ $filtro[0] == 'Búsqueda' ? 'search' : 'proveedor_id' }}')">
-                        </button>
-                    </span>
-                    @endforeach
-                </div>
-            </div>
+    @if(count($filtrosActivosLista) > 0)
+    <div class="active-filters mb-4" style="
+        background: white;
+        border-radius: 16px;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    ">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="text-muted small fw-semibold">
+                <i class="fas fa-filter me-1 text-primary"></i>
+                Filtros activos:
+            </span>
+            @foreach($filtrosActivosLista as $filtro)
+            <span class="badge d-inline-flex align-items-center gap-2 px-3 py-2" style="
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                color: #4a5568;
+                border: 1px solid rgba(102, 126, 234, 0.2);
+                border-radius: 50px;
+                font-size: 0.85rem;
+            ">
+                <i class="fas fa-check-circle text-primary"></i>
+                {{ $filtro[0] }}: {{ $filtro[1] }}
+                <button type="button" class="btn-close btn-close-sm ms-2" 
+                        style="font-size: 0.6rem;"
+                        onclick="clearFilter('{{ $filtro[2] }}')">
+                </button>
+            </span>
+            @endforeach
         </div>
     </div>
     @endif
 
-    <!-- Tabla de categorías -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+    <!-- Tabla de categorías Mejorada -->
+    <div class="table-container" style="
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.03);
+    ">
+        <div class="table-header p-4 d-flex justify-content-between align-items-center" style="
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+        ">
             <div>
-                <h5 class="mb-0 fw-bold text-dark">
+                <h5 class="fw-bold mb-1" style="color: #1f2937;">
                     <i class="fas fa-list-ul me-2 text-primary"></i>
                     Lista de Categorías
-                    @if(count($filtrosActivos) > 0)
-                    <span class="badge bg-primary ms-2">Filtradas</span>
-                    @endif
                 </h5>
-                <small class="text-muted">
-                    <span id="totalCount">{{ $categorias->count() }}</span> categoría(s) registrada(s)
-                </small>
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Mostrando {{ $categorias->count() }} de {{ $categorias->count() }} categoría(s)
+                </p>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="text-muted small">
-                    Ordenado por: 
-                    <span class="badge bg-light text-dark" id="sortDisplay">
-                        {{ 
-                            request('sort_by', 'Nombre') == 'Nombre' ? 'Nombre' : 
-                            (request('sort_by') == 'productos_count' ? 'Productos' : 'ID')
-                        }} 
-                        <i class="fas fa-arrow-{{ request('sort_order', 'asc') == 'asc' ? 'up' : 'down' }} ms-1"></i>
-                    </span>
-                </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge px-3 py-2" style="
+                    background: #f3f4f6;
+                    color: #4b5563;
+                    border-radius: 50px;
+                    font-size: 0.85rem;
+                ">
+                    <i class="fas fa-arrow-{{ request('sort_order', 'asc') == 'asc' ? 'up' : 'down' }} me-1"></i>
+                    Orden: {{ request('sort_by', 'Nombre') }}
+                </span>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="categoriasTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="py-3" width="60px"></th>
-                            <th class="py-3">Categoría</th>
-                            <th class="py-3">Descripción</th>
-                            <th class="py-3">Proveedor</th>
-                            <th class="py-3">Productos</th>
-                            <th class="text-end py-3">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($categorias as $categoria)
-                        @php
-                            $nombreProveedor = $categoria->proveedor ? 
-                                $categoria->proveedor->Nombre . ' ' . $categoria->proveedor->ApPaterno : 
-                                'Sin proveedor';
-                        @endphp
-                        <tr class="align-middle categoria-row" 
-                            data-nombre="{{ strtolower($categoria->Nombre) }}" 
-                            data-descripcion="{{ strtolower($categoria->Descripcion ?? '') }}"
-                            data-proveedor-id="{{ $categoria->Proveedor_idProveedor ?? '0' }}"
-                            data-productos="{{ $categoria->productos_count ?? 0 }}">
-                            <!-- Botón para expandir -->
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-secondary btn-expand-categoria" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#detallesCategoria{{ $categoria->id }}" 
-                                        aria-expanded="false"
-                                        aria-controls="detallesCategoria{{ $categoria->id }}">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </td>
-                            
-                            <td>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="categoriasTable">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th class="py-3 ps-4" width="60px"></th>
+                        <th class="py-3">Categoría</th>
+                        <th class="py-3">Descripción</th>
+                        <th class="py-3">Proveedor</th>
+                        <th class="py-3">Productos</th>
+                        <th class="py-3 pe-4 text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($categorias as $categoria)
+                    @php
+                        $nombreProveedor = $categoria->proveedor ? 
+                            $categoria->proveedor->Nombre . ' ' . $categoria->proveedor->ApPaterno : 
+                            'Sin proveedor';
+                        $tieneProductos = ($categoria->productos_count ?? 0) > 0;
+                    @endphp
+                    <tr class="align-middle categoria-row {{ $tieneProductos ? 'categoria-con-productos' : '' }}" 
+                        data-nombre="{{ strtolower($categoria->Nombre) }}" 
+                        data-descripcion="{{ strtolower($categoria->Descripcion ?? '') }}"
+                        data-proveedor-id="{{ $categoria->Proveedor_idProveedor ?? '0' }}"
+                        data-productos="{{ $categoria->productos_count ?? 0 }}">
+                        
+                        <!-- Botón expandir -->
+                        <td class="ps-4">
+                            <button class="btn btn-sm btn-expand-categoria" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#detallesCategoria{{ $categoria->id }}"
+                                    style="
+                                        width: 32px;
+                                        height: 32px;
+                                        border-radius: 8px;
+                                        border: 1px solid #e5e7eb;
+                                        color: #6b7280;
+                                        transition: all 0.3s ease;
+                                    ">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </td>
+                        
+                        <!-- Categoría -->
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="categoria-avatar categoria-avatar-md me-3" style="
+                                    width: 48px;
+                                    height: 48px;
+                                    background: {{ $tieneProductos ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }};
+                                    border-radius: 14px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-size: 1.2rem;
+                                    box-shadow: 0 5px 15px {{ $tieneProductos ? 'rgba(245, 158, 11, 0.3)' : 'rgba(102, 126, 234, 0.3)' }};
+                                ">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ $categoria->Nombre }}</h6>
+                                    <small class="text-muted">ID: #{{ str_pad($categoria->id, 5, '0', STR_PAD_LEFT) }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Descripción -->
+                        <td>
+                            @if($categoria->Descripcion)
+                                <span class="d-inline-block text-truncate" style="max-width: 200px;" 
+                                      data-bs-toggle="tooltip" title="{{ $categoria->Descripcion }}">
+                                    {{ $categoria->Descripcion }}
+                                </span>
+                            @else
+                                <span class="text-muted small">Sin descripción</span>
+                            @endif
+                        </td>
+
+                        <!-- Proveedor -->
+                        <td>
+                            @if($categoria->proveedor)
                                 <div class="d-flex align-items-center">
-                                    <div class="categoria-avatar categoria-avatar-md bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
-                                        <i class="fas fa-tags text-primary"></i>
+                                    <div class="proveedor-avatar me-2" style="
+                                        width: 32px;
+                                        height: 32px;
+                                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                        border-radius: 10px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: white;
+                                        font-size: 0.9rem;
+                                    ">
+                                        <i class="fas fa-truck"></i>
                                     </div>
                                     <div>
-                                        <h6 class="mb-0 fw-semibold">{{ $categoria->Nombre }}</h6>
-                                        <small class="text-muted">
-                                            ID: #{{ $categoria->id }}
-                                        </small>
+                                        <span class="fw-medium">{{ $nombreProveedor }}</span>
                                     </div>
                                 </div>
-                            </td>
-                            <td>
-                                @if($categoria->Descripcion)
-                                    <span class="d-inline-block text-truncate" style="max-width: 200px;" 
-                                          data-bs-toggle="tooltip" title="{{ $categoria->Descripcion }}">
-                                        {{ $categoria->Descripcion }}
-                                    </span>
-                                @else
-                                    <span class="text-muted">Sin descripción</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($categoria->proveedor)
-                                    <div class="d-flex align-items-center">
-                                        <div class="categoria-avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2">
-                                            <i class="fas fa-truck text-info fa-sm"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium">{{ $nombreProveedor }}</div>
-                                        </div>
-                                    </div>
-                                @else
-                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill">
-                                        Sin proveedor
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                @if(($categoria->productos_count ?? 0) > 0)
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                        <i class="fas fa-boxes me-1"></i>{{ $categoria->productos_count ?? 0 }} productos
-                                    </span>
-                                @else
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill">
-                                        <i class="fas fa-box-open me-1"></i>Sin productos
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('categorias.edit', $categoria->id) }}" 
-                                       class="btn btn-outline-primary" 
-                                       data-bs-toggle="tooltip" 
-                                       title="Editar categoría">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                            @else
+                                <span class="badge px-3 py-2" style="
+                                    background: #fef3c7;
+                                    color: #92400e;
+                                    border-radius: 50px;
+                                    font-size: 0.75rem;
+                                ">
+                                    <i class="fas fa-user-slash me-1"></i>
+                                    Sin proveedor
+                                </span>
+                            @endif
+                        </td>
+
+                        <!-- Productos -->
+                        <td>
+                            @if($tieneProductos)
+                                <span class="badge px-3 py-2" style="
+                                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                    color: white;
+                                    border-radius: 50px;
+                                    font-size: 0.75rem;
+                                ">
+                                    <i class="fas fa-boxes me-1"></i>
+                                    {{ $categoria->productos_count }} productos
+                                </span>
+                            @else
+                                <span class="badge px-3 py-2" style="
+                                    background: #f3f4f6;
+                                    color: #4b5563;
+                                    border-radius: 50px;
+                                    font-size: 0.75rem;
+                                ">
+                                    <i class="fas fa-box-open me-1"></i>
+                                    Sin productos
+                                </span>
+                            @endif
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="pe-4">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{{ route('categorias.edit', $categoria->id) }}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                   title="Editar categoría">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                @if($tieneProductos)
                                     <button type="button" 
-                                            class="btn btn-outline-danger" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteModal" 
-                                            onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}', {{ $categoria->productos_count ?? 0 }})"
+                                            class="btn btn-sm btn-outline-warning" 
+                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                            onclick="showForeignKeyErrorModal('{{ addslashes($categoria->Nombre) }}', {{ $categoria->productos_count ?? 0 }})"
+                                            title="No se puede eliminar: tiene productos asociados">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                @else
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                            onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')"
                                             title="Eliminar categoría">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Fila expandible con detalles de la categoría -->
-                        <tr class="detalle-categoria-row">
-                            <td colspan="6" class="p-0 border-0">
-                                <div class="collapse" id="detallesCategoria{{ $categoria->id }}">
-                                    <div class="card card-body border-0 bg-light bg-gradient rounded-0">
-                                        <!-- Advertencia si tiene productos -->
-                                        @if(($categoria->productos_count ?? 0) > 0)
-                                        <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-                                            <div class="d-flex align-items-center">
-                                                <div class="flex-shrink-0">
-                                                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
-                                                </div>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="alert-heading mb-1">Categoría con Productos</h6>
-                                                    <p class="mb-0">
-                                                        Esta categoría tiene {{ $categoria->productos_count ?? 0 }} productos asociados. 
-                                                        Si la eliminas, estos productos quedarán sin categoría.
-                                                    </p>
-                                                </div>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Fila expandible con detalles de la categoría -->
+                    <tr class="detalle-categoria-row">
+                        <td colspan="6" class="p-0 border-0">
+                            <div class="collapse" id="detallesCategoria{{ $categoria->id }}">
+                                <div class="p-4" style="background: #f8fafc; border-top: 1px solid #e5e7eb;">
+                                    <!-- Advertencia si tiene productos -->
+                                    @if($tieneProductos)
+                                    <div class="alert alert-warning mb-4" style="
+                                        background: linear-gradient(135deg, #fef3c7 0%, #ffe69c 100%);
+                                        border: none;
+                                        border-radius: 16px;
+                                        padding: 1rem;
+                                    ">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <i class="fas fa-exclamation-triangle fa-2x" style="color: #856404;"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-1" style="color: #856404;">⛔ Categoría Protegida</h6>
+                                                <p class="mb-0" style="color: #856404;">
+                                                    Esta categoría tiene <strong>{{ $categoria->productos_count ?? 0 }} productos asociados</strong> y no puede ser eliminada.
+                                                    Para eliminar esta categoría, primero debes reasignar o eliminar sus productos.
+                                                </p>
                                             </div>
                                         </div>
-                                        @endif
-                                        
-                                        <div class="row">
-                                            <!-- Información detallada -->
-                                            <div class="col-md-8">
-                                                <h6 class="fw-bold mb-3 text-primary">
-                                                    <i class="fas fa-info-circle me-2"></i>Información de la Categoría
+                                    </div>
+                                    @endif
+                                    
+                                    <div class="row g-4">
+                                        <!-- Información detallada -->
+                                        <div class="col-md-8">
+                                            <div class="detail-card p-3" style="
+                                                background: white;
+                                                border-radius: 16px;
+                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                            ">
+                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                                                    Información de la Categoría
                                                 </h6>
                                                 
                                                 <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card bg-white border-0 shadow-sm h-100">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Información Básica</h6>
-                                                                <div class="mb-2">
-                                                                    <small class="text-muted d-block">Nombre:</small>
-                                                                    <span class="fw-semibold">{{ $categoria->Nombre }}</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <small class="text-muted d-block">ID Categoría:</small>
-                                                                    <span class="badge bg-primary bg-opacity-10 text-primary">#{{ $categoria->id }}</span>
-                                                                </div>
-                                                            </div>
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Nombre:</span>
+                                                            <span class="fw-medium">{{ $categoria->Nombre }}</span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">ID Categoría:</span>
+                                                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1">#{{ $categoria->id }}</span>
                                                         </div>
                                                     </div>
                                                     
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card bg-white border-0 shadow-sm h-100">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Estadísticas</h6>
-                                                                <div class="mb-3">
-                                                                    <small class="text-muted d-block">Total Productos:</small>
-                                                                    <span class="badge {{ ($categoria->productos_count ?? 0) > 0 ? 'bg-success' : 'bg-secondary' }} bg-opacity-10 {{ ($categoria->productos_count ?? 0) > 0 ? 'text-success' : 'text-secondary' }}">
-                                                                        <i class="fas fa-boxes me-1"></i>{{ $categoria->productos_count ?? 0 }} productos
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <small class="text-muted d-block">Estado:</small>
-                                                                    <span class="badge bg-success bg-opacity-10 text-success">
-                                                                        Activa
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item d-flex justify-content-between mb-2">
+                                                            <span class="text-muted">Total Productos:</span>
+                                                            <span class="badge {{ $tieneProductos ? 'bg-warning' : 'bg-secondary' }} bg-opacity-10 {{ $tieneProductos ? 'text-warning' : 'text-secondary' }} px-3 py-1">
+                                                                <i class="fas fa-boxes me-1"></i>{{ $categoria->productos_count ?? 0 }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item d-flex justify-content-between">
+                                                            <span class="text-muted">Estado:</span>
+                                                            @if($tieneProductos)
+                                                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1">
+                                                                    <i class="fas fa-lock me-1"></i>Protegida
+                                                                </span>
+                                                            @else
+                                                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-1">
+                                                                    <i class="fas fa-check-circle me-1"></i>Disponible
+                                                                </span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="card bg-white border-0 shadow-sm">
-                                                            <div class="card-body">
-                                                                <h6 class="text-muted small mb-3">Descripción</h6>
-                                                                @if($categoria->Descripcion)
-                                                                <p class="mb-0">{{ $categoria->Descripcion }}</p>
-                                                                @else
-                                                                <p class="mb-0 text-muted">No se ha registrado una descripción</p>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <div class="mt-3">
+                                                    <span class="text-muted d-block mb-2">Descripción:</span>
+                                                    @if($categoria->Descripcion)
+                                                    <p class="mb-0 p-3 bg-light rounded-3">{{ $categoria->Descripcion }}</p>
+                                                    @else
+                                                    <p class="mb-0 p-3 bg-light rounded-3 text-muted">No se ha registrado una descripción</p>
+                                                    @endif
                                                 </div>
                                             </div>
-                                            
-                                            <!-- Información del proveedor y acciones -->
-                                            <div class="col-md-4">
-                                                <div class="card border-0 shadow-sm h-100">
-                                                    <div class="card-body">
-                                                        <h6 class="fw-bold mb-3 text-primary">
-                                                            <i class="fas fa-truck me-2"></i>Proveedor Asociado
-                                                        </h6>
-                                                        
-                                                        @if($categoria->proveedor)
-                                                        <div class="mb-3">
-                                                            <div class="d-flex align-items-center mb-3">
-                                                                <div class="categoria-avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2">
-                                                                    <i class="fas fa-truck text-info fa-sm"></i>
-                                                                </div>
-                                                                <div>
-                                                                    <div class="fw-medium">{{ $nombreProveedor }}</div>
-                                                                    <small class="text-muted">
-                                                                        ID: #{{ $categoria->proveedor->idProveedor }}
-                                                                    </small>
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <div class="mb-2">
-                                                                <small class="text-muted d-block">Teléfono:</small>
-                                                                <span class="fw-medium">{{ $categoria->proveedor->Telefono ?? 'No disponible' }}</span>
-                                                            </div>
-                                                            
-                                                            <div>
-                                                                <small class="text-muted d-block">Correo:</small>
-                                                                <span class="fw-medium">{{ $categoria->proveedor->Correo ?? 'No disponible' }}</span>
-                                                            </div>
+                                        </div>
+                                        
+                                        <!-- Información del proveedor y acciones -->
+                                        <div class="col-md-4">
+                                            <div class="detail-card p-3" style="
+                                                background: white;
+                                                border-radius: 16px;
+                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                            ">
+                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                    <i class="fas fa-truck me-2 text-primary"></i>
+                                                    Proveedor Asociado
+                                                </h6>
+                                                
+                                                @if($categoria->proveedor)
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        <div class="proveedor-avatar me-2" style="
+                                                            width: 40px;
+                                                            height: 40px;
+                                                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                                            border-radius: 12px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            color: white;
+                                                            font-size: 1rem;
+                                                        ">
+                                                            <i class="fas fa-truck"></i>
                                                         </div>
-                                                        @else
-                                                        <div class="alert alert-warning mb-3">
-                                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                                            Esta categoría no tiene proveedor asignado.
-                                                        </div>
-                                                        @endif
-                                                        
-                                                        <hr>
-                                                        
-                                                        <!-- Botones de acción -->
-                                                        <div class="mt-4">
-                                                            <a href="{{ route('categorias.edit', $categoria->id) }}" 
-                                                               class="btn btn-outline-secondary btn-sm w-100 mb-2">
-                                                                <i class="fas fa-edit me-1"></i> Editar categoría
-                                                            </a>
-                                                            <button type="button" 
-                                                                    class="btn btn-outline-danger btn-sm w-100"
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#deleteModal" 
-                                                                    onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}', {{ $categoria->productos_count ?? 0 }})">
-                                                                <i class="fas fa-trash me-1"></i> Eliminar categoría
-                                                            </button>
+                                                        <div>
+                                                            <div class="fw-bold">{{ $nombreProveedor }}</div>
+                                                            <small class="text-muted">ID: #{{ $categoria->proveedor->idProveedor }}</small>
                                                         </div>
                                                     </div>
+                                                    
+                                                    <div class="detail-item d-flex justify-content-between mb-2">
+                                                        <span class="text-muted">Teléfono:</span>
+                                                        <span class="fw-medium">{{ $categoria->proveedor->Telefono ?? 'No disponible' }}</span>
+                                                    </div>
+                                                    
+                                                    <div class="detail-item d-flex justify-content-between">
+                                                        <span class="text-muted">Correo:</span>
+                                                        <span class="fw-medium">{{ $categoria->proveedor->Correo ?? 'No disponible' }}</span>
+                                                    </div>
+                                                </div>
+                                                @else
+                                                <div class="alert alert-warning mb-3" style="
+                                                    background: #fef3c7;
+                                                    border: none;
+                                                    border-radius: 12px;
+                                                ">
+                                                    <i class="fas fa-exclamation-triangle me-2" style="color: #856404;"></i>
+                                                    Esta categoría no tiene proveedor asignado.
+                                                </div>
+                                                @endif
+                                                
+                                                <hr style="margin: 1rem 0; border-color: #e5e7eb;">
+                                                
+                                                <!-- Botones de acción en detalles -->
+                                                <div class="d-grid gap-2">
+                                                    <a href="{{ route('categorias.edit', $categoria->id) }}" 
+                                                       class="btn btn-outline-primary btn-sm" 
+                                                       style="border-radius: 10px; border: 1px solid #e5e7eb;">
+                                                        <i class="fas fa-edit me-1"></i> Editar categoría
+                                                    </a>
+                                                    
+                                                    @if($tieneProductos)
+                                                        <button type="button" 
+                                                                class="btn btn-outline-warning btn-sm"
+                                                                style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                                onclick="showForeignKeyErrorModal('{{ addslashes($categoria->Nombre) }}', {{ $categoria->productos_count ?? 0 }})">
+                                                            <i class="fas fa-lock me-1"></i> Ver detalles
+                                                        </button>
+                                                    @else
+                                                        <button type="button" 
+                                                                class="btn btn-outline-danger btn-sm"
+                                                                style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                                onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')">
+                                                            <i class="fas fa-trash me-1"></i> Eliminar categoría
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="py-5">
-                                    <i class="fas fa-tags fa-4x text-muted mb-4"></i>
-                                    @if(count($filtrosActivos) > 0)
-                                    <h4 class="text-muted fw-bold mb-3">No se encontraron categorías</h4>
-                                    <p class="text-muted mb-4">
-                                        No hay categorías que coincidan con los filtros aplicados.
-                                    </p>
-                                    <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary me-2">
-                                        <i class="fas fa-redo me-1"></i> Limpiar Filtros
-                                    </a>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state py-5">
+                                <i class="fas fa-tags fa-4x mb-3" style="color: #9ca3af;"></i>
+                                <h5 class="fw-bold mb-2">No hay categorías registradas</h5>
+                                <p class="text-muted mb-4">
+                                    @if(count($filtrosActivosLista) > 0)
+                                        No se encontraron categorías con los filtros aplicados.
                                     @else
-                                    <h4 class="text-muted fw-bold mb-3">No hay categorías registradas</h4>
-                                    <p class="text-muted mb-4">
                                         Comienza registrando la primera categoría en el sistema.
-                                    </p>
+                                    @endif
+                                </p>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    @if(count($filtrosActivosLista) > 0)
+                                    <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-redo me-2"></i>Limpiar Filtros
+                                    </a>
                                     @endif
                                     <a href="{{ route('categorias.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus me-2"></i> Registrar Categoría
+                                        <i class="fas fa-plus me-2"></i>Registrar Categoría
                                     </a>
                                 </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-white border-0 py-3">
+
+        <div class="card-footer bg-white border-0 py-3 px-4" style="border-top: 1px solid #e5e7eb;">
             <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted">
+                <div class="text-muted small">
                     Mostrando {{ $categorias->count() }} de {{ $categorias->count() }} categoría(s)
                 </div>
                 <div class="text-muted small">
@@ -580,43 +865,142 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de eliminación -->
+<!-- MODAL DE ELIMINACIÓN MEJORADO -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-danger text-white position-relative">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
+            <div class="modal-header bg-gradient-danger text-white" style="
+                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+                border: none;
+                padding: 1.5rem;
+            ">
                 <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
                     Confirmar Eliminación
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body text-center py-4">
-                <div class="mb-3">
-                    <i class="fas fa-trash-alt fa-4x text-danger mb-3"></i>
+            
+            <div class="modal-body text-center p-4">
+                <div class="delete-icon-wrapper mb-4">
+                    <div class="delete-icon-circle" style="
+                        width: 80px;
+                        height: 80px;
+                        background: rgba(220, 53, 69, 0.1);
+                        border-radius: 50%;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto;
+                    ">
+                        <i class="fas fa-trash-alt fa-3x text-danger"></i>
+                    </div>
                 </div>
-                <p class="fs-6">
-                    Estás a punto de eliminar la categoría <strong id="deleteCategoriaNombre"></strong>
-                </p>
-                <div class="alert alert-warning mt-3 mb-0" id="productosWarning" style="display: none;">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <span id="productosCountText"></span> productos asociados. Estos productos quedarán sin categoría.
+                
+                <h5 class="fw-bold mb-3" id="deleteCategoriaNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="deleteCategoriaId" style="font-size: 0.9rem;"></p>
+                
+                <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted">Categoría a eliminar:</span>
+                            <span class="fw-bold" id="deleteCategoriaNombre"></span>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-danger small mt-3 mb-0">
-                    <strong>Esta acción no se puede deshacer.</strong>
-                </p>
+                
+                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                    <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
+                    <div class="text-start">
+                        <strong class="text-danger">¡Atención!</strong>
+                        <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente la categoría del sistema.</p>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Cancelar
+            
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
+                    <i class="fas fa-times me-2"></i>Cancelar
                 </button>
                 <form id="deleteForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-lg">
-                        <i class="fas fa-trash me-1"></i> Eliminar
+                    <button type="submit" class="btn btn-danger px-4" id="confirmDeleteBtn" style="border-radius: 50px;">
+                        <i class="fas fa-trash me-2"></i>Sí, eliminar
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ERROR MEJORADO -->
+<div class="modal fade" id="foreignKeyErrorModal" tabindex="-1" aria-labelledby="foreignKeyErrorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
+            <div class="modal-header bg-gradient-warning text-white" style="
+                background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+                border: none;
+                padding: 1.5rem;
+            ">
+                <h5 class="modal-title fw-bold" id="foreignKeyErrorModalLabel">
+                    <i class="fas fa-lock me-2 fa-lg"></i>
+                    Categoría Protegida
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            
+            <div class="modal-body text-center p-4">
+                <div class="error-icon-wrapper mb-4">
+                    <div class="error-icon-circle" style="
+                        width: 90px;
+                        height: 90px;
+                        background: rgba(255, 193, 7, 0.1);
+                        border-radius: 50%;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto;
+                    ">
+                        <i class="fas fa-lock fa-4x text-warning"></i>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mb-3" id="errorCategoriaNombre"></h5>
+                
+                <div class="card border-warning border-2 mb-4" style="border-radius: 16px;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <span class="badge bg-warning text-dark p-3" style="
+                                font-size: 1.2rem;
+                                border-radius: 50px;
+                            ">
+                                <i class="fas fa-boxes me-2"></i>
+                                <span id="errorProductosCount"></span> productos asociados
+                            </span>
+                        </div>
+                        <p class="text-muted mb-0">
+                            Esta categoría no puede ser eliminada porque tiene productos que dependen de ella.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info bg-opacity-10 border-0 text-start" style="border-radius: 12px;">
+                    <h6 class="fw-bold text-info mb-2">
+                        <i class="fas fa-lightbulb me-2"></i>¿Cómo solucionarlo?
+                    </h6>
+                    <ol class="text-muted small mb-0 ps-3">
+                        <li class="mb-1">Reasigna los productos a otra categoría</li>
+                        <li class="mb-1">O elimina los productos asociados primero</li>
+                        <li>Luego podrás eliminar esta categoría</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="modal-footer justify-content-center border-0 pb-4">
+                <button type="button" class="btn btn-warning px-5" data-bs-dismiss="modal" style="border-radius: 50px;">
+                    <i class="fas fa-check me-2"></i>Entendido
+                </button>
             </div>
         </div>
     </div>
@@ -625,29 +1009,49 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips de Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    // Inicializar tooltips
+    initTooltips();
+    
+    // Configurar eventos de expansión
+    setupExpandButtons();
+    
+    // Configurar auto-submit de filtros
+    setupFilterAutoSubmit();
+    
+    // Configurar botón de refrescar
+    setupRefreshButton();
+    
+    // Configurar limpieza de modales
+    setupModalCleanup();
+    
+    @if(session('foreign_key_error'))
+        setTimeout(function() {
+            showForeignKeyErrorModal(
+                '{{ session("categoria_nombre") }}', 
+                {{ session("productos_count") ?? 0 }}
+            );
+        }, 100);
+    @endif
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+}
 
-    // Rotar la flecha del botón expandir al hacer clic
+function setupExpandButtons() {
     document.querySelectorAll('.btn-expand-categoria').forEach(button => {
         button.addEventListener('click', function() {
             const icon = this.querySelector('i');
             const isExpanded = this.getAttribute('aria-expanded') === 'true';
             
-            // Rotar el icono
             if (icon) {
-                if (isExpanded) {
-                    icon.style.transform = 'rotate(0deg)';
-                } else {
-                    icon.style.transform = 'rotate(180deg)';
-                }
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
                 icon.style.transition = 'transform 0.3s ease';
             }
             
-            // Cambiar clase del botón
             if (isExpanded) {
                 this.classList.remove('btn-primary');
                 this.classList.add('btn-outline-secondary');
@@ -657,104 +1061,122 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
 
-    // Cerrar detalles cuando se hace clic en otro botón
-    document.querySelectorAll('.btn-expand-categoria').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('data-bs-target');
-            
-            // Cerrar otros acordeones abiertos
-            document.querySelectorAll('.collapse.show').forEach(collapse => {
-                if (collapse.id !== targetId.replace('#', '')) {
-                    const collapseButton = document.querySelector(`[data-bs-target="#${collapse.id}"]`);
-                    if (collapseButton) {
-                        collapseButton.click();
-                    }
-                }
-            });
-        });
-    });
-
-    // Auto-submit en ordenamiento
+function setupFilterAutoSubmit() {
     document.querySelectorAll('select[name="sort_by"], select[name="sort_order"]').forEach(select => {
         select.addEventListener('change', function() {
             document.getElementById('filtrosForm').submit();
         });
     });
+}
 
-    // Botón de refrescar
-    document.getElementById('refreshData')?.addEventListener('click', function() {
-        this.classList.add('spin');
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spin');
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+}
+
+function setupModalCleanup() {
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('hidden.bs.modal', function() {
+            forceCleanupModals();
+        });
+    }
+    
+    const errorModal = document.getElementById('foreignKeyErrorModal');
+    if (errorModal) {
+        errorModal.addEventListener('hidden.bs.modal', function() {
+            forceCleanupModals();
+        });
+        
+        const closeBtn = errorModal.querySelector('[data-bs-dismiss="modal"]');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const modal = bootstrap.Modal.getInstance(errorModal);
+                if (modal) {
+                    modal.hide();
+                }
+            });
+        }
+    }
+}
+
+function forceCleanupModals() {
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    document.documentElement.style.overflow = '';
+}
+
+function setDeleteCategoria(categoriaId, nombreCategoria) {
+    try {
+        forceCleanupModals();
+        
+        document.getElementById('deleteCategoriaNombre').textContent = nombreCategoria;
+        document.getElementById('deleteCategoriaNombreDisplay').textContent = `¿Eliminar "${nombreCategoria}"?`;
+        document.getElementById('deleteCategoriaId').innerHTML = `<small class="text-muted">ID: #${categoriaId}</small>`;
+        
+        const deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.action = `/categorias/${categoriaId}`;
+        }
+        
         setTimeout(() => {
-            location.reload();
-        }, 500);
-    });
-});
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }, 50);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al preparar la eliminación. Por favor, recarga la página.');
+    }
+}
 
-// Función para limpiar filtro individual
+function showForeignKeyErrorModal(categoriaNombre, productosCount) {
+    try {
+        forceCleanupModals();
+        
+        const existingModal = document.getElementById('foreignKeyErrorModal');
+        const modalInstance = bootstrap.Modal.getInstance(existingModal);
+        if (modalInstance) {
+            modalInstance.hide();
+            forceCleanupModals();
+        }
+        
+        setTimeout(() => {
+            document.getElementById('errorCategoriaNombre').innerHTML = `
+                <span class="text-warning">${categoriaNombre}</span>
+                <small class="d-block text-muted mt-1">ID: Categoría con productos</small>
+            `;
+            document.getElementById('errorProductosCount').textContent = productosCount;
+            
+            const errorModal = new bootstrap.Modal(existingModal, {
+                backdrop: 'static',
+                keyboard: true
+            });
+            
+            errorModal.show();
+        }, 50);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 function clearFilter(filterName) {
     const url = new URL(window.location.href);
     url.searchParams.delete(filterName);
     window.location.href = url.toString();
 }
 
-// CORRECCIÓN: Función para el modal de eliminación de categorías
-function setDeleteCategoria(categoriaId, nombreCategoria, productosCount) {
-    try {
-        // Actualizar el nombre en el modal
-        const nombreElement = document.getElementById('deleteCategoriaNombre');
-        if (nombreElement) {
-            nombreElement.textContent = nombreCategoria;
-        }
-        
-        // Manejar la advertencia de productos asociados
-        const productosWarning = document.getElementById('productosWarning');
-        const productosCountText = document.getElementById('productosCountText');
-        
-        if (productosWarning && productosCountText) {
-            if (productosCount > 0) {
-                productosWarning.style.display = 'block';
-                productosCountText.textContent = 'Esta categoría tiene ' + productosCount + ' productos asociados.';
-            } else {
-                productosWarning.style.display = 'none';
-            }
-        }
-        
-        // Obtener el formulario
-        const deleteForm = document.getElementById('deleteForm');
-        
-        if (!deleteForm) {
-            console.error('Formulario de eliminación no encontrado');
-            alert('Error: Formulario no encontrado');
-            return;
-        }
-        
-        // Construir la URL de eliminación
-        // Método 1: Usando route() de Laravel (RECOMENDADO)
-        const actionUrl = "{{ route('categorias.destroy', ':id') }}".replace(':id', categoriaId);
-        
-        console.log('URL de eliminación:', actionUrl); // Para depuración
-        
-        // Asignar la acción al formulario
-        deleteForm.action = actionUrl;
-        
-        // Mostrar el modal
-        const deleteModalElement = document.getElementById('deleteModal');
-        if (deleteModalElement) {
-            const deleteModal = new bootstrap.Modal(deleteModalElement);
-            deleteModal.show();
-        } else {
-            console.error('Modal de eliminación no encontrado');
-            alert('Error: Modal no encontrado');
-        }
-        
-    } catch (error) {
-        console.error('Error en setDeleteCategoria:', error);
-        alert('Error al preparar la eliminación. Por favor, recarga la página.');
-    }
-}
-
-// Animación de spin para el botón de refrescar
 const spinStyle = document.createElement('style');
 spinStyle.textContent = `
     @keyframes spin {
@@ -764,16 +1186,48 @@ spinStyle.textContent = `
     .spin {
         animation: spin 0.5s linear infinite;
     }
+    
+    .categoria-con-productos {
+        background-color: rgba(255, 193, 7, 0.02);
+    }
+    
+    .categoria-con-productos:hover {
+        background-color: rgba(255, 193, 7, 0.08) !important;
+    }
+    
+    .stat-card:hover .stat-decoration {
+        transform: scale(1.2);
+    }
+    
+    .btn-expand-categoria:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+    
+    .detail-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .empty-state {
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
 `;
 document.head.appendChild(spinStyle);
 </script>
 @endpush
 
 <style>
-#categorias-page {
-    padding-top: 20px;
-}
-
 #categorias-page .categoria-avatar {
     width: 48px;
     height: 48px;
@@ -789,12 +1243,6 @@ document.head.appendChild(spinStyle);
     height: 36px;
 }
 
-#categorias-page .categoria-avatar-xs {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-}
-
 #categorias-page .table th { 
     border-top: none; 
     font-weight: 600; 
@@ -802,6 +1250,7 @@ document.head.appendChild(spinStyle);
     text-transform: uppercase; 
     letter-spacing: 0.5px; 
     border-bottom: 2px solid #dee2e6;
+    background: #f8fafc;
 }
 
 #categorias-page .table tbody tr {
@@ -809,9 +1258,9 @@ document.head.appendChild(spinStyle);
 }
 
 #categorias-page .table tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
+    background-color: rgba(102, 126, 234, 0.02);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 #categorias-page .btn-group .btn { 
@@ -836,27 +1285,6 @@ document.head.appendChild(spinStyle);
     font-weight: 600;
 }
 
-/* Estilos para el botón expandir */
-#categorias-page .btn-expand-categoria {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    border-radius: 6px !important;
-}
-
-#categorias-page .btn-expand-categoria:hover {
-    transform: scale(1.1);
-}
-
-#categorias-page .btn-expand-categoria i {
-    transition: transform 0.3s ease;
-}
-
-/* Estilos para la fila expandible */
 #categorias-page .detalle-categoria-row {
     background-color: #f8fafc;
 }
@@ -869,13 +1297,12 @@ document.head.appendChild(spinStyle);
     transition: height 0.35s ease;
 }
 
-/* Estilos para búsqueda */
-#categorias-page .form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+#categorias-page .form-control:focus,
+#categorias-page .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     #categorias-page .btn-expand-categoria {
         width: 28px;
@@ -890,12 +1317,6 @@ document.head.appendChild(spinStyle);
         height: 32px;
     }
     
-    #categorias-page .categoria-avatar-xs {
-        width: 20px;
-        height: 20px;
-        font-size: 0.6rem;
-    }
-    
     #categorias-page .table-responsive {
         font-size: 0.9rem;
     }
@@ -904,33 +1325,12 @@ document.head.appendChild(spinStyle);
         flex-direction: column;
     }
     
-    #categorias-page .detalle-categoria-row .col-md-8,
-    #categorias-page .detalle-categoria-row .col-md-4 {
-        width: 100% !important;
-        margin-bottom: 1rem;
-    }
-    
     #categorias-page .btn-group .btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.8rem;
     }
-    
-    /* Filtros responsive */
-    #categorias-page .card-body .row > div {
-        margin-bottom: 1rem;
-    }
 }
 
-/* Mejorar la legibilidad de los detalles */
-#categorias-page .detalle-categoria-row .card-body {
-    padding: 1.5rem;
-}
-
-#categorias-page .detalle-categoria-row h6 {
-    font-size: 0.95rem;
-}
-
-/* Animación suave para expandir */
 #categorias-page .collapse.show {
     animation: slideDown 0.3s ease;
 }
@@ -946,32 +1346,31 @@ document.head.appendChild(spinStyle);
     }
 }
 
-/* Tooltips para descripciones truncadas */
 #categorias-page .text-truncate[data-bs-toggle="tooltip"] {
     cursor: help;
 }
 
-/* Badges específicos para categorías */
-#categorias-page .badge-warning {
-    background-color: rgba(255, 193, 7, 0.1);
-    color: #664d03;
-    border-color: rgba(255, 193, 7, 0.3);
+.border-start.border-4 {
+    border-left-width: 4px !important;
 }
 
-/* Alertas específicas */
-#categorias-page .alert-warning {
-    background-color: rgba(255, 193, 7, 0.1);
-    border-color: rgba(255, 193, 7, 0.3);
-    color: #664d03;
+/* Animación para los iconos de los modales */
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-#categorias-page .alert-warning .alert-heading {
-    color: #664d03;
-    font-weight: 600;
+.delete-icon-circle, .error-icon-circle {
+    animation: pulseIcon 2s infinite;
 }
 
-#categorias-page .alert-warning i {
-    color: #ffc107;
+/* Hover effects para botones de acción */
+#categorias-page .btn-outline-primary:hover,
+#categorias-page .btn-outline-danger:hover,
+#categorias-page .btn-outline-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 </style>
 @endsection

@@ -7,7 +7,7 @@
         <div class="welcome-section">
             <h1 class="welcome-title">¡Hola, {{ $nombre_empleado }}! 👋</h1>
             <p class="welcome-subtitle">Bienvenido al panel de control</p>
-            @if(isset($empleado) && $empleado->Cargo)
+            @if(isset($empleado) && $empleado && $empleado->Cargo)
             <div class="user-badge">
                 <span class="user-role">{{ $empleado->Cargo }}</span>
                 @if($empleado->Area_trabajo)
@@ -23,6 +23,36 @@
                 <div class="current-time">{{ now()->format('h:i A') }}</div>
             </div>
         </div>
+    </div>
+
+    <!-- Toast Container para alertas -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; max-width: 400px;" id="toastContainer">
+        @if(isset($alertas) && $alertas->count() > 0)
+            @foreach($alertas as $alerta)
+            <div class="toast show mb-2 border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" 
+                 data-bs-autohide="true" data-bs-delay="8000"
+                 style="border-left: 4px solid @switch($alerta['tipo'])
+                            @case('danger') #dc3545 @break
+                            @case('warning') #ffc107 @break
+                            @case('success') #198754 @break
+                            @default #0dcaf0
+                        @endswitch">
+                <div class="toast-header bg-white border-0">
+                    <i class="fas {{ $alerta['icono'] }} me-2 text-{{ $alerta['tipo'] }}"></i>
+                    <strong class="me-auto">{{ $alerta['titulo'] }}</strong>
+                    <small class="text-muted">ahora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body bg-white">
+                    <p class="mb-3">{!! $alerta['mensaje'] !!}</p>
+                    <a href="{{ $alerta['accion'] }}" class="btn btn-sm btn-{{ $alerta['tipo'] }}">
+                        <i class="fas {{ $alerta['btn_icono'] }} me-1"></i>
+                        {{ $alerta['btn_texto'] }}
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        @endif
     </div>
 
     <!-- Tarjetas Principales Bonitas -->
@@ -90,6 +120,113 @@
         </div>
     </div>
 
+   <!-- Sección de Alertas Detalladas -->
+    @if(isset($pedidos_pendientes_lista) && $pedidos_pendientes_lista->count() > 0)
+    <div class="alert-section mb-4">
+        <div class="section-header">
+            <h2>📋 Pedidos Pendientes</h2>
+            <span class="badge bg-warning">{{ $pedidos_pendientes }} pendientes</span>
+        </div>
+        <div class="products-grid">
+            @foreach($pedidos_pendientes_lista as $pedido)
+            <div class="product-card">
+                <div class="product-emoji">🛒</div>
+                <div class="product-info">
+                    <h4 class="product-name">Pedido #{{ $pedido->id }}</h4>
+                    <p class="product-price">
+                        Cliente: {{ optional($pedido->cliente)->Nombre ?? 'No registrado' }} {{ optional($pedido->cliente)->ApPaterno ?? '' }}
+                    </p>
+                    <p class="product-stats">
+                        @if($pedido->detallePedidos->count() > 0)
+                            Productos: {{ $pedido->detallePedidos->count() }} •
+                        @endif
+                        Total: ${{ number_format($pedido->Total ?? 0, 2) }} •
+                        Prioridad: 
+                        <span class="badge @if($pedido->Prioridad == 'alta') bg-danger 
+                                            @elseif($pedido->Prioridad == 'media') bg-warning 
+                                            @else bg-info @endif">
+                            {{ $pedido->Prioridad ?? 'Normal' }}
+                        </span>
+                    </p>
+                    @if($pedido->detallePedidos->count() > 0)
+                        <small class="text-muted">
+                            Productos: 
+                            @foreach($pedido->detallePedidos->take(2) as $detalle)
+                                {{ optional($detalle->producto)->Nombre ?? 'Producto' }} ({{ $detalle->Cantidad }})
+                                @if(!$loop->last), @endif
+                            @endforeach
+                            @if($pedido->detallePedidos->count() > 2)
+                                ... y {{ $pedido->detallePedidos->count() - 2 }} más
+                            @endif
+                        </small>
+                    @endif
+                </div>
+                <a href="{{ route('pedidos.edit', $pedido->id) }}" class="product-badge" style="background: #ffc107; text-decoration: none; color: #000;">
+                    Procesar
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Sección de Productos con Stock Bajo -->
+    @if(isset($productos_bajo_stock_lista) && $productos_bajo_stock_lista->count() > 0)
+    <div class="alert-section mb-4">
+        <div class="section-header">
+            <h2>⚠️ Productos con Stock Bajo</h2>
+            <span class="badge bg-danger">{{ $productos_bajo_stock }} productos</span>
+        </div>
+        <div class="products-grid">
+            @foreach($productos_bajo_stock_lista as $producto)
+            <div class="product-card">
+                <div class="product-emoji">📦</div>
+                <div class="product-info">
+                    <h4 class="product-name">{{ $producto->Nombre }}</h4>
+                    <p class="product-price">
+                        <span class="badge bg-danger">Stock: {{ $producto->Cantidad }} unidades</span>
+                    </p>
+                    <p class="product-stats">
+                        Mínimo: {{ $producto->Cantidad_minima }} • 
+                        Máximo: {{ $producto->Cantidad_maxima }}
+                    </p>
+                </div>
+                <a href="{{ route('productos.edit', $producto->id) }}" class="product-badge" style="background: #dc3545; text-decoration: none;">
+                    Reabastecer
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Sección de Productos con Stock Bajo -->
+    @if(isset($productos_bajo_stock_lista) && $productos_bajo_stock_lista->count() > 0)
+    <div class="alert-section mb-4">
+        <div class="section-header">
+            <h2>⚠️ Productos con Stock Bajo</h2>
+            <span class="badge bg-danger">{{ $productos_bajo_stock }} productos</span>
+        </div>
+        <div class="products-grid">
+            @foreach($productos_bajo_stock_lista as $producto)
+            <div class="product-card">
+                <div class="product-emoji">📦</div>
+                <div class="product-info">
+                    <h4 class="product-name">{{ $producto->Nombre }}</h4>
+                    <p class="product-price">Stock actual: {{ $producto->Cantidad }} unidades</p>
+                    <p class="product-stats">
+                        Mínimo: {{ $producto->Cantidad_minima }} • Máximo: {{ $producto->Cantidad_maxima }}
+                    </p>
+                </div>
+                <a href="{{ route('productos.edit', $producto->id) }}" class="product-badge" style="background: #dc3545; text-decoration: none;">
+                    Reabastecer
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Sección de Productos Más Vendidos -->
     <div class="popular-section">
         <div class="section-header">
@@ -97,7 +234,7 @@
             <div class="section-emoji">🏆</div>
         </div>
         
-        @if($top_productos->count() > 0)
+        @if(isset($top_productos) && $top_productos->count() > 0)
         <div class="products-grid">
             @foreach($top_productos as $producto)
             <div class="product-card">
@@ -168,6 +305,14 @@
                 <div class="stat-label">Pedidos Totales</div>
             </div>
         </div>
+        
+        <div class="stat-item">
+            <div class="stat-emoji">👤</div>
+            <div class="stat-info">
+                <div class="stat-number">{{ $total_usuarios }}</div>
+                <div class="stat-label">Usuarios</div>
+            </div>
+        </div>
     </div>
 
     <!-- Mensaje del Sistema -->
@@ -193,9 +338,13 @@
                 </h3>
                 <p>
                     @if($productos_bajo_stock > 0)
-                    Revisa el inventario para reabastecer
+                    <a href="{{ route('productos.index', ['bajo_stock' => 1]) }}" style="color: #c53030; text-decoration: underline;">
+                        Revisa el inventario para reabastecer
+                    </a>
                     @elseif($pedidos_pendientes > 0)
-                    Continúa con los pedidos pendientes
+                    <a href="{{ route('pedidos.index', ['estado' => 'pendiente']) }}" style="color: #2c5282; text-decoration: underline;">
+                        Continúa con los pedidos pendientes
+                    </a>
                     @else
                     Mantén el excelente trabajo 👍
                     @endif
@@ -388,8 +537,30 @@
     opacity: 0.7;
 }
 
+/* Toast Notifications */
+.toast {
+    opacity: 0.95;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.toast.show {
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* Sección Productos Populares */
-.popular-section {
+.popular-section, .alert-section {
     background: #ffffff;
     border-radius: 20px;
     padding: 25px;
@@ -479,6 +650,12 @@
     font-size: 0.75rem;
     font-weight: 700;
     color: white;
+    text-decoration: none;
+}
+
+.product-badge:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
 }
 
 .stock-low { background: #fc8181; }
@@ -598,6 +775,15 @@
     font-size: 0.9rem;
 }
 
+.message-content a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.message-content a:hover {
+    text-decoration: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard-header {
@@ -631,6 +817,11 @@
     .user-badge {
         justify-content: center;
     }
+    
+    #toastContainer {
+        max-width: 90%;
+        right: 5%;
+    }
 }
 
 /* Animaciones bonitas */
@@ -656,6 +847,20 @@
 <script>
 // Efectos interactivos bonitos
 document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function(toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 8000
+        });
+    });
+    
+    // Mostrar toasts con retraso
+    setTimeout(function() {
+        toastList.forEach(toast => toast.show());
+    }, 1000);
+    
     // Efecto al hacer hover en tarjetas
     const cards = document.querySelectorAll('.cute-card');
     
@@ -669,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Actualizar hora en tiempo real (formato 12h con AM/PM)
+    // Actualizar hora en tiempo real
     function updateTime() {
         const timeElement = document.querySelector('.current-time');
         if (timeElement) {
@@ -679,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const ampm = hours >= 12 ? 'PM' : 'AM';
             
             hours = hours % 12;
-            hours = hours ? hours : 12; // La hora '0' debe ser '12'
+            hours = hours ? hours : 12;
             minutes = minutes < 10 ? '0' + minutes : minutes;
             
             const timeString = hours + ':' + minutes + ' ' + ampm;
@@ -687,17 +892,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Actualizar inmediatamente y cada minuto
     updateTime();
     setInterval(updateTime, 60000);
     
     // Efecto de parpadeo para alertas
-    const warningBadges = document.querySelectorAll('.detail-badge.warning');
+    const warningBadges = document.querySelectorAll('.detail-badge.warning, .detail-badge.pending');
     warningBadges.forEach(badge => {
         setInterval(() => {
             badge.style.opacity = badge.style.opacity === '0.7' ? '1' : '0.7';
         }, 1000);
     });
+    
+    // Vibrar si hay alertas críticas
+    @if(isset($productos_bajo_stock) && $productos_bajo_stock > 0)
+        if (window.navigator.vibrate) {
+            window.navigator.vibrate([200, 100, 200]);
+        }
+    @endif
+    
+    // Actualizar título con contador
+    @if(isset($pedidos_pendientes) && $pedidos_pendientes > 0)
+        document.title = `({{ $pedidos_pendientes }}) Dashboard - Muebles Yasbo`;
+    @endif
 });
 </script>
 @endsection

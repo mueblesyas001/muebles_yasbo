@@ -22,6 +22,7 @@ use App\Http\Controllers\ReporteRentabilidadController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\VerifyCodeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\GraficaController;
 /*
 |--------------------------------------------------------------------------
 | RUTAS DE AUTENTICACIÓN (FORTIFY)
@@ -142,33 +143,7 @@ Route::middleware('auth')->group(function () {
     // Rutas para el calendario
     Route::get('/calendario/pedido/{id}', [CalendarioController::class, 'obtenerDetallePedido'])->name('calendario.pedido.detalle');
     Route::get('/calendario/eventos', [CalendarioController::class, 'eventosJson'])->name('calendario.eventos');
-    /*
-    |--------------------------------------------------------------------------
-    | REPORTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::prefix('reportes-inventario')->name('reportes.inventario.')->group(function () {
-        Route::get('/', [ReporteInventarioController::class, 'index'])->name('index');
-        Route::get('/generar', [ReporteInventarioController::class, 'generarReporte'])->name('generar');
-    });
-
-    Route::prefix('reportes-ventas')->name('reportes.ventas.')->group(function () {
-        Route::get('/', [ReporteVentasController::class, 'index'])->name('index');
-        Route::get('/generar', [ReporteVentasController::class, 'generarReporteCompleto'])->name('generar');
-    });
-   
-    Route::prefix('reportes-pedidos')->name('reportes.pedidos.')->group(function () {
-        Route::get('/', [ReportePedidosController::class, 'index'])->name('index');
-        Route::get('/generar', [ReportePedidosController::class, 'generarReporteCompleto'])->name('generar');
-    });
-
-    
-
-    Route::prefix('reportes-rentabilidad')->name('reportes.rentabilidad.')->group(function () {
-        Route::get('/', [ReporteRentabilidadController::class, 'index'])->name('index');
-        Route::get('/generar', [ReporteRentabilidadController::class, 'generarReporteCompleto'])->name('generar');
-    });
+    Route::get('/clientes/{cliente}/pedidos', [ClienteController::class, 'verificarPedidos'])->name('clientes.pedidos');
 
     Route::resource('calendario', CalendarioController::class);
     Route::resource('reportes', ReporteController::class);
@@ -177,6 +152,10 @@ Route::middleware('auth')->group(function () {
     Route::post('reportes/compras', [ReporteController::class, 'generarReporteCompras'])->name('reportes.compras');
     Route::post('reportes/inventario', [ReporteController::class, 'generarReporteInventario'])->name('reportes.inventario');
     Route::post('reportes/rentabilidad', [ReporteController::class, 'generarReporteRentabilidad'])->name('reportes.rentabilidad');
+    Route::post('/pedidos/{id}/cambiar-estado', [App\Http\Controllers\PedidoController::class, 'cambiarEstado'])->name('pedidos.cambiarEstado');
+    Route::get('grafica/empleados', [App\Http\Controllers\GraficaController::class, 'graficaEmpleados'])->name('grafica.empleados');
+    Route::get('grafica/productos', [App\Http\Controllers\GraficaController::class, 'graficaProductos'])->name('grafica.productos');
+    Route::get('grafica/tendencia', [App\Http\Controllers\GraficaController::class, 'graficaTendencia'])->name('grafica.tendencia');
 });
 
 /*

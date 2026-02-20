@@ -113,14 +113,14 @@ class ReporteController extends Controller{
                 if ($producto) {
                     $totalCantidad = $detalles->sum('Cantidad');
                     $vecesVendido = $detalles->count();
-                    $totalIngresosProducto = $totalCantidad * ($producto->precio ?? 0);
+                    $totalIngresosProducto = $totalCantidad * ($producto->Precio ?? 0);
                     
                     $item = new \stdClass();
                     $item->producto = $producto;
                     $item->total_vendido = $totalCantidad;
                     $item->veces_vendido = $vecesVendido;
                     $item->total_ingresos = $totalIngresosProducto;
-                    $item->precio_promedio = $producto->precio ?? 0;
+                    $item->precio_promedio = $producto->Precio ?? 0;
                     
                     $productosMasVendidos->push($item);
                 }

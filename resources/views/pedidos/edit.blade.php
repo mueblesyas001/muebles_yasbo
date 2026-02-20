@@ -100,109 +100,34 @@
                         </div>
                     </div>
 
-                    <!-- Estado del Pedido -->
+                    <!-- Campo de Comentario -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <h5 class="text-primary mb-3">
-                                        <i class="fas fa-tasks me-2"></i>Estado del Pedido
-                                    </h5>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="estado" class="form-label">Estado Actual</label>
-                                            <div class="form-control bg-white">
-                                                <span class="badge estado-badge estado-{{ strtolower(str_replace(' ', '-', $pedido->Estado)) }}">
-                                                    {{ $pedido->Estado }}
-                                                </span>
-                                                <input type="hidden" id="estado_actual" value="{{ $pedido->Estado }}">
-                                            </div>
-                                            <small class="text-muted">Estado actual del pedido</small>
-                                        </div>
-                                        
-                                        <div class="col-md-6 mb-3">
-                                            <label for="cambiar_estado" class="form-label">Cambiar Estado</label>
-                                            <select class="form-control" id="cambiar_estado" name="Estado">
-                                                <option value="{{ $pedido->Estado }}" selected>Mantener estado actual</option>
-                                                @php
-                                                    $estados = ['Pendiente', 'En proceso', 'Completado', 'Cancelado'];
-                                                    $estadoActual = $pedido->Estado;
-                                                @endphp
-                                                
-                                                @foreach($estados as $estado)
-                                                    @if($estado != $estadoActual)
-                                                        <option value="{{ $estado }}">{{ $estado }}</option>
-                                                    @endif
-                                                @endforeach
-                                            </select>
-                                            <small class="text-muted">Selecciona un nuevo estado para el pedido</small>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Progreso de estados -->
-                                    <div class="mt-4">
-                                        <h6 class="mb-3">Progreso del Pedido</h6>
-                                        <div class="progress-container">
-                                            <div class="steps">
-                                                @php
-                                                    $steps = [
-                                                        'Pendiente' => ['icon' => 'clock', 'color' => 'warning'],
-                                                        'En proceso' => ['icon' => 'cogs', 'color' => 'info'],
-                                                        'Completado' => ['icon' => 'check-circle', 'color' => 'success'],
-                                                        'Cancelado' => ['icon' => 'times-circle', 'color' => 'danger']
-                                                    ];
-                                                    
-                                                    $estadoIndex = array_search($pedido->Estado, array_keys($steps));
-                                                @endphp
-                                                
-                                                @foreach($steps as $estado => $step)
-                                                    <div class="step {{ $loop->index <= $estadoIndex ? 'active' : '' }} {{ $loop->index == $estadoIndex ? 'current' : '' }}">
-                                                        <div class="step-icon bg-{{ $step['color'] }} bg-opacity-10">
-                                                            <i class="fas fa-{{ $step['icon'] }} text-{{ $step['color'] }}"></i>
-                                                        </div>
-                                                        <div class="step-label">{{ $estado }}</div>
-                                                    </div>
-                                                    
-                                                    @if(!$loop->last)
-                                                        <div class="step-line {{ $loop->index < $estadoIndex ? 'active' : '' }}"></div>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Acciones rápidas de estado -->
-                                    <div class="mt-4">
-                                        <h6 class="mb-3">Acciones Rápidas</h6>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @if($pedido->Estado == 'Pendiente')
-                                                <button type="button" class="btn btn-info btn-sm" onclick="cambiarEstado('En proceso')">
-                                                    <i class="fas fa-play me-1"></i> Iniciar Proceso
-                                                </button>
-                                            @endif
-                                            
-                                            @if($pedido->Estado == 'En proceso')
-                                                <button type="button" class="btn btn-success btn-sm" onclick="cambiarEstado('Completado')">
-                                                    <i class="fas fa-check me-1"></i> Marcar como Completado
-                                                </button>
-                                            @endif
-                                            
-                                            @if(in_array($pedido->Estado, ['Pendiente', 'En proceso']))
-                                                <button type="button" class="btn btn-danger btn-sm" onclick="cambiarEstado('Cancelado')">
-                                                    <i class="fas fa-times me-1"></i> Cancelar Pedido
-                                                </button>
-                                            @endif
-                                            
-                                            @if($pedido->Estado == 'Completado')
-                                                <button type="button" class="btn btn-secondary btn-sm" onclick="cambiarEstado('En proceso')">
-                                                    <i class="fas fa-redo me-1"></i> Reabrir Pedido
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-comment-dots me-2"></i>Comentarios del Pedido
+                            </h5>
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Aquí puedes ver y editar las notas especiales del pedido como cambios de color, dimensiones personalizadas, instrucciones de entrega, etc.
                             </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="comentario" class="form-label">
+                                Comentarios / Notas especiales
+                                <span class="text-muted small">(opcional)</span>
+                            </label>
+                            <textarea class="form-control @error('comentario') is-invalid @enderror" 
+                                      id="comentario" 
+                                      name="comentario" 
+                                      rows="4" 
+                                      placeholder="Ej: El cliente quiere el mueble en color caoba en lugar de negro. Las dimensiones son 2m de alto en lugar de 1.80m. El respaldo debe ser acolchado en tela gris.">{{ old('comentario', $pedido->comentario) }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-lightbulb text-warning me-1"></i>
+                                Sé específico con los detalles para evitar confusiones en la producción y entrega.
+                            </div>
+                            @error('comentario')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
@@ -302,21 +227,33 @@
                     <option value="{{ $producto->id }}" 
                             data-precio="{{ $producto->Precio }}"
                             data-nombre="{{ $producto->Nombre }}">
-                        {{ $producto->Nombre }}
+                        {{ $producto->Nombre }} - Precio base: ${{ number_format($producto->Precio, 2) }}
                     </option>
                 @endforeach
             </select>
         </td>
         <td>
-            <input type="text" class="form-control precio-unitario" readonly>
-            <input type="hidden" class="input-precio-unitario" name="productos[INDEX][precio_unitario]">
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" 
+                       class="form-control precio-unitario" 
+                       name="productos[INDEX][precio_unitario]" 
+                       step="0.01" 
+                       min="0" 
+                       value="0"
+                       required>
+            </div>
+            <small class="text-muted precio-base-indicator"></small>
         </td>
         <td>
             <input type="number" class="form-control cantidad" name="productos[INDEX][cantidad]" 
                    min="1" value="1" required>
         </td>
         <td>
-            <input type="text" class="form-control subtotal" readonly>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control subtotal" readonly value="0.00">
+            </div>
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar">
@@ -340,161 +277,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnAgregar = document.getElementById('agregarProducto');
     const form = document.getElementById('pedidoForm');
     const btnActualizar = document.getElementById('btnActualizarPedido');
-    const selectEstado = document.getElementById('cambiar_estado');
 
     // Establecer fecha mínima como hoy
     const fechaInput = document.getElementById('fecha_entrega');
     const hoy = new Date().toISOString().split('T')[0];
     fechaInput.min = hoy;
-
-    // Función para cambiar estado rápidamente
-    window.cambiarEstado = function(nuevoEstado) {
-        let confirmMessage = '';
-        let icon = 'question';
-        
-        switch(nuevoEstado) {
-            case 'En proceso':
-                confirmMessage = '¿Está seguro de iniciar el proceso de este pedido?';
-                icon = 'info';
-                break;
-            case 'Completado':
-                confirmMessage = '¿Está seguro de marcar este pedido como completado?';
-                icon = 'success';
-                break;
-            case 'Cancelado':
-                confirmMessage = '¿Está seguro de cancelar este pedido? Esta acción no se puede deshacer.';
-                icon = 'warning';
-                break;
-            case 'Pendiente':
-                confirmMessage = '¿Está seguro de reabrir este pedido?';
-                icon = 'question';
-                break;
-        }
-        
-        Swal.fire({
-            title: `Cambiar a "${nuevoEstado}"`,
-            text: confirmMessage,
-            icon: icon,
-            showCancelButton: true,
-            confirmButtonText: `<i class="fas fa-check me-1"></i> Sí, cambiar`,
-            cancelButtonText: `<i class="fas fa-times me-1"></i> Cancelar`,
-            confirmButtonColor: nuevoEstado === 'Cancelado' ? '#dc3545' : 
-                               nuevoEstado === 'Completado' ? '#28a745' : 
-                               nuevoEstado === 'En proceso' ? '#17a2b8' : '#6c757d',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Actualizar el select
-                selectEstado.value = nuevoEstado;
-                
-                // Mostrar confirmación
-                Swal.fire({
-                    title: 'Estado Actualizado',
-                    text: `El pedido ha sido cambiado a "${nuevoEstado}"`,
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                // Actualizar visualización del estado actual
-                actualizarVisualizacionEstado();
-            }
-        });
-    };
-
-    // Función para actualizar visualización del estado
-    function actualizarVisualizacionEstado() {
-        const estadoActual = selectEstado.value;
-        const estadoBadge = document.querySelector('.estado-badge');
-        const steps = document.querySelectorAll('.step');
-        const stepLines = document.querySelectorAll('.step-line');
-        
-        // Actualizar badge
-        estadoBadge.textContent = estadoActual;
-        estadoBadge.className = 'badge estado-badge estado-' + estadoActual.toLowerCase().replace(' ', '-');
-        
-        // Actualizar progreso visual
-        const estados = ['Pendiente', 'En proceso', 'Completado', 'Cancelado'];
-        const estadoIndex = estados.indexOf(estadoActual);
-        
-        // Para Cancelado, mostrar como estado especial
-        if (estadoActual === 'Cancelado') {
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'current');
-                if (index === 3) { // Cancelado es el último paso
-                    step.classList.add('active', 'current');
-                }
-            });
-            
-            stepLines.forEach(line => line.classList.remove('active'));
-        } else {
-            // Para estados normales
-            steps.forEach((step, index) => {
-                step.classList.remove('active', 'current');
-                if (index <= estadoIndex) {
-                    step.classList.add('active');
-                }
-                if (index === estadoIndex) {
-                    step.classList.add('current');
-                }
-            });
-            
-            stepLines.forEach((line, index) => {
-                line.classList.remove('active');
-                if (index < estadoIndex) {
-                    line.classList.add('active');
-                }
-            });
-        }
-    }
-
-    // Inicializar visualización del estado
-    actualizarVisualizacionEstado();
-
-    // Evento para cambio manual de estado
-    selectEstado.addEventListener('change', function() {
-        const estadoActual = document.getElementById('estado_actual').value;
-        const nuevoEstado = this.value;
-        
-        if (nuevoEstado === 'Cancelado') {
-            Swal.fire({
-                title: '¿Cancelar Pedido?',
-                text: '¿Está seguro de cancelar este pedido? Esta acción no se puede deshacer.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-times me-1"></i> Sí, cancelar',
-                cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> No, mantener',
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    this.value = estadoActual;
-                }
-                actualizarVisualizacionEstado();
-            });
-        } else if (nuevoEstado === 'Completado') {
-            Swal.fire({
-                title: '¿Completar Pedido?',
-                text: '¿Está seguro de marcar este pedido como completado?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-check me-1"></i> Sí, completar',
-                cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> No, mantener',
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    this.value = estadoActual;
-                }
-                actualizarVisualizacionEstado();
-            });
-        } else {
-            actualizarVisualizacionEstado();
-        }
-    });
 
     // Función para mostrar alerta de error
     function mostrarError(mensaje) {
@@ -509,31 +296,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para mostrar confirmación de actualización
     function mostrarConfirmacionActualizacion(datosPedido) {
-        const estadoActual = document.getElementById('estado_actual').value;
-        const nuevoEstado = selectEstado.value;
-        
-        let mensajeEstado = '';
-        if (nuevoEstado !== estadoActual) {
-            mensajeEstado = `<div class="alert alert-info mb-3">
-                <strong>Cambio de estado:</strong> De <strong>${estadoActual}</strong> a <strong>${nuevoEstado}</strong>
-            </div>`;
-        }
+        const comentario = document.getElementById('comentario').value;
         
         Swal.fire({
             title: '¿Actualizar Pedido?',
             html: `
                 <div class="text-start">
                     <p class="mb-3">¿Está seguro de actualizar el pedido con los siguientes datos?</p>
-                    ${mensajeEstado}
                     <div class="alert alert-warning">
                         <strong>Resumen del Pedido:</strong><br>
-                        • Estado: <strong>${nuevoEstado}</strong><br>
                         • Total: <strong>${datosPedido.total}</strong><br>
                         • Productos: <strong>${datosPedido.totalProductos}</strong><br>
                         • Unidades: <strong>${datosPedido.totalUnidades}</strong><br>
                         • Fecha de entrega: <strong>${datosPedido.fechaEntrega}</strong><br>
                         • Prioridad: <strong>${datosPedido.prioridad}</strong>
                     </div>
+                    ${comentario.trim() ? `
+                    <div class="alert alert-info mt-2">
+                        <i class="fas fa-comment-dots me-2"></i>
+                        <strong>Comentario:</strong><br>
+                        <small>${comentario.substring(0, 150)}${comentario.length > 150 ? '...' : ''}</small>
+                    </div>
+                    ` : ''}
                 </div>
             `,
             icon: 'question',
@@ -580,33 +364,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const event = new Event('change');
             selectProducto.dispatchEvent(event);
             
-            // Establecer cantidad
+            // Establecer precio y cantidad
+            const inputPrecio = fila.querySelector('.precio-unitario');
+            inputPrecio.value = precio;
+            
             const inputCantidad = fila.querySelector('.cantidad');
             inputCantidad.value = cantidad;
             
             // Calcular subtotal
-            const inputPrecioUnitario = fila.querySelector('.input-precio-unitario');
-            inputPrecioUnitario.value = precio;
-            
-            const displayPrecio = fila.querySelector('.precio-unitario');
-            displayPrecio.value = '$' + parseFloat(precio).toFixed(2);
-            
             const displaySubtotal = fila.querySelector('.subtotal');
             const subtotal = precio * cantidad;
-            displaySubtotal.value = '$' + subtotal.toFixed(2);
+            displaySubtotal.value = subtotal.toFixed(2);
+            
+            // Mostrar precio base como referencia
+            const precioBaseIndicator = fila.querySelector('.precio-base-indicator');
+            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
+            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
+            if (precioBase !== precio) {
+                precioBaseIndicator.textContent = `⚠️ Precio modificado (base: $${precioBase.toFixed(2)})`;
+                precioBaseIndicator.style.color = '#dc3545';
+            } else {
+                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
+                precioBaseIndicator.style.color = '#6c757d';
+            }
             
             productosSeleccionados.add(productoId.toString());
         }
         
         contadorProductos++;
+        actualizarResumen();
         return fila;
     }
 
     // Función para inicializar eventos de una fila
     function inicializarEventosFila(fila, index) {
         const selectProducto = fila.querySelector('.select-producto');
-        const displayPrecio = fila.querySelector('.precio-unitario');
-        const inputPrecioUnitario = fila.querySelector('.input-precio-unitario');
+        const inputPrecio = fila.querySelector('.precio-unitario');
+        const precioBaseIndicator = fila.querySelector('.precio-base-indicator');
         const inputCantidad = fila.querySelector('.cantidad');
         const displaySubtotal = fila.querySelector('.subtotal');
         const btnEliminar = fila.querySelector('.btn-eliminar');
@@ -615,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectProducto.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const productoId = this.value;
-            const precio = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
+            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
             const nombre = selectedOption ? selectedOption.getAttribute('data-nombre') : '';
 
             if (productoId && productoId !== '') {
@@ -634,11 +428,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 productosSeleccionados.add(productoId);
                 
-                // ACTUALIZAR PRECIO UNITARIO (display y hidden input)
-                displayPrecio.value = '$' + precio.toFixed(2);
-                inputPrecioUnitario.value = precio; // Guardar el precio real para el formulario
+                // Establecer precio base como valor inicial
+                inputPrecio.value = precioBase.toFixed(2);
                 
-                // Calcular subtotal inicial
+                // Mostrar precio base como referencia
+                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
+                precioBaseIndicator.style.color = '#6c757d';
+                
+                // Calcular subtotal
                 calcularSubtotal();
             } else {
                 limpiarFila();
@@ -648,13 +445,26 @@ document.addEventListener('DOMContentLoaded', function() {
             actualizarResumen();
         });
 
-        // Eventos para cantidad
-        inputCantidad.addEventListener('input', function() {
+        // Evento para cambio de precio
+        inputPrecio.addEventListener('input', function() {
+            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
+            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
+            const precioActual = parseFloat(this.value) || 0;
+            
+            if (precioActual !== precioBase) {
+                precioBaseIndicator.textContent = `⚠️ Precio modificado (base: $${precioBase.toFixed(2)})`;
+                precioBaseIndicator.style.color = '#dc3545';
+            } else {
+                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
+                precioBaseIndicator.style.color = '#6c757d';
+            }
+            
             calcularSubtotal();
             actualizarResumen();
         });
 
-        inputCantidad.addEventListener('change', function() {
+        // Evento para cantidad
+        inputCantidad.addEventListener('input', function() {
             calcularSubtotal();
             actualizarResumen();
         });
@@ -686,19 +496,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         function limpiarFila() {
-            displayPrecio.value = '';
-            inputPrecioUnitario.value = '';
-            displaySubtotal.value = '';
+            inputPrecio.value = '0';
+            precioBaseIndicator.textContent = '';
+            displaySubtotal.value = '0.00';
             inputCantidad.value = '1';
         }
 
         function calcularSubtotal() {
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
-            const precio = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) : 0;
+            const precio = parseFloat(inputPrecio.value) || 0;
             const cantidad = parseInt(inputCantidad.value) || 0;
             const subtotal = precio * cantidad;
             
-            displaySubtotal.value = '$' + subtotal.toFixed(2);
+            displaySubtotal.value = subtotal.toFixed(2);
         }
     }
 
@@ -727,12 +536,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         filas.forEach(fila => {
             const selectProducto = fila.querySelector('.select-producto');
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
+            const precio = parseFloat(fila.querySelector('.precio-unitario').value) || 0;
             const cantidad = parseInt(fila.querySelector('.cantidad').value) || 0;
             const productoSeleccionado = selectProducto.value;
             
-            if (productoSeleccionado && productoSeleccionado !== '' && selectedOption) {
-                const precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+            if (productoSeleccionado && productoSeleccionado !== '') {
                 const subtotal = precio * cantidad;
                 
                 totalPedido += subtotal;
@@ -790,6 +598,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             lugarEntrega.classList.remove('is-invalid');
         }
+
+        // Validar comentario
+        const comentario = document.getElementById('comentario');
+        if (comentario.value && comentario.value.length > 1000) {
+            isValid = false;
+            errores.push('• El comentario no puede exceder los 1000 caracteres.');
+            comentario.classList.add('is-invalid');
+        } else {
+            comentario.classList.remove('is-invalid');
+        }
         
         // Validar productos
         const filasProductos = cuerpoTabla.querySelectorAll('.fila-producto');
@@ -801,8 +619,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let productosValidos = 0;
         filasProductos.forEach(fila => {
             const selectProducto = fila.querySelector('.select-producto');
+            const inputPrecio = fila.querySelector('.precio-unitario');
             const inputCantidad = fila.querySelector('.cantidad');
             const productoId = selectProducto.value;
+            const precio = parseFloat(inputPrecio.value) || 0;
             const cantidad = parseInt(inputCantidad.value) || 0;
             const selectedOption = selectProducto.options[selectProducto.selectedIndex];
             const productoNombre = selectedOption ? selectedOption.getAttribute('data-nombre') : 'Producto';
@@ -813,6 +633,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 errores.push(`• Hay productos sin seleccionar.`);
             } else {
                 selectProducto.classList.remove('is-invalid');
+                
+                if (precio <= 0) {
+                    isValid = false;
+                    inputPrecio.classList.add('is-invalid');
+                    errores.push(`• El precio para "${productoNombre}" debe ser mayor a 0.`);
+                } else {
+                    inputPrecio.classList.remove('is-invalid');
+                }
                 
                 if (cantidad < 1) {
                     isValid = false;
@@ -934,10 +762,6 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
 }
 
-.text-sm {
-    font-size: 0.75rem;
-}
-
 /* Estilos para loading */
 .fa-spinner {
     animation: spin 1s linear infinite;
@@ -948,138 +772,64 @@ document.addEventListener('DOMContentLoaded', function() {
     100% { transform: rotate(360deg); }
 }
 
-/* Estilos para el progreso de estados */
-.progress-container {
-    padding: 1rem 0;
+/* Estilo para el campo de comentario */
+#comentario {
+    resize: vertical;
+    min-height: 100px;
+    background-color: #fff9e6;
+    border: 1px solid #ffc107;
 }
 
-.steps {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
+#comentario:focus {
+    background-color: #fff;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
 }
 
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 2;
+/* Alert de información */
+.alert-info.bg-opacity-10 {
+    background-color: rgba(13, 202, 240, 0.1) !important;
+    border-left: 4px solid #0dcaf0;
 }
 
-.step-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.step.active .step-icon {
-    box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.2);
-}
-
-.step.current .step-icon {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 8px rgba(255, 193, 7, 0.3);
-}
-
-.step-label {
-    font-size: 0.875rem;
-    font-weight: 600;
+/* Tooltip para el campo de comentario */
+.form-text {
     color: #6c757d;
-    text-align: center;
-}
-
-.step.active .step-label {
-    color: #495057;
-}
-
-.step.current .step-label {
-    color: #212529;
-    font-weight: 700;
-}
-
-.step-line {
-    flex: 1;
-    height: 4px;
-    background-color: #e9ecef;
-    margin: 0 10px;
-    position: relative;
-    top: -12px;
-    z-index: 1;
-}
-
-.step-line.active {
-    background-color: #ffc107;
-    background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%);
-}
-
-/* Estilos para badges de estado */
-.estado-badge {
     font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50rem;
-    font-weight: 600;
+    margin-top: 0.5rem;
 }
 
-.estado-pendiente {
-    background-color: rgba(255, 193, 7, 0.1);
-    color: #e0a800;
-    border: 1px solid rgba(255, 193, 7, 0.3);
+.form-text i {
+    font-size: 0.9rem;
 }
 
-.estado-en-proceso {
-    background-color: rgba(23, 162, 184, 0.1);
-    color: #138496;
-    border: 1px solid rgba(23, 162, 184, 0.3);
+/* Precio base indicator */
+.precio-base-indicator {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
 }
 
-.estado-completado {
-    background-color: rgba(40, 167, 69, 0.1);
-    color: #218838;
-    border: 1px solid rgba(40, 167, 69, 0.3);
+/* Resaltar precio editable */
+.precio-unitario {
+    background-color: #fff3cd !important;
+    font-weight: 500;
 }
 
-.estado-cancelado {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #c82333;
-    border: 1px solid rgba(220, 53, 69, 0.3);
+.precio-unitario:focus {
+    background-color: #fff !important;
 }
 
-/* Estilos para acciones rápidas */
-.btn-info {
-    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-    color: white;
-    border: none;
+.input-group .input-group-text {
+    background-color: #e9ecef;
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-    color: white;
-    border: none;
+.input-group .form-control {
+    border-left: none;
 }
 
-.btn-danger {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    border: none;
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
-    color: white;
-    border: none;
-}
-
-.btn-sm:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.input-group .form-control:focus {
+    border-color: #ced4da #ced4da #ced4da #ffc107;
 }
 </style>
 @endsection

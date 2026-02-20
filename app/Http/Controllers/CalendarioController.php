@@ -50,6 +50,7 @@ class CalendarioController extends Controller
                     'total' => number_format($pedido->Total, 2),
                     'cliente_nombre' => $clienteNombre,
                     'cliente_id' => $pedido->Cliente_idCliente,
+                    'comentario' => $pedido->comentario, // NUEVO CAMPO
                     'detalles' => $pedido->detallePedidos->map(function($detalle) {
                         return [
                             'producto_nombre' => $detalle->producto->Nombre ?? 'Producto no encontrado',
@@ -201,7 +202,165 @@ class CalendarioController extends Controller
             $prioridadColor = $this->getPrioridadColor($pedido->Prioridad);
             $estadoColor = $this->getEstadoColor($pedido->Estado);
 
+            // Verificar si tiene comentario
+            $comentarioHtml = '';
+            if (!empty($pedido->comentario)) {
+                $comentarioHtml = '
+                <!-- Sección 4: Comentarios del Pedido (NUEVO) -->
+                <div class="seccion-notas">
+                    <h5 class="titulo-seccion">
+                        <i class="fas fa-comment-dots me-2"></i>Comentarios del Pedido
+                    </h5>
+                    <div class="observacion-box">
+                        <p class="mb-0">' . nl2br(e($pedido->comentario)) . '</p>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Notas especiales para este pedido
+                        </small>
+                    </div>
+                </div>';
+            }
+
             $html = '
+            <style>
+                .detalle-completo {
+                    padding: 20px;
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                    border-radius: 12px;
+                }
+                
+                .seccion-pedido, .seccion-cliente, .seccion-productos, .seccion-notas {
+                    background: white;
+                    padding: 25px;
+                    margin-bottom: 20px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                    border-left: 5px solid;
+                }
+                
+                .seccion-pedido { border-left-color: #667eea; }
+                .seccion-cliente { border-left-color: #4facfe; }
+                .seccion-productos { border-left-color: #43e97b; }
+                .seccion-notas { border-left-color: #ff9a9e; }
+                
+                .titulo-seccion {
+                    color: #495057;
+                    font-weight: 600;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid #dee2e6;
+                    font-size: 1.1rem;
+                }
+                
+                .info-item {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    transition: all 0.3s ease;
+                }
+                
+                .info-item:hover {
+                    background: #e9ecef;
+                    transform: translateX(5px);
+                }
+                
+                .info-label {
+                    display: block;
+                    font-size: 0.85rem;
+                    color: #6c757d;
+                    font-weight: 500;
+                    margin-bottom: 5px;
+                }
+                
+                .info-value {
+                    display: block;
+                    font-size: 1rem;
+                    color: #212529;
+                    font-weight: 600;
+                }
+                
+                .tabla-productos {
+                    width: 100%;
+                    background: white;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .tabla-productos thead {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+                
+                .tabla-productos th {
+                    border: none;
+                    padding: 15px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+                
+                .tabla-productos tbody tr {
+                    border-bottom: 1px solid #e9ecef;
+                    transition: background-color 0.3s ease;
+                }
+                
+                .tabla-productos tbody tr:hover {
+                    background-color: rgba(102, 126, 234, 0.05);
+                }
+                
+                .tabla-productos td {
+                    padding: 15px;
+                    vertical-align: middle;
+                }
+                
+                .total-row {
+                    background: #f8f9fa;
+                    font-size: 1.1rem;
+                }
+                
+                .total-pedido {
+                    color: #198754;
+                    font-size: 1.2rem;
+                }
+                
+                .observacion-box {
+                    background: #fff3cd;
+                    padding: 20px;
+                    border-radius: 8px;
+                    border-left: 4px solid #ffc107;
+                    font-style: italic;
+                }
+                
+                .estado-badge, .prioridad-badge {
+                    padding: 8px 16px;
+                    font-size: 0.9rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                }
+                
+                .badge.bg-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%) !important; }
+                .badge.bg-warning { background: linear-gradient(135deg, #ffd93d 0%, #ffb347 100%) !important; }
+                .badge.bg-success { background: linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%) !important; }
+                .badge.bg-primary { background: linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%) !important; }
+                .badge.bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
+                
+                @media (max-width: 768px) {
+                    .detalle-completo {
+                        padding: 10px;
+                    }
+                    
+                    .seccion-pedido, .seccion-cliente, .seccion-productos, .seccion-notas {
+                        padding: 15px;
+                    }
+                    
+                    .tabla-productos th, 
+                    .tabla-productos td {
+                        padding: 8px;
+                        font-size: 0.85rem;
+                    }
+                }
+            </style>
             <div class="detalle-completo">
                 <!-- Sección 1: Información del Pedido -->
                 <div class="seccion-pedido">
@@ -221,7 +380,7 @@ class CalendarioController extends Controller
                                 <span class="info-value">' . $pedido->Hora_entrega . '</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="info-item">
                                 <span class="info-label">Lugar de Entrega</span>
                                 <span class="info-value">' . ($pedido->Lugar_entrega ?? 'No especificado') . '</span>
@@ -254,7 +413,7 @@ class CalendarioController extends Controller
                                 <span class="info-value">' . $clienteNombre . '</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="info-item">
                                 <span class="info-label">Teléfono</span>
                                 <span class="info-value">
@@ -264,7 +423,7 @@ class CalendarioController extends Controller
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="info-item">
                                 <span class="info-label">Correo Electrónico</span>
                                 <span class="info-value">
@@ -274,7 +433,7 @@ class CalendarioController extends Controller
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="info-item">
                                 <span class="info-label">Dirección</span>
                                 <span class="info-value">' . $clienteDireccion . '</span>
@@ -310,6 +469,8 @@ class CalendarioController extends Controller
                         </table>
                     </div>
                 </div>
+
+                ' . $comentarioHtml . '
             </div>';
 
             return response()->json([
@@ -402,7 +563,8 @@ class CalendarioController extends Controller
                         'prioridad' => $pedido->Prioridad,
                         'total' => number_format($pedido->Total, 2),
                         'lugar_entrega' => $pedido->Lugar_entrega,
-                        'hora_entrega' => $pedido->Hora_entrega
+                        'hora_entrega' => $pedido->Hora_entrega,
+                        'comentario' => $pedido->comentario // NUEVO CAMPO
                     ]
                 ];
             });

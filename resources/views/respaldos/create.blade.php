@@ -1,283 +1,158 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Encabezado -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="flex-grow-1">
-            <h1 class="h2 mb-1 text-primary fw-bold">
-                <i class="fas fa-database me-2"></i>Generar Nuevo Respaldo
-            </h1>
-            <p class="text-muted mb-0">Crea un respaldo de seguridad de toda la base de datos del sistema</p>
-        </div>
-        <div>
-            <a href="{{ route('respaldos.index') }}" class="btn btn-outline-secondary shadow-sm">
-                <i class="fas fa-arrow-left me-2"></i> Volver
-            </a>
-        </div>
-    </div>
-
-    <!-- Panel principal -->
-    <div class="row">
-        <!-- Formulario principal -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="fas fa-info-circle me-2 text-primary"></i>
-                        Información del Respaldo
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('respaldos.store') }}" method="POST" id="respaldoForm">
-                        @csrf
-                        
-                        <!-- Campo oculto con el ID del usuario logueado -->
-                        <input type="hidden" name="Usuario" value="{{ auth()->id() }}">
-                        
-                        <div class="row g-3">
-                            <!-- Nombre del Respaldo -->
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted">
-                                    <i class="fas fa-tag me-1"></i> Nombre del Respaldo *
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-heading"></i>
-                                    </span>
-                                    <input type="text" 
-                                           class="form-control @error('Nombre') is-invalid @enderror" 
-                                           id="Nombre" 
-                                           name="Nombre" 
-                                           value="{{ old('Nombre', 'Respaldo ' . now()->format('d-m-Y H:i')) }}"
-                                           required 
-                                           maxlength="80"
-                                           placeholder="Ej: Respaldo Mensual Enero 2024">
-                                </div>
-                                @error('Nombre')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted mt-1 d-block">
-                                    Identificador único para este respaldo
-                                </small>
-                            </div>
-
-                            <!-- Usuario Responsable (campo de solo lectura) -->
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted">
-                                    <i class="fas fa-user me-1"></i> Usuario Responsable
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user-check"></i>
-                                    </span>
-                                    <input type="text" 
-                                           class="form-control bg-light" 
-                                           id="usuarioDisplay"
-                                           value="{{ auth()->user()->correo ?? auth()->user()->email ?? auth()->user()->name ?? 'Usuario' }}" 
-                                           readonly>
-                                    <span class="input-group-text">
-                                        <i class="fas fa-check text-success"></i>
-                                    </span>
-                                </div>
-                                <small class="text-muted mt-1 d-block">
-                                    <i class="fas fa-info-circle me-1 text-info"></i> Se registrará automáticamente como usuario responsable
-                                </small>
-                            </div>
-
-                            <!-- Descripción -->
-                            <div class="col-12">
-                                <label class="form-label small text-muted">
-                                    <i class="fas fa-file-alt me-1"></i> Descripción
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-align-left"></i>
-                                    </span>
-                                    <textarea class="form-control @error('Descripcion') is-invalid @enderror" 
-                                              id="Descripcion" 
-                                              name="Descripcion" 
-                                              rows="3" 
-                                              maxlength="280"
-                                              placeholder="Describe el propósito de este respaldo...">{{ old('Descripcion') }}</textarea>
-                                </div>
-                                @error('Descripcion')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                                <div class="d-flex justify-content-between mt-1">
-                                    <small class="text-muted">Máximo 280 caracteres</small>
-                                    <small class="text-muted" id="contadorCaracteres">0/280</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Detalles del Respaldo -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h6 class="fw-bold text-dark mb-3">
-                                    <i class="fas fa-cogs me-2 text-primary"></i>
-                                    Detalles del Respaldo
-                                </h6>
-                                
-                                <div class="alert alert-info bg-info bg-opacity-10 border border-info border-opacity-25">
-                                    <div class="d-flex align-items-start">
-                                        <i class="fas fa-info-circle text-info me-2 mt-1"></i>
-                                        <div>
-                                            <small class="fw-semibold d-block">Información del proceso:</small>
-                                            <small>• Se generará un archivo SQL con toda la estructura y datos</small><br>
-                                            <small>• El respaldo incluirá todas las tablas del sistema</small><br>
-                                            <small>• Archivo: <code>backup_{{ config('database.connections.mysql.database') }}_fecha.sql</code></small><br>
-                                            <small>• Ubicación: <code>storage/app/backups/</code></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Botones de acción -->
-                        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Todos los campos marcados con * son obligatorios
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-primary px-4" id="btnGenerarRespaldo">
-                                    <i class="fas fa-database me-2"></i> Generar Respaldo
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-database me-2"></i>Generar Nuevo Respaldo
+                </h4>
             </div>
-        </div>
+            <div class="card-body">
+                <form action="{{ route('respaldos.store') }}" method="POST" id="respaldoForm">
+                    @csrf
+                    
+                    <!-- Campo oculto con el ID del usuario logueado -->
+                    <input type="hidden" name="Usuario" value="{{ auth()->id() }}">
+                    
+                    <!-- Información General del Respaldo -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Información General del Respaldo
+                            </h5>
+                        </div>
 
-        <!-- Panel lateral - Información -->
-        <div class="col-lg-4">
-            <!-- Información del Sistema -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="fas fa-server me-2 text-primary"></i>
-                        Información del Sistema
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted mb-2">Base de Datos</label>
-                        <div class="d-flex align-items-center bg-light p-3 rounded">
-                            <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
-                                <i class="fas fa-database text-primary"></i>
+                        <!-- Nombre del Respaldo - IGUAL AL DE VENTAS -->
+                        <div class="col-md-6 mb-3">
+                            <label for="Nombre" class="form-label">Nombre del Respaldo *</label>
+                            <input type="text" 
+                                   class="form-control @error('Nombre') is-invalid @enderror" 
+                                   id="Nombre" 
+                                   name="Nombre" 
+                                   value="{{ old('Nombre', 'Respaldo ' . now()->format('d-m-Y H:i')) }}" 
+                                   required 
+                                   maxlength="80"
+                                   placeholder="Ej: Respaldo Mensual Enero 2024">
+                            @error('Nombre')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Identificador único para este respaldo</div>
+                        </div>
+
+                        <!-- Usuario Responsable - IGUAL AL DE VENTAS -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Usuario Responsable</label>
+                            <div class="form-control bg-light">
+                                {{ auth()->user()->correo ?? auth()->user()->email ?? auth()->user()->name ?? 'Usuario' }}
                             </div>
-                            <div>
-                                <div class="fw-semibold">{{ config('database.connections.mysql.database') }}</div>
-                                <small class="text-muted">MySQL</small>
+                            <div class="form-text">Se registrará automáticamente</div>
+                        </div>
+
+                        <!-- Descripción - IGUAL AL DE VENTAS -->
+                        <div class="col-12 mb-3">
+                            <label for="Descripcion" class="form-label">Descripción <span class="text-muted fw-normal">(Opcional)</span></label>
+                            <textarea class="form-control @error('Descripcion') is-invalid @enderror" 
+                                      id="Descripcion" 
+                                      name="Descripcion" 
+                                      rows="3" 
+                                      maxlength="280"
+                                      placeholder="Describe el propósito de este respaldo...">{{ old('Descripcion') }}</textarea>
+                            @error('Descripcion')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Máximo 280 caracteres</small>
+                                <small class="text-muted" id="contadorCaracteres">0/280</small>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="card border h-100">
-                                <div class="card-body text-center p-3">
-                                    <div class="avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2">
-                                        <i class="fas fa-table text-info"></i>
-                                    </div>
-                                    <div class="fw-bold fs-5">{{ $estadisticas['total_tablas'] ?? '0' }}</div>
-                                    <small class="text-muted">Tablas</small>
-                                </div>
+
+                    <!-- Información del Sistema - IGUAL AL DE VENTAS (RESUMEN) -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-server me-2"></i>Información del Sistema
+                            </h5>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Base de Datos</label>
+                            <div class="form-control bg-light">
+                                {{ config('database.connections.mysql.database') }}
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="card border h-100">
-                                <div class="card-body text-center p-3">
-                                    <div class="avatar-sm bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2">
-                                        <i class="fas fa-weight-hanging text-success"></i>
-                                    </div>
-                                    <div class="fw-bold fs-5">{{ $estadisticas['tamaño_total'] ?? '0 MB' }}</div>
-                                    <small class="text-muted">Tamaño</small>
-                                </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Tablas</label>
+                            <div class="form-control bg-light">
+                                {{ $estadisticas['total_tablas'] ?? '0' }}
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label small text-muted mb-2">Fecha y Hora Actual</label>
-                        <div class="d-flex align-items-center bg-light p-3 rounded">
-                            <div class="avatar-sm bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
-                                <i class="fas fa-calendar-alt text-warning"></i>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Tamaño Total</label>
+                            <div class="form-control bg-light">
+                                {{ $estadisticas['tamaño_total'] ?? '0 MB' }}
                             </div>
-                            <div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha y Hora Actual</label>
+                            <div class="form-control bg-light">
                                 @php
-                                    // Usar la fecha/hora actual del servidor en la zona horaria correcta
                                     $fechaHora = now(config('app.timezone', 'America/Lima'));
                                 @endphp
-                                <div class="fw-semibold">{{ $fechaHora->isoFormat('DD/MM/YYYY') }}</div>
-                                <small class="text-muted">{{ $fechaHora->isoFormat('hh:mm A') }}</small>
+                                {{ $fechaHora->isoFormat('DD/MM/YYYY hh:mm A') }}
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            <div class="flex-grow-1">
-                                <small class="fw-semibold d-block">Estado:</small>
-                                <small>Sistema listo para generar respaldo</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Último Respaldo -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="fas fa-history me-2 text-primary"></i>
-                        Historial de Respaldos
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if(isset($estadisticas['ultimo_respaldo_fecha']) && $estadisticas['ultimo_respaldo_fecha'])
-                    <div class="mb-3">
-                        <label class="form-label small text-muted mb-2">Último respaldo</label>
-                        <div class="d-flex align-items-center bg-light p-3 rounded">
-                            <div class="avatar-sm bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
-                                <i class="fas fa-history text-warning"></i>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">{{ $estadisticas['ultimo_respaldo'] ?? 'Nunca' }}</div>
-                                @if($estadisticas['ultimo_respaldo_fecha'])
-                                @php
-                                    $fechaUltimoRespaldo = \Carbon\Carbon::parse($estadisticas['ultimo_respaldo_fecha'])->timezone(config('app.timezone', 'America/Lima'));
-                                @endphp
-                                <small class="text-muted">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Último Respaldo</label>
+                            <div class="form-control bg-light">
+                                @if(isset($estadisticas['ultimo_respaldo_fecha']) && $estadisticas['ultimo_respaldo_fecha'])
+                                    @php
+                                        $fechaUltimoRespaldo = \Carbon\Carbon::parse($estadisticas['ultimo_respaldo_fecha'])->timezone(config('app.timezone', 'America/Lima'));
+                                    @endphp
                                     {{ $fechaUltimoRespaldo->isoFormat('DD/MM/YYYY hh:mm A') }}
-                                </small>
+                                @else
+                                    Sin respaldos previos
                                 @endif
                             </div>
                         </div>
                     </div>
-                    @else
-                    <div class="text-center py-3">
-                        <div class="avatar-md bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                            <i class="fas fa-database text-secondary"></i>
-                        </div>
-                        <h6 class="text-muted fw-semibold">Sin respaldos previos</h6>
-                        <small class="text-muted">Este será el primer respaldo del sistema</small>
-                    </div>
-                    @endif
-                    
-                    <div class="alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                            <div class="flex-grow-1">
-                                <small class="fw-semibold d-block">Recomendación:</small>
-                                <small>Realice respaldos periódicos para mayor seguridad</small>
+
+                    <!-- Detalles del Respaldo - IGUAL AL DE VENTAS (ALERT INFO) -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="d-flex">
+                                    <i class="fas fa-info-circle me-2 mt-1"></i>
+                                    <div>
+                                        <strong>Información del proceso:</strong>
+                                        <ul class="mb-0 mt-1">
+                                            <li>Se generará un archivo SQL con toda la estructura y datos</li>
+                                            <li>El respaldo incluirá todas las tablas del sistema</li>
+                                            <li>Archivo: <code>backup_{{ config('database.connections.mysql.database') }}_fecha.sql</code></li>
+                                            <li>Ubicación: <code>storage/app/backups/</code></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Botones de acción - IGUAL AL DE VENTAS -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                        <a href="{{ route('respaldos.index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i> Cancelar
+                        </a>
+                        <button type="button" class="btn btn-success" id="btnGenerarRespaldo">
+                            <i class="fas fa-database me-1"></i> Generar Respaldo
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -286,22 +161,23 @@
 <!-- Modal de Progreso -->
 <div class="modal fade" id="progresoModal" tabindex="-1" aria-labelledby="progresoModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white position-relative">
-                <h5 class="modal-title fw-bold" id="progresoModalLabel">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="progresoModalLabel">
                     <i class="fas fa-sync-alt me-2"></i>
                     Generando Respaldo
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center py-5">
+            <div class="modal-body text-center py-4">
                 <div class="mb-4">
-                    <div class="avatar-lg bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3">
-                        <i class="fas fa-database fa-2x text-primary"></i>
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <h5 class="fw-bold mb-2">Procesando base de datos</h5>
-                    <p class="text-muted mb-4" id="estadoProceso">Preparando respaldo...</p>
                 </div>
+                
+                <h5 class="fw-bold mb-2" id="estadoProceso">Preparando respaldo...</h5>
+                <p class="text-muted mb-4">Procesando base de datos</p>
                 
                 <!-- Barra de progreso -->
                 <div class="mb-4">
@@ -309,8 +185,8 @@
                         <small class="text-muted">Progreso</small>
                         <small class="fw-bold" id="porcentajeProgreso">0%</small>
                     </div>
-                    <div class="progress" style="height: 12px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
                              role="progressbar" 
                              style="width: 0%" 
                              id="barraProgreso">
@@ -322,14 +198,14 @@
                 <div class="bg-light p-3 rounded text-start mb-4">
                     <div class="d-flex align-items-center mb-2">
                         <i class="fas fa-database text-primary me-2"></i>
-                        <div class="flex-grow-1">
+                        <div>
                             <small class="fw-semibold">Base de datos:</small>
                             <div><code>{{ config('database.connections.mysql.database') }}</code></div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
                         <i class="fas fa-clock text-primary me-2"></i>
-                        <div class="flex-grow-1">
+                        <div>
                             <small class="fw-semibold">Inicio:</small>
                             <div id="horaInicio">
                                 @php
@@ -340,25 +216,18 @@
                     </div>
                 </div>
                 
-                <div class="alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25 text-start">
-                    <div class="d-flex align-items-start">
-                        <i class="fas fa-exclamation-triangle text-warning me-2 mt-1"></i>
-                        <div>
-                            <small class="fw-semibold d-block">¡No cierre esta ventana!</small>
-                            <small>El proceso puede tomar varios minutos dependiendo del tamaño de la base de datos.</small>
-                        </div>
-                    </div>
+                <div class="alert alert-warning text-start">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>¡No cierre esta ventana!</strong><br>
+                    <small>El proceso puede tomar varios minutos dependiendo del tamaño de la base de datos.</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@push('styles')
+<!-- Incluir SweetAlert2 -->
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-@endpush
-
-@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
 <script>
@@ -372,42 +241,65 @@ document.addEventListener('DOMContentLoaded', function() {
     const contadorCaracteres = document.getElementById('contadorCaracteres');
     const textareaDescripcion = document.getElementById('Descripcion');
 
-    // Inicializar contador de caracteres
+    // Contador de caracteres para descripción
     if (textareaDescripcion && contadorCaracteres) {
         const longitudInicial = textareaDescripcion.value.length;
         contadorCaracteres.textContent = `${longitudInicial}/280`;
-        
-        if (longitudInicial > 250) {
-            contadorCaracteres.classList.remove('text-muted');
-            contadorCaracteres.classList.add('text-warning');
-        } else if (longitudInicial > 270) {
-            contadorCaracteres.classList.remove('text-warning');
-            contadorCaracteres.classList.add('text-danger');
-        }
-    }
 
-    // Contador de caracteres para descripción
-    if (textareaDescripcion) {
         textareaDescripcion.addEventListener('input', function() {
             const longitud = this.value.length;
-            if (contadorCaracteres) {
-                contadorCaracteres.textContent = `${longitud}/280`;
-                
-                if (longitud > 250) {
-                    contadorCaracteres.classList.remove('text-muted');
-                    contadorCaracteres.classList.add('text-warning');
-                } else if (longitud > 270) {
-                    contadorCaracteres.classList.remove('text-warning');
-                    contadorCaracteres.classList.add('text-danger');
-                } else {
-                    contadorCaracteres.classList.remove('text-warning', 'text-danger');
-                    contadorCaracteres.classList.add('text-muted');
-                }
+            contadorCaracteres.textContent = `${longitud}/280`;
+        });
+    }
+
+    // Función para mostrar alerta de error
+    function mostrarError(mensaje) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error en el formulario',
+            html: mensaje,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc3545',
+            customClass: {
+                popup: 'swal2-custom-popup'
             }
         });
     }
 
-    // Función para validar formulario (solo valida nombre ahora)
+    // Función para mostrar confirmación de respaldo
+    function mostrarConfirmacionRespaldo(datosVenta) {
+        Swal.fire({
+            title: '¿Generar Respaldo?',
+            html: `
+                <div class="text-start">
+                    <p class="mb-3">¿Está seguro de generar el siguiente respaldo?</p>
+                    <div class="alert alert-info">
+                        <strong>Resumen del Respaldo:</strong><br>
+                        • Nombre: <strong>${datosVenta.nombre}</strong><br>
+                        • Descripción: <strong>${datosVenta.descripcion || 'Sin descripción'}</strong>
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-database me-1"></i> Sí, Generar',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Cancelar',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal2-custom-popup',
+                confirmButton: 'swal2-confirm-btn',
+                cancelButton: 'swal2-cancel-btn'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                iniciarProcesoRespaldo();
+            }
+        });
+    }
+
+    // Función para validar formulario
     function validarFormulario() {
         let isValid = true;
         const errores = [];
@@ -416,104 +308,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!nombre) {
             isValid = false;
-            errores.push('Debe ingresar un nombre para el respaldo');
+            errores.push('• Debe ingresar un nombre para el respaldo.');
             document.getElementById('Nombre').classList.add('is-invalid');
         } else {
             document.getElementById('Nombre').classList.remove('is-invalid');
         }
         
-        // Ya no validamos el usuario, se asigna automáticamente
-        
         return { isValid, errores };
     }
 
-    // Función para mostrar error
-    function mostrarError(mensaje) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error en el formulario',
-            html: `
-                <div class="text-start">
-                    <p class="mb-3">Por favor, corrija los siguientes errores:</p>
-                    <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-25 text-start">
-                        ${Array.isArray(mensaje) ? mensaje.map(e => `<div class="mb-1"><i class="fas fa-times-circle me-1"></i>${e}</div>`).join('') : mensaje}
-                    </div>
-                </div>
-            `,
-            confirmButtonText: 'Entendido',
-            confirmButtonColor: '#dc3545',
-            customClass: {
-                popup: 'shadow-lg'
-            }
-        });
-    }
-
-    // Función para mostrar confirmación de respaldo
-    function mostrarConfirmacionRespaldo(datos) {
-        Swal.fire({
-            title: '¿Generar Respaldo?',
-            html: `
-                <div class="text-start">
-                    <div class="mb-4">
-                        <div class="avatar-md bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mb-3">
-                            <i class="fas fa-database fa-lg text-primary"></i>
-                        </div>
-                        <p class="mb-3">¿Está seguro de generar un respaldo con la siguiente configuración?</p>
-                    </div>
-                    
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="bg-light p-2 rounded">
-                                <small class="text-muted d-block">Nombre</small>
-                                <strong>${datos.nombre}</strong>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="bg-light p-2 rounded">
-                                <small class="text-muted d-block">Usuario</small>
-                                <strong>${datos.usuario}</strong>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${datos.descripcion ? `
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Descripción</small>
-                        <div class="bg-light p-2 rounded">${datos.descripcion}</div>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="alert alert-info bg-info bg-opacity-10 border border-info border-opacity-25">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-info-circle text-info me-2"></i>
-                            <div>
-                                <small>El respaldo se guardará en:</small>
-                                <div><code class="small">storage/app/backups/</code></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-database me-2"></i> Sí, Generar',
-            cancelButtonText: '<i class="fas fa-times me-2"></i> Cancelar',
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true,
-            customClass: {
-                popup: 'shadow-lg'
-            },
-            width: '500px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                iniciarProcesoRespaldo(datos);
-            }
-        });
-    }
-
     // Función para simular proceso de respaldo
-    function iniciarProcesoRespaldo(datos) {
+    function iniciarProcesoRespaldo() {
         // Mostrar modal de progreso
         progresoModal.show();
         
@@ -536,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Simular progreso
         const interval = setInterval(() => {
-            progreso += Math.random() * 10 + 5; // Incremento variable
+            progreso += Math.random() * 10 + 5;
             if (progreso > 100) progreso = 100;
             
             // Actualizar barra de progreso
@@ -564,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Deshabilitar botón temporalmente
                         btnGenerar.disabled = true;
-                        btnGenerar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Procesando...';
+                        btnGenerar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Procesando...';
                         
                         // Enviar formulario
                         form.submit();
@@ -579,216 +384,257 @@ document.addEventListener('DOMContentLoaded', function() {
         const validacion = validarFormulario();
         
         if (!validacion.isValid) {
-            mostrarError(validacion.errores);
-            return;
+            // Mostrar todos los errores con SweetAlert2
+            const mensajeErrores = `
+                <div class="text-start">
+                    <p class="mb-2">Por favor, corrija los siguientes errores:</p>
+                    <div class="alert alert-danger text-start">
+                        ${[...new Set(validacion.errores)].join('<br>')}
+                    </div>
+                </div>
+            `;
+            mostrarError(mensajeErrores);
+        } else {
+            // Mostrar confirmación con SweetAlert2
+            const nombre = document.getElementById('Nombre').value.trim();
+            const descripcion = document.getElementById('Descripcion').value.trim();
+            
+            const datosRespaldo = {
+                nombre: nombre,
+                descripcion: descripcion || 'Sin descripción'
+            };
+            
+            mostrarConfirmacionRespaldo(datosRespaldo);
         }
-        
-        // Obtener datos del formulario
-        const nombre = document.getElementById('Nombre').value.trim();
-        const descripcion = document.getElementById('Descripcion').value.trim();
-        const usuarioNombre = "{{ auth()->user()->correo ?? auth()->user()->email ?? auth()->user()->name ?? 'Usuario' }}";
-        
-        const datosRespaldo = {
-            nombre: nombre,
-            descripcion: descripcion,
-            usuario: usuarioNombre,
-            baseDatos: '{{ config('database.connections.mysql.database') }}'
-        };
-        
-        mostrarConfirmacionRespaldo(datosRespaldo);
     });
 
     // Limpiar validaciones al interactuar
-    const nombreInput = document.getElementById('Nombre');
-    
-    if (nombreInput) {
-        nombreInput.addEventListener('input', function() {
-            this.classList.remove('is-invalid');
-        });
-    }
+    document.getElementById('Nombre').addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
 });
 </script>
-@endpush
 
 <style>
-/* Estilos consistentes con el sistema */
-.avatar {
-    width: 48px;
-    height: 48px;
-}
-
-.avatar-md {
-    width: 40px;
-    height: 40px;
-}
-
-.avatar-sm {
-    width: 36px;
-    height: 36px;
-}
-
-.avatar-lg {
-    width: 60px;
-    height: 60px;
-}
-
 .card {
-    border-radius: 12px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+.card-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem 1rem 0 0 !important;
 }
 
-.shadow-lg {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.fw-semibold {
+.card-header h4 {
+    margin: 0;
     font-weight: 600;
 }
 
-.input-group-text {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
 }
 
-.form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.btn {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
-.form-select:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     border: none;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-success:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-.btn-outline-secondary:hover {
+.btn-success:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-secondary:hover {
     transform: translateY(-2px);
 }
 
-/* Estilos para la barra de progreso */
-.progress {
-    border-radius: 10px;
-    overflow: hidden;
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
 }
 
-.progress-bar {
-    border-radius: 10px;
+.form-control.is-invalid:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-/* Estilos para badges con opacidad */
-.bg-primary.bg-opacity-10 {
-    background-color: rgba(13, 110, 253, 0.1) !important;
+.bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
 }
 
-.bg-success.bg-opacity-10 {
-    background-color: rgba(25, 135, 84, 0.1) !important;
+.text-primary {
+    color: #28a745 !important;
 }
 
-.bg-warning.bg-opacity-10 {
-    background-color: rgba(255, 193, 7, 0.1) !important;
+.border-top {
+    border-top: 2px solid #e9ecef !important;
 }
 
-.bg-info.bg-opacity-10 {
-    background-color: rgba(13, 202, 240, 0.1) !important;
+h5 {
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
 
-.bg-danger.bg-opacity-10 {
-    background-color: rgba(220, 53, 69, 0.1) !important;
+/* Estilos para SweetAlert2 personalizados */
+.swal2-custom-popup {
+    border-radius: 1rem;
+    padding: 2rem;
 }
 
-/* Estilos para bordes con opacidad */
-.border-primary.border-opacity-25 {
-    border-color: rgba(13, 110, 253, 0.25) !important;
+.swal2-confirm-btn {
+    border-radius: 0.5rem !important;
+    padding: 0.75rem 1.5rem !important;
 }
 
-.border-success.border-opacity-25 {
-    border-color: rgba(25, 135, 84, 0.25) !important;
+.swal2-cancel-btn {
+    border-radius: 0.5rem !important;
+    padding: 0.75rem 1.5rem !important;
 }
 
-.border-warning.border-opacity-25 {
-    border-color: rgba(255, 193, 7, 0.25) !important;
-}
-
-.border-info.border-opacity-25 {
-    border-color: rgba(13, 202, 240, 0.25) !important;
-}
-
-.border-danger.border-opacity-25 {
-    border-color: rgba(220, 53, 69, 0.25) !important;
+.swal2-popup .alert {
+    margin-bottom: 0;
 }
 
 /* Responsive */
-@media (max-width: 992px) {
-    .btn {
-        margin-bottom: 0.5rem;
-    }
-}
-
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1rem !important;
+    .card-header {
+        padding: 1rem 1.5rem;
     }
     
-    .avatar, .avatar-md, .avatar-sm, .avatar-lg {
-        width: 32px;
-        height: 32px;
+    .card-header h4 {
+        font-size: 1.1rem;
     }
     
-    .avatar-lg {
-        width: 48px;
-        height: 48px;
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
     }
     
-    .modal-dialog {
-        margin: 0.5rem;
+    .swal2-popup {
+        margin: 0 10px;
     }
 }
 
-/* Animaciones */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+/* Estilos para loading */
+.fa-spinner {
+    animation: spin 1s linear infinite;
 }
 
-.btn-primary:not(:disabled):hover {
-    animation: pulse 0.3s ease;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Estilos para el modal */
-.modal-header {
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+/* Ajustes específicos */
+.col-lg-10.col-xl-8 {
+    padding: 0 15px;
 }
 
+code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+    color: #d63384;
+}
+
+.alert-info {
+    background-color: #cff4fc;
+    border-color: #b6effb;
+    color: #055160;
+}
+
+.alert-info i {
+    color: #0c5460;
+}
+
+.alert-info ul {
+    padding-left: 1.2rem;
+}
+
+.alert-info li {
+    margin-bottom: 0.25rem;
+}
+
+.alert-info li:last-child {
+    margin-bottom: 0;
+}
+
+/* Estilos para el modal de progreso */
 .modal-content {
-    border-radius: 12px;
+    border: none;
+    border-radius: 1rem;
 }
 
-/* Estilos para SweetAlert */
-.swal2-popup {
-    border-radius: 12px !important;
+.modal-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+    border-radius: 1rem 1rem 0 0;
 }
 
-/* Mejoras visuales */
-.bg-light {
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-body .spinner-border {
+    color: #28a745 !important;
+}
+
+.modal-body .progress {
+    height: 0.8rem;
+    border-radius: 0.5rem;
+}
+
+.modal-body .progress-bar {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.modal-body .bg-light {
     background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
 }
 
-.alert {
-    border-radius: 8px;
+.modal-body .alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+    border-radius: 0.5rem;
 }
 </style>
 @endsection

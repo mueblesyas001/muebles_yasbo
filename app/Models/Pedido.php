@@ -17,12 +17,13 @@ class Pedido extends Model
         'Prioridad',
         'Total',
         'Cliente_idCliente',
-        'Empleado_idEmpleado'
+        'Empleado_idEmpleado',
+        'comentario' 
     ];
 
     public $timestamps = false;
 
-    // RELACIONES CORREGIDAS
+    // RELACIONES
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'Cliente_idCliente', 'id');
