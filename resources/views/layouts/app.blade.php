@@ -598,24 +598,32 @@ body{
                 <a href="{{ route('respaldos.index') }}"><i class="fa-solid fa-database"></i> Respaldos</a>
                 <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
                 <a href="{{ route('clientes.index') }}"><i class="fa-solid fa-users"></i> Clientes</a>
-            </div>
-        </div>
-        @endif
-
-        @if($rol === 'Gerencia')
-        <div class="nav-item-app">
-            <div class="nav-link-app dropdown-btn">
-                <i class="fa-solid fa-chart-line"></i> Gerencia
-            </div>
-            <div class="dropdown-menu-app">
-                <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
-                <a href="{{ route('clientes.index') }}"><i class="fa-solid fa-users"></i> Clientes</a>
                 <hr>
                 <a href="{{ route('reportes.index') }}?tipo=rentabilidad">
                     <i class="fa-solid fa-chart-pie"></i> Rentabilidad
                 </a>
                 <a href="{{ route('reportes.index') }}?tipo=ventas">
                     <i class="fa-solid fa-chart-line"></i> Análisis de Ventas
+                </a>
+            </div>
+        </div>
+        @endif
+
+        @if($rol === 'Almacén')
+        <div class="nav-item-app">
+            <div class="nav-link-app dropdown-btn">
+                <i class="fa-solid fa-warehouse"></i> Almacén
+            </div>
+            <div class="dropdown-menu-app">
+                <a href="{{ route('productos.index') }}"><i class="fa-solid fa-box"></i> Productos</a>
+                <a href="{{ route('categorias.index') }}"><i class="fa-solid fa-layer-group"></i> Categorías</a>
+                <a href="{{ route('inventario.index') }}"><i class="fa-solid fa-clipboard-list"></i> Control de Inventario</a>
+                <hr>
+                <a href="{{ route('reportes.index') }}?tipo=inventario">
+                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
+                </a>
+                <a href="{{ route('reportes.index') }}?tipo=productos">
+                    <i class="fa-solid fa-chart-simple"></i> Reporte de Productos
                 </a>
             </div>
         </div>
@@ -636,6 +644,9 @@ body{
                 </a>
                 <a href="{{ route('reportes.index') }}?tipo=inventario">
                     <i class="fa-solid fa-boxes"></i> Reporte de Inventario
+                </a>
+                <a href="{{ route('reportes.index') }}?tipo=proveedores">
+                    <i class="fa-solid fa-truck-field"></i> Reporte de Proveedores
                 </a>
             </div>
         </div>
