@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class EmpleadoController extends Controller
 {
@@ -101,7 +102,7 @@ class EmpleadoController extends Controller
     }
 
     /**
-     * Guardar empleado
+     * Guardar empleado - VERSIÓN MEJORADA CON VALIDACIÓN DE DUPLICADOS
      */
     public function store(Request $request)
     {
@@ -110,23 +111,56 @@ class EmpleadoController extends Controller
             // Log para debugging
             Log::info('Datos recibidos en store:', $request->all());
             
-            // Validación con valores corregidos
+            // Validación con valores corregidos y validación de duplicados
             $validated = $request->validate([
                 'Nombre' => 'required|string|max:85',
                 'ApPaterno' => 'required|string|max:85',
                 'ApMaterno' => 'nullable|string|max:85',
-                'Telefono' => 'required|string|max:10|regex:/^[0-9]+$/',
+                'Telefono' => [
+                    'required',
+                    'string',
+                    'max:10',
+                    'regex:/^[0-9]+$/',
+                    // Validar teléfono único
+                    Rule::unique('empleados', 'Telefono')
+                ],
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
                 'Sexo' => 'required|in:M,F,Otro',
                 'Area_trabajo' => 'required|string|max:80',
                 
-                'correo_usuario' => 'required|email|unique:usuarios,correo',
+                'correo_usuario' => [
+                    'required',
+                    'email',
+                    // Validar correo único en tabla usuarios
+                    Rule::unique('usuarios', 'correo')
+                ],
                 'contrasena' => 'required|min:6|confirmed',
                 'rol' => 'required|in:Administración,Almacén,Logística',
+            ], [
+                'Telefono.unique' => 'El número de teléfono ya está registrado por otro empleado.',
+                'correo_usuario.unique' => 'El correo electrónico ya está en uso por otro usuario.',
             ]);
 
             Log::info('Datos validados:', $validated);
+
+            // Validación personalizada adicional para evitar duplicados por nombre completo
+            $nombreCompleto = $validated['Nombre'] . ' ' . $validated['ApPaterno'] . ' ' . ($validated['ApMaterno'] ?? '');
+            
+            $empleadoExistente = Empleado::where('Nombre', $validated['Nombre'])
+                ->where('ApPaterno', $validated['ApPaterno'])
+                ->where(function($query) use ($validated) {
+                    if (isset($validated['ApMaterno']) && !empty($validated['ApMaterno'])) {
+                        $query->where('ApMaterno', $validated['ApMaterno']);
+                    } else {
+                        $query->whereNull('ApMaterno')->orWhere('ApMaterno', '');
+                    }
+                })
+                ->first();
+                
+            if ($empleadoExistente) {
+                return back()->withInput()->with('error', 'Ya existe un empleado con el mismo nombre completo: ' . $nombreCompleto);
+            }
 
             // Calcular edad
             $edad = Carbon::parse($validated['Fecha_nacimiento'])->age;
@@ -210,7 +244,7 @@ class EmpleadoController extends Controller
     }
 
     /**
-     * Actualizar
+     * Actualizar - VERSIÓN MEJORADA CON VALIDACIÓN DE DUPLICADOS
      */
     public function update(Request $request, $id)
     {
@@ -224,7 +258,14 @@ class EmpleadoController extends Controller
                 'Nombre' => 'required|string|max:85',
                 'ApPaterno' => 'required|string|max:85',
                 'ApMaterno' => 'nullable|string|max:85',
-                'Telefono' => 'required|string|max:10|regex:/^[0-9]+$/',
+                'Telefono' => [
+                    'required',
+                    'string',
+                    'max:10',
+                    'regex:/^[0-9]+$/',
+                    // Validar teléfono único excepto para este empleado
+                    Rule::unique('empleados', 'Telefono')->ignore($empleado->id)
+                ],
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
                 'Sexo' => 'required|in:M,F,Otro',
@@ -233,7 +274,13 @@ class EmpleadoController extends Controller
 
             // Validación para editar credenciales de usuario
             if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
-                $rules['correo'] = 'required|email|max:100|unique:usuarios,correo,' . $empleado->usuario->id;
+                $rules['correo'] = [
+                    'required',
+                    'email',
+                    'max:100',
+                    // Validar correo único excepto para este usuario
+                    Rule::unique('usuarios', 'correo')->ignore($empleado->usuario->id)
+                ];
                 $rules['rol'] = 'required|in:Administración,Almacén,Logística';
                 
                 // Si se va a cambiar la contraseña
@@ -242,7 +289,29 @@ class EmpleadoController extends Controller
                 }
             }
 
-            $validated = $request->validate($rules);
+            $validated = $request->validate($rules, [
+                'Telefono.unique' => 'El número de teléfono ya está registrado por otro empleado.',
+                'correo.unique' => 'El correo electrónico ya está en uso por otro usuario.',
+            ]);
+
+            // Validación personalizada para evitar duplicados por nombre completo (excluyendo este empleado)
+            $nombreCompleto = $validated['Nombre'] . ' ' . $validated['ApPaterno'] . ' ' . ($validated['ApMaterno'] ?? '');
+            
+            $empleadoExistente = Empleado::where('Nombre', $validated['Nombre'])
+                ->where('ApPaterno', $validated['ApPaterno'])
+                ->where(function($query) use ($validated) {
+                    if (isset($validated['ApMaterno']) && !empty($validated['ApMaterno'])) {
+                        $query->where('ApMaterno', $validated['ApMaterno']);
+                    } else {
+                        $query->whereNull('ApMaterno')->orWhere('ApMaterno', '');
+                    }
+                })
+                ->where('id', '!=', $empleado->id) // Excluir el empleado actual
+                ->first();
+                
+            if ($empleadoExistente) {
+                return back()->withInput()->with('error', 'Ya existe otro empleado con el mismo nombre completo: ' . $nombreCompleto);
+            }
 
             // Calcular edad y verificar
             $edad = Carbon::parse($validated['Fecha_nacimiento'])->age;
@@ -382,7 +451,7 @@ class EmpleadoController extends Controller
     }
 
     /**
-     * Crear usuario para empleado existente
+     * Crear usuario para empleado existente - VERSIÓN MEJORADA CON VALIDACIÓN
      */
     public function storeUser(Request $request, $id)
     {
@@ -398,9 +467,16 @@ class EmpleadoController extends Controller
             }
             
             $validated = $request->validate([
-                'correo' => 'required|email|unique:usuarios,correo',
+                'correo' => [
+                    'required',
+                    'email',
+                    // Validar correo único
+                    Rule::unique('usuarios', 'correo')
+                ],
                 'rol' => 'required|in:Administración,Almacén,Logística',
                 'contrasena' => 'required|min:6|confirmed',
+            ], [
+                'correo.unique' => 'El correo electrónico ya está en uso por otro usuario.'
             ]);
             
             // Crear usuario
@@ -416,6 +492,11 @@ class EmpleadoController extends Controller
             return redirect()->route('personal.index')
                 ->with('success', 'Usuario creado exitosamente para ' . $empleado->Nombre . ' ' . $empleado->ApPaterno);
                 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            Log::error('Error de validación al crear usuario:', $e->errors());
+            return back()->withInput()->withErrors($e->errors());
+            
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al crear usuario: ' . $e->getMessage());

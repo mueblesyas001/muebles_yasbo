@@ -164,26 +164,67 @@
                                                                 $prioridad = strtolower($pedido['prioridad'] ?? 'normal');
                                                                 $estado = strtolower($pedido['estado'] ?? 'pendiente');
                                                                 
-                                                                if ($prioridad == 'alta') {
-                                                                    $bgColor = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
-                                                                    $borderColor = '#dc3545';
-                                                                } elseif ($prioridad == 'media') {
-                                                                    $bgColor = 'linear-gradient(135deg, #ffd93d 0%, #ffb347 100%)';
-                                                                    $borderColor = '#ffc107';
-                                                                } elseif ($prioridad == 'baja') {
-                                                                    $bgColor = 'linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%)';
-                                                                    $borderColor = '#198754';
-                                                                } else {
-                                                                    $bgColor = 'linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%)';
-                                                                    $borderColor = '#0d6efd';
+                                                                // ASIGNACIÓN DE COLORES SEGÚN LA PRIORIDAD (COINCIDIENDO CON LA LEYENDA)
+                                                                switch($prioridad) {
+                                                                    case 'alta':
+                                                                        $colorPrincipal = '#ff6b6b';
+                                                                        $colorGradiente = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+                                                                        $colorBorde = '#dc3545';
+                                                                        $colorFondo = 'rgba(255, 107, 107, 0.1)';
+                                                                        $colorTexto = '#dc3545';
+                                                                        break;
+                                                                    case 'media':
+                                                                        $colorPrincipal = '#ffd93d';
+                                                                        $colorGradiente = 'linear-gradient(135deg, #ffd93d 0%, #ffb347 100%)';
+                                                                        $colorBorde = '#ffc107';
+                                                                        $colorFondo = 'rgba(255, 217, 61, 0.1)';
+                                                                        $colorTexto = '#856404';
+                                                                        break;
+                                                                    case 'baja':
+                                                                        $colorPrincipal = '#6bcf7f';
+                                                                        $colorGradiente = 'linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%)';
+                                                                        $colorBorde = '#198754';
+                                                                        $colorFondo = 'rgba(107, 207, 127, 0.1)';
+                                                                        $colorTexto = '#198754';
+                                                                        break;
+                                                                    default: // normal
+                                                                        $colorPrincipal = '#6c8eff';
+                                                                        $colorGradiente = 'linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%)';
+                                                                        $colorBorde = '#0d6efd';
+                                                                        $colorFondo = 'rgba(108, 142, 255, 0.1)';
+                                                                        $colorTexto = '#0d6efd';
+                                                                        break;
                                                                 }
                                                                 
-                                                                if ($estado == 'pendiente') $estadoColor = '#ffc107';
-                                                                elseif ($estado == 'confirmado') $estadoColor = '#0dcaf0';
-                                                                elseif (in_array($estado, ['en proceso', 'en_proceso'])) $estadoColor = '#0d6efd';
-                                                                elseif (in_array($estado, ['completado', 'entregado'])) $estadoColor = '#198754';
-                                                                elseif ($estado == 'cancelado') $estadoColor = '#dc3545';
-                                                                else $estadoColor = '#6c757d';
+                                                                // COLORES PARA EL ESTADO
+                                                                switch($estado) {
+                                                                    case 'pendiente':
+                                                                        $estadoColor = '#ffc107';
+                                                                        $estadoTexto = '#856404';
+                                                                        break;
+                                                                    case 'confirmado':
+                                                                        $estadoColor = '#0dcaf0';
+                                                                        $estadoTexto = '#0b5e7a';
+                                                                        break;
+                                                                    case 'en proceso':
+                                                                    case 'en_proceso':
+                                                                        $estadoColor = '#0d6efd';
+                                                                        $estadoTexto = '#0a58ca';
+                                                                        break;
+                                                                    case 'completado':
+                                                                    case 'entregado':
+                                                                        $estadoColor = '#198754';
+                                                                        $estadoTexto = '#146c43';
+                                                                        break;
+                                                                    case 'cancelado':
+                                                                        $estadoColor = '#dc3545';
+                                                                        $estadoTexto = '#b02a37';
+                                                                        break;
+                                                                    default:
+                                                                        $estadoColor = '#6c757d';
+                                                                        $estadoTexto = '#5c636a';
+                                                                        break;
+                                                                }
                                                                 
                                                                 $pedidoId = $pedido['id'] ?? 0;
                                                                 $horaEntrega = $pedido['hora_entrega'] ?? '00:00';
@@ -198,34 +239,34 @@
                                                             
                                                             <div class="pedido-card {{ $tieneComentario ? 'has-comentario' : '' }}" 
                                                                  onclick="verDetallePedido({{ $pedidoId }})"
-                                                                 style="--bg-color: {{ $bgColor }}; --border-color: {{ $borderColor }};"
+                                                                 style="--bg-color: {{ $colorGradiente }}; --border-color: {{ $colorBorde }}; background-color: {{ $colorFondo }}; border-left-color: {{ $colorBorde }};"
                                                                  data-pedido-id="{{ $pedidoId }}">
                                                                 <div class="pedido-content">
                                                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                                                         <div class="pedido-id">
-                                                                            <i class="fas fa-hashtag me-1"></i>
-                                                                            <strong>{{ $pedidoId }}</strong>
+                                                                            <i class="fas fa-hashtag me-1" style="color: {{ $colorBorde }};"></i>
+                                                                            <strong style="color: {{ $colorBorde }};">{{ $pedidoId }}</strong>
                                                                         </div>
-                                                                        <div class="pedido-hora">
+                                                                        <div class="pedido-hora" style="color: {{ $colorTexto }}; background: {{ str_replace('0.1', '0.2', $colorFondo) }};">
                                                                             <i class="fas fa-clock me-1"></i>
                                                                             {{ substr($horaEntrega, 0, 5) }}
                                                                         </div>
                                                                     </div>
                                                                     <div class="d-flex justify-content-between align-items-center">
-                                                                        <div class="pedido-cliente" title="{{ $clienteNombre }}">
-                                                                            <i class="fas fa-user me-1"></i>
+                                                                        <div class="pedido-cliente" title="{{ $clienteNombre }}" style="color: #495057;">
+                                                                            <i class="fas fa-user me-1" style="color: {{ $colorBorde }};"></i>
                                                                             {{ \Illuminate\Support\Str::limit($clienteNombre, 12, '...') }}
                                                                         </div>
-                                                                        <div class="pedido-total">
+                                                                        <div class="pedido-total" style="color: {{ $colorBorde }}; font-weight: 600;">
                                                                             <i class="fas fa-dollar-sign me-1"></i>
                                                                             {{ number_format($total, 2) }}
                                                                         </div>
                                                                     </div>
                                                                     <div class="pedido-footer mt-2">
-                                                                        <span class="estado-badge" style="background: {{ $estadoColor }};">
+                                                                        <span class="estado-badge" style="background: {{ $estadoColor }}; color: white;">
                                                                             {{ ucfirst($estado) }}
                                                                         </span>
-                                                                        <span class="prioridad-badge" style="border-color: {{ $borderColor }};">
+                                                                        <span class="prioridad-badge" style="border-color: {{ $colorBorde }}; color: {{ $colorBorde }};">
                                                                             {{ ucfirst($prioridad) }}
                                                                         </span>
                                                                         @if($tieneComentario)
@@ -233,7 +274,7 @@
                                                                                   data-bs-toggle="tooltip" 
                                                                                   data-bs-placement="top"
                                                                                   title="Este pedido tiene comentarios">
-                                                                                <i class="fas fa-comment-dots"></i>
+                                                                                <i class="fas fa-comment-dots" style="color: #ffc107;"></i>
                                                                             </span>
                                                                         @endif
                                                                     </div>
@@ -244,8 +285,9 @@
                                                     
                                                     @if(count($dia['pedidos']) > 3)
                                                         <div class="more-pedidos text-center mt-2">
-                                                            <button class="btn btn-sm btn-outline-primary" 
-                                                                    onclick="verPedidosDia('{{ $dia['fecha'] ?? '' }}')">
+                                                            <button class="btn btn-sm" 
+                                                                    onclick="verPedidosDia('{{ $dia['fecha'] ?? '' }}')"
+                                                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                                                                 <i class="fas fa-plus me-1"></i>
                                                                 +{{ count($dia['pedidos']) - 3 }} más
                                                             </button>
@@ -297,6 +339,7 @@
                                             <th>Cliente</th>
                                             <th>Hora Entrega</th>
                                             <th>Total</th>
+                                            <th>Prioridad</th>
                                             <th>Estado</th>
                                             <th>Comentario</th>
                                             <th>Acciones</th>
@@ -308,6 +351,27 @@
                                                 $total = $pedido['total'] ?? 0;
                                                 $total = is_numeric($total) ? floatval($total) : 0;
                                                 $tieneComentario = isset($pedido['comentario']) && !empty($pedido['comentario']);
+                                                $prioridad = strtolower($pedido['prioridad'] ?? 'normal');
+                                                
+                                                // COLORES PARA PRIORIDAD EN TABLA
+                                                switch($prioridad) {
+                                                    case 'alta':
+                                                        $prioridadColor = 'danger';
+                                                        $prioridadBg = '#dc3545';
+                                                        break;
+                                                    case 'media':
+                                                        $prioridadColor = 'warning';
+                                                        $prioridadBg = '#ffc107';
+                                                        break;
+                                                    case 'baja':
+                                                        $prioridadColor = 'success';
+                                                        $prioridadBg = '#198754';
+                                                        break;
+                                                    default:
+                                                        $prioridadColor = 'primary';
+                                                        $prioridadBg = '#0d6efd';
+                                                        break;
+                                                }
                                             @endphp
                                             <tr>
                                                 <td><strong>#{{ $pedido['id'] ?? 'N/A' }}</strong></td>
@@ -318,6 +382,11 @@
                                                     </span>
                                                 </td>
                                                 <td>${{ number_format($total, 2) }}</td>
+                                                <td>
+                                                    <span class="badge" style="background: {{ $prioridadBg }}; color: white;">
+                                                        {{ ucfirst($prioridad) }}
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     @php
                                                         $estado = strtolower($pedido['estado'] ?? 'pendiente');
@@ -379,33 +448,33 @@
                             <div class="d-flex align-items-center">
                                 <div class="leyenda-color me-3" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);"></div>
                                 <div>
-                                    <small class="fw-bold d-block">Alta Prioridad</small>
+                                    <small class="fw-bold d-block" style="color: #dc3545;">Alta Prioridad</small>
                                     <small class="text-muted">Requiere atención inmediata</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center">
                                 <div class="leyenda-color me-3" style="background: linear-gradient(135deg, #ffd93d 0%, #ffb347 100%);"></div>
                                 <div>
-                                    <small class="fw-bold d-block">Media Prioridad</small>
+                                    <small class="fw-bold d-block" style="color: #856404;">Media Prioridad</small>
                                     <small class="text-muted">Entregar en el día</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center">
                                 <div class="leyenda-color me-3" style="background: linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%);"></div>
                                 <div>
-                                    <small class="fw-bold d-block">Baja Prioridad</small>
+                                    <small class="fw-bold d-block" style="color: #198754;">Baja Prioridad</small>
                                     <small class="text-muted">Flexible en tiempo</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center">
                                 <div class="leyenda-color me-3" style="background: linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%);"></div>
                                 <div>
-                                    <small class="fw-bold d-block">Prioridad Normal</small>
+                                    <small class="fw-bold d-block" style="color: #0d6efd;">Prioridad Normal</small>
                                     <small class="text-muted">Entrega estándar</small>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mt-2 pt-2 border-top">
-                                <div class="leyenda-color me-3" style="background: #ffc107; opacity: 0.2;"></div>
+                                <div class="leyenda-color me-3" style="background: #ffc107; opacity: 0.2; border: 1px solid #ffc107;"></div>
                                 <div>
                                     <small class="fw-bold d-block">
                                         <i class="fas fa-comment-dots text-warning me-1"></i>
@@ -647,28 +716,17 @@ body {
     overflow: hidden;
 }
 
-.pedido-card.has-comentario::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    background: #ffc107;
-    border-radius: 0 0 0 20px;
-    opacity: 0.3;
+.pedido-card.has-comentario {
+    position: relative;
 }
 
-.pedido-card::before {
-    content: '';
+.pedido-card.has-comentario::after {
+    content: '💬';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--bg-color, linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%));
-    opacity: 0.1;
-    z-index: 0;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0.7;
 }
 
 .pedido-card:hover {
@@ -684,20 +742,16 @@ body {
 .pedido-id {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #212529;
 }
 
 .pedido-hora {
     font-size: 0.75rem;
-    color: #6c757d;
-    background: rgba(108, 117, 125, 0.1);
     padding: 0.1rem 0.5rem;
     border-radius: 12px;
 }
 
 .pedido-cliente {
     font-size: 0.8rem;
-    color: #495057;
     max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -707,7 +761,6 @@ body {
 .pedido-total {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #198754;
 }
 
 .pedido-footer {
@@ -721,18 +774,14 @@ body {
     font-weight: 600;
     padding: 0.2rem 0.5rem;
     border-radius: 12px;
-    color: white;
 }
 
 .prioridad-badge {
     background: transparent;
     border: 1px solid;
-    border-color: var(--border-color, #0d6efd);
-    color: var(--border-color, #0d6efd);
 }
 
 .comentario-indicador {
-    color: #ffc107;
     font-size: 0.8rem;
     margin-left: auto;
 }
@@ -777,7 +826,7 @@ body {
     animation: fadeInUp 0.5s ease-out;
 }
 
-.pedido-card::after {
+.pedido-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -788,7 +837,7 @@ body {
     transition: left 0.7s;
 }
 
-.pedido-card:hover::after {
+.pedido-card:hover::before {
     left: 100%;
 }
 

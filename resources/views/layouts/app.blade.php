@@ -559,21 +559,35 @@ body{
             <i class="fa-solid fa-house"></i> Inicio
         </a>
 
+        <!-- MÓDULO DE OPERACIONES - Solo Administración y Logística -->
+        @if(in_array($rol, ['Administración', 'Logística']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-briefcase"></i> Operaciones
             </div>
             <div class="dropdown-menu-app">
+                <!-- Ventas - Solo Administración y Logística -->
                 <a href="{{ route('ventas.index') }}"><i class="fa-solid fa-cash-register"></i> Ventas</a>
+                
+                <!-- Compras - Solo Administración y Logística -->
                 <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
+                
+                <!-- Pedidos - Solo Administración y Logística -->
                 <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-file-lines"></i> Pedidos</a>
+                
+                <!-- Reportes - SOLO ADMINISTRACIÓN -->
+                @if($rol === 'Administración')
                 <hr>
                 <a href="{{ route('reportes.index')}}">
                     <i class="fa-solid fa-chart-column"></i> Reportes
                 </a>
+                @endif
             </div>
         </div>
+        @endif
 
+        <!-- MÓDULO DE INVENTARIO - Solo Administración y Almacén -->
+        @if(in_array($rol, ['Administración', 'Almacén']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-boxes-stacked"></i> Inventario
@@ -581,13 +595,27 @@ body{
             <div class="dropdown-menu-app">
                 <a href="{{ route('productos.index') }}"><i class="fa-solid fa-box"></i> Productos</a>
                 <a href="{{ route('categorias.index') }}"><i class="fa-solid fa-layer-group"></i> Categorías</a>
+                
+                <!-- Reportes de inventario - SOLO ADMINISTRACIÓN -->
+                @if($rol === 'Administración')
+                <hr>
+                <a href="{{ route('reportes.index') }}?tipo=inventario">
+                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
+                </a>
+                <a href="{{ route('reportes.index') }}?tipo=productos">
+                    <i class="fa-solid fa-chart-simple"></i> Reporte de Productos
+                </a>
+                @endif
             </div>
         </div>
+        @endif
 
+        <!-- Calendario - Accesible para todos los roles -->
         <a class="nav-link-app" href="{{ route('calendario.index') }}">
             <i class="fa-solid fa-calendar-days"></i> Calendario
         </a>
 
+        <!-- MÓDULO DE ADMINISTRACIÓN - SOLO Administración -->
         @if($rol === 'Administración')
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -609,47 +637,14 @@ body{
         </div>
         @endif
 
-        @if($rol === 'Almacén')
-        <div class="nav-item-app">
-            <div class="nav-link-app dropdown-btn">
-                <i class="fa-solid fa-warehouse"></i> Almacén
-            </div>
-            <div class="dropdown-menu-app">
-                <a href="{{ route('productos.index') }}"><i class="fa-solid fa-box"></i> Productos</a>
-                <a href="{{ route('categorias.index') }}"><i class="fa-solid fa-layer-group"></i> Categorías</a>
-                <a href="{{ route('inventario.index') }}"><i class="fa-solid fa-clipboard-list"></i> Control de Inventario</a>
-                <hr>
-                <a href="{{ route('reportes.index') }}?tipo=inventario">
-                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
-                </a>
-                <a href="{{ route('reportes.index') }}?tipo=productos">
-                    <i class="fa-solid fa-chart-simple"></i> Reporte de Productos
-                </a>
-            </div>
-        </div>
+        <!-- MÓDULO DE LOGÍSTICA - Solo Logística (ya cubierto arriba, pero mantenemos para referencia) -->
+        @if($rol === 'Logística')
+        <!-- Los enlaces de Logística ya están en Operaciones -->
         @endif
 
-        @if($rol === 'Logística')
-        <div class="nav-item-app">
-            <div class="nav-link-app dropdown-btn">
-                <i class="fa-solid fa-truck-fast"></i> Logística
-            </div>
-            <div class="dropdown-menu-app">
-                <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
-                <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
-                <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-truck-loading"></i> Pedidos</a>
-                <hr>
-                <a href="{{ route('reportes.index') }}?tipo=compras">
-                    <i class="fa-solid fa-file-invoice"></i> Reporte de Compras
-                </a>
-                <a href="{{ route('reportes.index') }}?tipo=inventario">
-                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
-                </a>
-                <a href="{{ route('reportes.index') }}?tipo=proveedores">
-                    <i class="fa-solid fa-truck-field"></i> Reporte de Proveedores
-                </a>
-            </div>
-        </div>
+        <!-- MÓDULO DE ALMACÉN - Solo Almacén (ya cubierto arriba en Inventario) -->
+        @if($rol === 'Almacén')
+        <!-- Los enlaces de Almacén ya están en Inventario -->
         @endif
 
         <div class="user-menu">
