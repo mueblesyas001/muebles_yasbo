@@ -555,27 +555,23 @@ body{
             }
         @endphp
 
+        <!-- INICIO - Accesible para todos -->
         <a class="nav-link-app" href="{{ route('dashboard') }}">
             <i class="fa-solid fa-house"></i> Inicio
         </a>
 
-        <!-- MÓDULO DE OPERACIONES - Solo Administración y Logística -->
+        <!-- OPERACIONES - Administración y Logística -->
         @if(in_array($rol, ['Administración', 'Logística']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
                 <i class="fa-solid fa-briefcase"></i> Operaciones
             </div>
             <div class="dropdown-menu-app">
-                <!-- Ventas - Solo Administración y Logística -->
                 <a href="{{ route('ventas.index') }}"><i class="fa-solid fa-cash-register"></i> Ventas</a>
-                
-                <!-- Compras - Solo Administración y Logística -->
                 <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
-                
-                <!-- Pedidos - Solo Administración y Logística -->
                 <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-file-lines"></i> Pedidos</a>
                 
-                <!-- Reportes - SOLO ADMINISTRACIÓN -->
+                <!-- REPORTES GENERALES - Solo Administración ve reportes en Operaciones -->
                 @if($rol === 'Administración')
                 <hr>
                 <a href="{{ route('reportes.index')}}">
@@ -586,7 +582,7 @@ body{
         </div>
         @endif
 
-        <!-- MÓDULO DE INVENTARIO - Solo Administración y Almacén -->
+        <!-- INVENTARIO - Administración y Almacén -->
         @if(in_array($rol, ['Administración', 'Almacén']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -595,27 +591,16 @@ body{
             <div class="dropdown-menu-app">
                 <a href="{{ route('productos.index') }}"><i class="fa-solid fa-box"></i> Productos</a>
                 <a href="{{ route('categorias.index') }}"><i class="fa-solid fa-layer-group"></i> Categorías</a>
-                
-                <!-- Reportes de inventario - SOLO ADMINISTRACIÓN -->
-                @if($rol === 'Administración')
-                <hr>
-                <a href="{{ route('reportes.index') }}?tipo=inventario">
-                    <i class="fa-solid fa-boxes"></i> Reporte de Inventario
-                </a>
-                <a href="{{ route('reportes.index') }}?tipo=productos">
-                    <i class="fa-solid fa-chart-simple"></i> Reporte de Productos
-                </a>
-                @endif
             </div>
         </div>
         @endif
 
-        <!-- Calendario - Accesible para todos los roles -->
+        <!-- CALENDARIO - Accesible para todos -->
         <a class="nav-link-app" href="{{ route('calendario.index') }}">
             <i class="fa-solid fa-calendar-days"></i> Calendario
         </a>
 
-        <!-- MÓDULO DE ADMINISTRACIÓN - SOLO Administración -->
+        <!-- ADMINISTRACIÓN COMPLETA - Solo Administración -->
         @if($rol === 'Administración')
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -626,27 +611,11 @@ body{
                 <a href="{{ route('respaldos.index') }}"><i class="fa-solid fa-database"></i> Respaldos</a>
                 <a href="{{ route('proveedores.index') }}"><i class="fa-solid fa-truck"></i> Proveedores</a>
                 <a href="{{ route('clientes.index') }}"><i class="fa-solid fa-users"></i> Clientes</a>
-                <hr>
-                <a href="{{ route('reportes.index') }}?tipo=rentabilidad">
-                    <i class="fa-solid fa-chart-pie"></i> Rentabilidad
-                </a>
-                <a href="{{ route('reportes.index') }}?tipo=ventas">
-                    <i class="fa-solid fa-chart-line"></i> Análisis de Ventas
-                </a>
             </div>
         </div>
         @endif
 
-        <!-- MÓDULO DE LOGÍSTICA - Solo Logística (ya cubierto arriba, pero mantenemos para referencia) -->
-        @if($rol === 'Logística')
-        <!-- Los enlaces de Logística ya están en Operaciones -->
-        @endif
-
-        <!-- MÓDULO DE ALMACÉN - Solo Almacén (ya cubierto arriba en Inventario) -->
-        @if($rol === 'Almacén')
-        <!-- Los enlaces de Almacén ya están en Inventario -->
-        @endif
-
+        <!-- MENÚ DE USUARIO - Accesible para todos -->
         <div class="user-menu">
             <div class="user-info dropdown-btn">
                 <div class="user-avatar">

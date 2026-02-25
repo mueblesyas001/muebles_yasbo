@@ -125,34 +125,28 @@
     <!-- Tarjetas de Estadísticas Mejoradas -->
     <div class="row g-4 mb-4">
         @php
+            // Obtener todas las categorías para las estadísticas (sin paginación)
+            $todasCategorias = App\Models\Categoria::withCount('productos')->get();
             $stats = [
                 [
                     'titulo' => 'Total Categorías',
-                    'valor' => $categorias->count(),
+                    'valor' => $todasCategorias->count(),
                     'icono' => 'fas fa-tags',
                     'color' => '#667eea',
                     'gradiente' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     'descripcion' => 'Registradas en el sistema'
                 ],
                 [
-                    'titulo' => 'Con Proveedor',
-                    'valor' => $categorias->whereNotNull('Proveedor_idProveedor')->count(),
-                    'icono' => 'fas fa-truck',
+                    'titulo' => 'Con Productos',
+                    'valor' => $todasCategorias->where('productos_count', '>', 0)->count(),
+                    'icono' => 'fas fa-boxes',
                     'color' => '#10b981',
                     'gradiente' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    'descripcion' => 'Tienen proveedor asignado'
-                ],
-                [
-                    'titulo' => 'Con Productos',
-                    'valor' => $categorias->where('productos_count', '>', 0)->count(),
-                    'icono' => 'fas fa-boxes',
-                    'color' => '#3b82f6',
-                    'gradiente' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                     'descripcion' => 'Productos asociados'
                 ],
                 [
                     'titulo' => 'Sin Productos',
-                    'valor' => $categorias->where('productos_count', 0)->count(),
+                    'valor' => $todasCategorias->where('productos_count', 0)->count(),
                     'icono' => 'fas fa-box-open',
                     'color' => '#f59e0b',
                     'gradiente' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
@@ -162,7 +156,7 @@
         @endphp
 
         @foreach($stats as $stat)
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="stat-card h-100" style="
                 background: white;
                 border-radius: 24px;
@@ -269,7 +263,6 @@
         </div>
 
         <form id="filtrosForm" method="GET" action="{{ route('categorias.index') }}">
-            @csrf
             <div class="row g-3">
                 <!-- Buscar Categoría -->
                 <div class="col-md-5">
@@ -298,7 +291,7 @@
                     </div>
                 </div>
 
-                <!-- Proveedor -->
+                <!-- Proveedor - CORREGIDO -->
                 <div class="col-md-4">
                     <label class="form-label small text-muted fw-semibold">
                         <i class="fas fa-truck me-1" style="color: #667eea;"></i>
@@ -309,10 +302,10 @@
                             <i class="fas fa-user-tie text-primary"></i>
                         </span>
                         <select id="filterProveedor" class="form-select border-0 bg-light" name="proveedor_id">
-                            <option value="">Todos los proveedores</option>
+                            <option value="" {{ request('proveedor_id') == '' ? 'selected' : '' }}>Todos los proveedores</option>
                             @foreach($proveedores as $proveedor)
-                                <option value="{{ $proveedor->idProveedor }}" {{ request('proveedor_id') == $proveedor->idProveedor ? 'selected' : '' }}>
-                                    {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }}
+                                <option value="{{ $proveedor->id }}" {{ request('proveedor_id') == $proveedor->id ? 'selected' : '' }}>
+                                    {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }} {{ $proveedor->ApMaterno ?? '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -400,8 +393,8 @@
         $filtrosActivosLista = [];
         if(request('search')) $filtrosActivosLista[] = ['Búsqueda', request('search'), 'search'];
         if(request('proveedor_id')) {
-            $proveedor = $proveedores->firstWhere('idProveedor', request('proveedor_id'));
-            $filtrosActivosLista[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? '') : 'No encontrado', 'proveedor_id'];
+            $proveedor = $proveedores->firstWhere('id', request('proveedor_id'));
+            $filtrosActivosLista[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? '') . ' ' . ($proveedor->ApMaterno ?? '') : 'No encontrado', 'proveedor_id'];
         }
     @endphp
     
@@ -456,7 +449,7 @@
                 </h5>
                 <p class="text-muted small mb-0">
                     <i class="fas fa-info-circle me-1"></i>
-                    Mostrando {{ $categorias->count() }} de {{ $categorias->count() }} categoría(s)
+                    Mostrando {{ $categorias->firstItem() ?? 0 }} - {{ $categorias->lastItem() ?? 0 }} de {{ $categorias->total() }} categoría(s)
                 </p>
             </div>
             <div class="d-flex align-items-center gap-3">
@@ -487,15 +480,12 @@
                 <tbody>
                     @forelse($categorias as $categoria)
                     @php
-                        $nombreProveedor = $categoria->proveedor ? 
-                            $categoria->proveedor->Nombre . ' ' . $categoria->proveedor->ApPaterno : 
-                            'Sin proveedor';
                         $tieneProductos = ($categoria->productos_count ?? 0) > 0;
                     @endphp
                     <tr class="align-middle categoria-row {{ $tieneProductos ? 'categoria-con-productos' : '' }}" 
                         data-nombre="{{ strtolower($categoria->Nombre) }}" 
                         data-descripcion="{{ strtolower($categoria->Descripcion ?? '') }}"
-                        data-proveedor-id="{{ $categoria->Proveedor_idProveedor ?? '0' }}"
+                        data-proveedor-id="{{ $categoria->Proveedor ?? '0' }}"
                         data-productos="{{ $categoria->productos_count ?? 0 }}">
                         
                         <!-- Botón expandir -->
@@ -551,7 +541,7 @@
                             @endif
                         </td>
 
-                        <!-- Proveedor -->
+                        <!-- Proveedor - CORREGIDO -->
                         <td>
                             @if($categoria->proveedor)
                                 <div class="d-flex align-items-center">
@@ -569,7 +559,7 @@
                                         <i class="fas fa-truck"></i>
                                     </div>
                                     <div>
-                                        <span class="fw-medium">{{ $nombreProveedor }}</span>
+                                        <span class="fw-medium">{{ $categoria->proveedor->Nombre }} {{ $categoria->proveedor->ApPaterno }} {{ $categoria->proveedor->ApMaterno ?? '' }}</span>
                                     </div>
                                 </div>
                             @else
@@ -727,7 +717,7 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Información del proveedor y acciones -->
+                                        <!-- Información del proveedor y acciones - CORREGIDO -->
                                         <div class="col-md-4">
                                             <div class="detail-card p-3" style="
                                                 background: white;
@@ -756,8 +746,8 @@
                                                             <i class="fas fa-truck"></i>
                                                         </div>
                                                         <div>
-                                                            <div class="fw-bold">{{ $nombreProveedor }}</div>
-                                                            <small class="text-muted">ID: #{{ $categoria->proveedor->idProveedor }}</small>
+                                                            <div class="fw-bold">{{ $categoria->proveedor->Nombre }} {{ $categoria->proveedor->ApPaterno }} {{ $categoria->proveedor->ApMaterno ?? '' }}</div>
+                                                            <small class="text-muted">ID: #{{ $categoria->proveedor->id }}</small>
                                                         </div>
                                                     </div>
                                                     
@@ -846,10 +836,17 @@
             </table>
         </div>
 
+        <!-- PAGINACIÓN -->
+        @if($categorias instanceof \Illuminate\Pagination\LengthAwarePaginator && $categorias->hasPages())
+        <div class="px-4 py-3 border-top">
+            {{ $categorias->appends(request()->query())->links() }}
+        </div>
+        @endif
+
         <div class="card-footer bg-white border-0 py-3 px-4" style="border-top: 1px solid #e5e7eb;">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="text-muted small">
-                    Mostrando {{ $categorias->count() }} de {{ $categorias->count() }} categoría(s)
+                    Mostrando {{ $categorias->firstItem() ?? 0 }} - {{ $categorias->lastItem() ?? 0 }} de {{ $categorias->total() }} categoría(s)
                 </div>
                 <div class="text-muted small">
                     @if(request('sort_by') == 'productos_count')
@@ -1371,6 +1368,40 @@ document.head.appendChild(spinStyle);
 #categorias-page .btn-outline-warning:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Estilos para la paginación */
+.pagination {
+    margin-bottom: 0;
+    justify-content: center;
+}
+
+.page-link {
+    border: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    color: #4b5563;
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.page-item.disabled .page-link {
+    color: #9ca3af;
+    pointer-events: none;
+    background: #f3f4f6;
 }
 </style>
 @endsection

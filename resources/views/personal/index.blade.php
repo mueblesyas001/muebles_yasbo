@@ -122,13 +122,12 @@
         </div>
     @endif
 
-    <!-- Tarjetas de Estadísticas Mejoradas -->
+    <!-- Tarjetas de Estadísticas Mejoradas - MODIFICADO: Eliminada tarjeta "Sin Usuario" -->
     <div class="row g-4 mb-4">
         @php
             // Obtener conteo de pedidos para cada empleado (esto deberías pasarlo desde el controlador)
             $totalEmpleados = $empleados->count();
             $conUsuario = $empleados->where('usuario', '!=', null)->count();
-            $sinUsuario = $empleados->where('usuario', null)->count();
             $administradores = $empleados->where('usuario.rol', 'Administración')->count();
             
             $stats = [
@@ -149,14 +148,6 @@
                     'descripcion' => 'Acceso al sistema'
                 ],
                 [
-                    'titulo' => 'Sin Usuario',
-                    'valor' => $sinUsuario,
-                    'icono' => 'fas fa-user-times',
-                    'color' => '#f59e0b',
-                    'gradiente' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    'descripcion' => 'Pendientes de usuario'
-                ],
-                [
                     'titulo' => 'Administradores',
                     'valor' => $administradores,
                     'icono' => 'fas fa-user-shield',
@@ -168,7 +159,7 @@
         @endphp
 
         @foreach($stats as $stat)
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="stat-card h-100" style="
                 background: white;
                 border-radius: 24px;
@@ -736,10 +727,6 @@
                                 ">
                                     <i class="fas fa-user-tag me-1"></i>
                                     {{ $empleado->usuario->rol }}
-                                </span>
-                                <span class="small text-muted">
-                                    <i class="fas fa-circle me-1" style="color: #10b981; font-size: 0.5rem;"></i>
-                                    Activo
                                 </span>
                             </div>
                             @else

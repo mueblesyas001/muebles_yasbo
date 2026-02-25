@@ -36,7 +36,7 @@
                             </div>
                             <div>
                                 <h4 class="mb-1" style="font-weight: 700; font-size: 1.5rem;">Editar Empleado</h4>
-                                <p class="mb-0 opacity-75" style="font-size: 0.9rem;">ID: {{ $empleado->id }} | Última actualización: {{ $empleado->updated_at->format('d/m/Y H:i') }}</p>
+                                <p class="mb-0 opacity-75" style="font-size: 0.9rem;">ID: {{ $empleado->id }}</p>
                             </div>
                         </div>
                         <div class="status-badge">
@@ -132,17 +132,17 @@
                                     </div>
                                 </div>
 
-                                <!-- Fecha de nacimiento -->
+                                <!-- Fecha de nacimiento - CORREGIDA -->
                                 <div class="col-md-4">
                                     <div class="form-floating">
                                         <input type="date" class="form-control @error('Fecha_nacimiento') is-invalid @enderror" 
                                                id="Fecha_nacimiento" name="Fecha_nacimiento" 
-                                               value="{{ old('Fecha_nacimiento', $empleado->Fecha_nacimiento) }}" 
+                                               value="{{ old('Fecha_nacimiento', $empleado->Fecha_nacimiento ? $empleado->Fecha_nacimiento->format('Y-m-d') : '') }}" 
                                                min="1950-01-01" max="{{ date('Y-m-d', strtotime('-18 years')) }}" required>
                                         <label for="Fecha_nacimiento" class="required-field">Fecha de Nacimiento <span class="text-danger">*</span></label>
                                         <div class="form-text d-flex justify-content-between">
                                             <span class="original-value" style="display:none;">
-                                                Original: {{ date('d/m/Y', strtotime($empleado->Fecha_nacimiento)) }}
+                                                Original: {{ $empleado->Fecha_nacimiento ? $empleado->Fecha_nacimiento->format('d/m/Y') : 'No especificada' }}
                                             </span>
                                             <span><i class="fas fa-info-circle me-1"></i> Mayor de 18 años</span>
                                         </div>
@@ -496,7 +496,7 @@
     </div>
 </div>
 
-<!-- Modal de Valores Originales -->
+<!-- Modal de Valores Originales - CORREGIDO -->
 <div class="modal fade" id="originalValuesModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -532,8 +532,8 @@
                             </tr>
                             <tr>
                                 <td>Fecha Nacimiento</td>
-                                <td><span class="text-muted">{{ date('d/m/Y', strtotime($empleado->Fecha_nacimiento)) }}</span></td>
-                                <td id="currentFechaNac">{{ old('Fecha_nacimiento', $empleado->Fecha_nacimiento) }}</td>
+                                <td><span class="text-muted">{{ $empleado->Fecha_nacimiento ? $empleado->Fecha_nacimiento->format('d/m/Y') : 'No especificada' }}</span></td>
+                                <td id="currentFechaNac">{{ old('Fecha_nacimiento', $empleado->Fecha_nacimiento ? $empleado->Fecha_nacimiento->format('Y-m-d') : '') }}</td>
                             </tr>
                             <tr>
                                 <td>Sexo</td>
@@ -767,7 +767,11 @@ function mostrarOriginales() {
     document.getElementById('currentNombre').textContent = document.getElementById('Nombre').value;
     document.getElementById('currentApPaterno').textContent = document.getElementById('ApPaterno').value;
     document.getElementById('currentApMaterno').textContent = document.getElementById('ApMaterno').value;
-    document.getElementById('currentFechaNac').textContent = document.getElementById('Fecha_nacimiento').value;
+    
+    // CORREGIDO: Obtener la fecha correctamente
+    const fechaField = document.getElementById('Fecha_nacimiento');
+    document.getElementById('currentFechaNac').textContent = fechaField ? fechaField.value : '';
+    
     document.getElementById('currentTelefono').textContent = document.getElementById('Telefono').value;
     
     const sexoSelect = document.getElementById('Sexo');
