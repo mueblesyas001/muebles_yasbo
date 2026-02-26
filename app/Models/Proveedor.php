@@ -22,6 +22,7 @@ class Proveedor extends Model
     protected $keyType = 'int';
 
     public $timestamps = false;
+    
     // Campos que se pueden llenar masivamente
     protected $fillable = [
         'Nombre',
@@ -30,7 +31,12 @@ class Proveedor extends Model
         'Telefono',
         'Empresa_asociada',
         'Correo',
-        'Sexo'
+        'Sexo',
+        'estado'  // Agregado campo estado
+    ];
+
+    protected $casts = [
+        'estado' => 'boolean', // Para tratar como booleano
     ];
 
     // Relación con Compras
@@ -48,5 +54,45 @@ class Proveedor extends Model
         $nombreCompleto = trim("$nombre $apPaterno $apMaterno");
         
         return !empty($nombreCompleto) ? $nombreCompleto : 'Proveedor';
+    }
+    
+    // Scope para proveedores activos
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', 1);
+    }
+    
+    // Scope para proveedores inactivos
+    public function scopeInactivos($query)
+    {
+        return $query->where('estado', 0);
+    }
+    
+    // Métodos de estado
+    public function isActive(): bool
+    {
+        return $this->estado == 1;
+    }
+    
+    public function isInactive(): bool
+    {
+        return $this->estado == 0;
+    }
+    
+    public function getEstadoTextAttribute(): string
+    {
+        return $this->estado ? 'Activo' : 'Inactivo';
+    }
+    
+    public function getEstadoColorAttribute(): string
+    {
+        return $this->estado ? 'success' : 'danger';
+    }
+    
+    public function getEstadoBadgeAttribute(): string
+    {
+        return $this->estado 
+            ? '<span class="badge bg-success">Activo</span>' 
+            : '<span class="badge bg-danger">Inactivo</span>';
     }
 }

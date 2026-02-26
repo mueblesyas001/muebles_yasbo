@@ -627,10 +627,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="resetForm()">
-                                            <i class="fas fa-eraser"></i>
-                                            <span>Limpiar Todo</span>
-                                        </button>
                                         
                                         <button type="button" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -656,24 +652,6 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-
-                <!-- Footer Informativo -->
-                <div class="info-footer text-center py-4 px-3">
-                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
-                        <div class="info-item">
-                            <i class="fas fa-shield-alt text-primary"></i>
-                            <span class="ms-2">Datos protegidos y encriptados</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-clock text-warning"></i>
-                            <span class="ms-2">Tiempo estimado: 3 minutos</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-headset text-success"></i>
-                            <span class="ms-2">Soporte: soporte@empresa.com</span>
-                        </div>
                     </div>
                 </div>
             </div>

@@ -47,21 +47,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    // Paso 1: Solicitar código
     Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
-    // Paso 2: Verificar código
     Route::get('password/verify-code', [VerifyCodeController::class, 'showVerifyForm'])->name('password.verify.code.form');
     Route::post('password/verify-code', [VerifyCodeController::class, 'verifyCode'])->name('password.verify.code');
     Route::post('password/resend-code', [VerifyCodeController::class, 'resendCode'])->name('password.resend.code');
 
-    // Paso 3: Crear nueva contraseña
     Route::get('password/reset-form', [ResetPasswordController::class, 'showResetForm'])->name('password.reset.form');
     Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
-    // Ruta para password.reset que necesita Fortify
     Route::get('reset-password/{token}', function($token) {
-        // Redirige a tu sistema personalizado
         return redirect()->route('password.reset.form', ['token' => $token]);
     })->name('password.reset');
 });
@@ -96,21 +91,33 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('personal', EmpleadoController::class);
+    
+    // NUEVA RUTA: Personal inactivos (debe ir ANTES de resource para evitar conflictos)
+    Route::prefix('personal')->name('personal.')->group(function () {
+        // Ruta para empleados inactivos
+        Route::get('/inactivos', [EmpleadoController::class, 'inactivos'])->name('inactivos');
+        
+        // Ruta para activar empleado (nueva)
+        Route::put('/{id}/activate', [EmpleadoController::class, 'activate'])->name('activate');
+        
+        // Ruta para activar usuario (nueva)
+        Route::put('/usuario/{usuario}/activate', [EmpleadoController::class, 'activateUser'])->name('usuario.activate');
+        
+        // Rutas existentes para usuarios
+        Route::post('/{id}/usuario', [EmpleadoController::class, 'storeUser'])->name('usuario.store');
+        Route::delete('/usuario/{usuario}', [EmpleadoController::class, 'destroyUser'])->name('usuario.destroy');
+    });
+    
     Route::resource('proveedores', ProveedorController::class);
     Route::resource('clientes', ClienteController::class);
     Route::resource('categorias', CategoriaController::class);
     Route::resource('productos', ProductoController::class);
     Route::resource('ventas', VentaController::class);
     Route::resource('compras', CompraController::class);
-    Route::prefix('personal')->name('personal.')->group(function () {
-        Route::post('/{id}/usuario', [EmpleadoController::class, 'storeUser'])
-            ->name('usuario.store');
-        
-        Route::delete('/usuario/{usuario}', [EmpleadoController::class, 'destroyUser'])
-            ->name('usuario.destroy');
-    });
+    
     Route::resource('pedidos', PedidoController::class);
     Route::resource('calendario', CalendarioController::class);
+    
     // Rutas para respaldos
     Route::prefix('respaldos')->group(function () {
         Route::get('/', [RespaldoController::class, 'index'])->name('respaldos.index');
@@ -137,9 +144,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/verificar-conexion', [RespaldoController::class, 'verificarConexion'])->name('respaldos.verificar-conexion');
         Route::post('/store-simple', [RespaldoController::class, 'storeSimple'])->name('respaldos.store-simple');
     });
+    
     // Restaurar desde archivo SQL subido
     Route::post('/respaldos/restaurar-archivo', [App\Http\Controllers\RespaldoController::class, 'restaurarDesdeArchivo'])
         ->name('respaldos.restaurar-archivo');
+    
     // Rutas para el calendario
     Route::get('/calendario/pedido/{id}', [CalendarioController::class, 'obtenerDetallePedido'])->name('calendario.pedido.detalle');
     Route::get('/calendario/eventos', [CalendarioController::class, 'eventosJson'])->name('calendario.eventos');
@@ -156,6 +165,12 @@ Route::middleware('auth')->group(function () {
     Route::get('grafica/empleados', [App\Http\Controllers\GraficaController::class, 'graficaEmpleados'])->name('grafica.empleados');
     Route::get('grafica/productos', [App\Http\Controllers\GraficaController::class, 'graficaProductos'])->name('grafica.productos');
     Route::get('grafica/tendencia', [App\Http\Controllers\GraficaController::class, 'graficaTendencia'])->name('grafica.tendencia');
+    Route::patch('/categorias/{id}/activar', [CategoriaController::class, 'activar'])->name('categorias.activar');
+    Route::patch('/clientes/{id}/activar', [ClienteController::class, 'activar'])->name('clientes.activar');
+    Route::patch('/personal/{id}/activar', [EmpleadoController::class, 'activar'])->name('personal.activar');
+    Route::patch('/productos/{id}/activar', [ProductoController::class, 'activar'])->name('productos.activar');
+    Route::patch('/proveedores/{id}/activar', [ProveedorController::class, 'activar'])->name('proveedores.activar');
+
 });
 
 /*

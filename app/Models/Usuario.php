@@ -20,7 +20,8 @@ class Usuario extends Authenticatable implements CanResetPasswordContract
         'empleado_id',
         'correo',
         'contrasena',
-        'rol'
+        'rol',
+        'estado'  // Agregado campo estado
     ];
 
     protected $hidden = [
@@ -30,6 +31,7 @@ class Usuario extends Authenticatable implements CanResetPasswordContract
 
     protected $casts = [
         'contrasena' => 'hashed',
+        'estado' => 'boolean', // Para tratar estado como booleano (true = activo, false = inactivo)
     ];
 
     public function getAuthPassword()
@@ -57,5 +59,33 @@ class Usuario extends Authenticatable implements CanResetPasswordContract
 
     public function respaldos(){
         return $this->hasMany(Respaldo::class, 'Usuario', 'idUsuario');
+    }
+    
+    // Métodos útiles para el campo estado
+    public function isActive(): bool
+    {
+        return $this->estado == 1;
+    }
+    
+    public function isInactive(): bool
+    {
+        return $this->estado == 0;
+    }
+    
+    public function getEstadoTextAttribute(): string
+    {
+        return $this->estado ? 'Activo' : 'Inactivo';
+    }
+    
+    public function getEstadoColorAttribute(): string
+    {
+        return $this->estado ? 'success' : 'danger';
+    }
+    
+    public function getEstadoBadgeAttribute(): string
+    {
+        return $this->estado 
+            ? '<span class="badge bg-success">Activo</span>' 
+            : '<span class="badge bg-danger">Inactivo</span>';
     }
 }

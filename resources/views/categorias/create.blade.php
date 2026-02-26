@@ -1,757 +1,1268 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-        <div class="card border-0 shadow-lg">
-            <!-- Header con gradiente azul similar a proveedores -->
-            <div class="card-header py-4" style="background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);">
-                <div class="d-flex align-items-center">
-                    <div class="icon-wrapper rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
-                        <i class="fas fa-tag text-white fs-4"></i>
-                    </div>
-                    <div>
-                        <h4 class="mb-0 text-white fw-bold">Crear Nueva Categoría</h4>
-                        <p class="mb-0 text-white opacity-75">Agrega una nueva categoría al sistema de inventario</p>
+<div class="container-fluid px-0" style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+    <!-- Fondo decorativo -->
+    <div class="position-fixed top-0 end-0 w-50 h-100 d-none d-xxl-block" style="
+        background: linear-gradient(135deg, rgba(58, 86, 212, 0.05) 0%, rgba(102, 126, 234, 0.03) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 25% 0);
+        z-index: 0;
+    "></div>
+
+    <div class="position-relative z-1">
+        <div class="row justify-content-center g-0">
+            <div class="col-12 col-xxl-10">
+                <!-- Header Superior Mejorado -->
+                <div class="header-glass py-4 px-4 px-lg-5 mb-4" style="
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    border-bottom: 1px solid rgba(0,0,0,0.08);
+                ">
+                    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="header-icon" style="
+                                width: 60px;
+                                height: 60px;
+                                background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);
+                                border-radius: 16px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                box-shadow: 0 8px 25px rgba(58, 86, 212, 0.25);
+                                animation: float 6s ease-in-out infinite;
+                            ">
+                                <i class="fas fa-tag fa-lg"></i>
+                            </div>
+                            <div>
+                                <h1 class="h3 fw-800 mb-1" style="
+                                    background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
+                                    -webkit-background-clip: text;
+                                    -webkit-text-fill-color: transparent;
+                                    letter-spacing: -0.5px;
+                                ">
+                                    Nueva Categoría
+                                </h1>
+                                <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                                    <i class="fas fa-bolt me-1 text-warning"></i>
+                                    Complete todos los campos para registrar una nueva categoría
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2" style="
+                                border-radius: 12px;
+                                padding: 8px 16px;
+                                font-size: 0.9rem;
+                                border: 1px solid #dee2e6;
+                                transition: all 0.3s ease;
+                            ">
+                                <i class="fas fa-arrow-left"></i>
+                                <span class="d-none d-md-inline">Volver</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="card-body p-5">
-                <form action="{{ route('categorias.store') }}" method="POST" id="categoria-form">
-                    @csrf
-                    
-                    <!-- Progress Indicator -->
-                    <div class="progress-steps mb-5">
-                        <div class="d-flex justify-content-between position-relative">
-                            <div class="step completed">
-                                <div class="step-circle">1</div>
-                                <div class="step-label mt-2">Información Básica</div>
-                            </div>
-                            <div class="step active">
-                                <div class="step-circle">2</div>
-                                <div class="step-label mt-2">Proveedor</div>
-                            </div>
-                            <div class="step">
-                                <div class="step-circle">3</div>
-                                <div class="step-label mt-2">Confirmación</div>
-                            </div>
-                            <div class="progress-line">
-                                <div class="progress-fill" style="width: 50%; background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);"></div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Sección de Información Básica -->
-                    <div class="section-card mb-5">
-                        <div class="section-header mb-4">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-wrapper bg-primary-subtle me-3">
-                                    <i class="fas fa-info-circle text-primary"></i>
-                                </div>
-                                <h5 class="mb-0 text-dark fw-bold">Información de la Categoría</h5>
-                            </div>
-                            <div class="section-line" style="background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);"></div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 mb-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control @error('Nombre') is-invalid @enderror" 
-                                           id="Nombre" name="Nombre" value="{{ old('Nombre') }}" 
-                                           placeholder="Nombre de la categoría" required maxlength="255">
-                                    <label for="Nombre" class="text-muted">
-                                        <i class="fas fa-tag me-2"></i>Nombre de la Categoría *
-                                    </label>
-                                    <div class="character-count position-absolute end-0 bottom-0 me-3 mb-2 text-muted small">
-                                        <span id="nombreCount">0</span>/255
-                                    </div>
-                                    @error('Nombre')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                    <div class="form-text ms-2 mt-2">
-                                        <i class="fas fa-info-circle me-1"></i> Nombre descriptivo para identificar la categoría
-                                    </div>
+                <!-- Card Principal -->
+                <div class="main-card mx-3 mx-lg-4 mb-5" style="
+                    background: white;
+                    border-radius: 24px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+                    border: 1px solid rgba(0,0,0,0.03);
+                    overflow: hidden;
+                ">
+                    <div class="card-body p-4 p-lg-5">
+                        <!-- Barra de Progreso General -->
+                        <div class="progress-overview mb-5">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-tasks me-2 text-primary"></i>
+                                    Progreso del Formulario
+                                </h5>
+                                <div class="progress-percentage">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2" id="progressPercentage">
+                                        0% Completado
+                                    </span>
                                 </div>
                             </div>
+                            <div class="progress" style="height: 10px; border-radius: 10px; background: #e5e7eb;">
+                                <div class="progress-bar" id="formProgress" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #3a56d4, #667eea); border-radius: 10px; transition: width 0.5s ease;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted" id="completedFields">0 de 3 campos completados</small>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Todos los campos con * son obligatorios
+                                </small>
+                            </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-12 mb-4">
-                                <div class="form-floating">
-                                    <textarea class="form-control @error('Descripcion') is-invalid @enderror" 
-                                              id="Descripcion" name="Descripcion" 
-                                              placeholder="Descripción de la categoría"
-                                              style="height: 120px" maxlength="500">{{ old('Descripcion') }}</textarea>
-                                    <label for="Descripcion" class="text-muted">
-                                        <i class="fas fa-align-left me-2"></i>Descripción
-                                    </label>
-                                    <div class="character-count position-absolute end-0 bottom-0 me-3 mb-2 text-muted small">
-                                        <span id="descripcionCount">0</span>/500
+                        <form id="categoriaForm" action="{{ route('categorias.store') }}" method="POST" class="needs-validation" novalidate>
+                            @csrf
+
+                            <!-- Sección 1: Información Básica -->
+                            <div class="form-section mb-5">
+                                <div class="section-header mb-4">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="section-icon-badge">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="section-title mb-1">Información Básica</h3>
+                                            <p class="section-subtitle mb-0">Datos principales de la categoría</p>
+                                        </div>
                                     </div>
-                                    @error('Descripcion')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                    <div class="form-text ms-2 mt-2">
-                                        <i class="fas fa-info-circle me-1"></i> Describe brevemente las características de esta categoría
+                                    <div class="section-divider" style="background: linear-gradient(to right, #3a56d4, transparent);"></div>
+                                </div>
+
+                                <div class="row g-4">
+                                    <!-- Nombre de la Categoría -->
+                                    <div class="col-md-12">
+                                        <div class="form-group-enhanced">
+                                            <label class="form-label-enhanced">
+                                                <span class="label-text">Nombre de la Categoría</span>
+                                                <span class="label-required">*</span>
+                                            </label>
+                                            
+                                            <div class="input-wrapper" data-required="true">
+                                                <div class="input-icon">
+                                                    <i class="fas fa-tag"></i>
+                                                </div>
+                                                <input type="text" 
+                                                       class="input-field @error('Nombre') is-invalid @enderror" 
+                                                       id="Nombre" 
+                                                       name="Nombre" 
+                                                       value="{{ old('Nombre') }}" 
+                                                       placeholder="Ej: Electrónica, Ropa, Hogar" 
+                                                       required 
+                                                       minlength="3"
+                                                       maxlength="255"
+                                                       data-char-counter="nombreCount">
+                                                <div class="input-decoration" style="background: linear-gradient(90deg, #3a56d4, #667eea);"></div>
+                                            </div>
+                                            
+                                            <div class="input-meta">
+                                                <div class="char-counter">
+                                                    <i class="fas fa-text-height"></i>
+                                                    <span id="nombreCount">0/255</span>
+                                                </div>
+                                                <div class="input-hint">
+                                                    <i class="fas fa-lightbulb"></i>
+                                                    Mínimo 3 caracteres
+                                                </div>
+                                            </div>
+                                            
+                                            @error('Nombre') 
+                                                <div class="error-message animated">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- Descripción -->
+                                    <div class="col-md-12">
+                                        <div class="form-group-enhanced">
+                                            <label class="form-label-enhanced">
+                                                <span class="label-text">Descripción</span>
+                                                <span class="label-optional">(Opcional)</span>
+                                            </label>
+                                            
+                                            <div class="textarea-wrapper">
+                                                <div class="input-icon" style="top: 24px; transform: none;">
+                                                    <i class="fas fa-align-left"></i>
+                                                </div>
+                                                <textarea class="textarea-field @error('Descripcion') is-invalid @enderror" 
+                                                          id="Descripcion" 
+                                                          name="Descripcion" 
+                                                          placeholder="Describe las características de esta categoría..."
+                                                          maxlength="500"
+                                                          rows="4"
+                                                          data-char-counter="descripcionCount">{{ old('Descripcion') }}</textarea>
+                                                <div class="input-decoration" style="background: linear-gradient(90deg, #3a56d4, #667eea);"></div>
+                                            </div>
+                                            
+                                            <div class="input-meta">
+                                                <div class="char-counter">
+                                                    <i class="fas fa-text-height"></i>
+                                                    <span id="descripcionCount">0/500</span>
+                                                </div>
+                                            </div>
+                                            
+                                            @error('Descripcion')
+                                                <div class="error-message">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Sección de Proveedor -->
-                    <div class="section-card mb-5">
-                        <div class="section-header mb-4">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-wrapper bg-info-subtle me-3">
-                                    <i class="fas fa-truck text-info"></i>
+                            <!-- Sección 2: Proveedor Asociado -->
+                            <div class="form-section mb-5">
+                                <div class="section-header mb-4">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                            <i class="fas fa-truck"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="section-title mb-1">Proveedor Asociado</h3>
+                                            <p class="section-subtitle mb-0">Selecciona el proveedor principal de esta categoría</p>
+                                        </div>
+                                    </div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #fa709a, transparent);"></div>
                                 </div>
-                                <h5 class="mb-0 text-dark fw-bold">Proveedor Asociado</h5>
-                            </div>
-                            <div class="section-line"></div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-12 mb-4">
-                                <div class="form-floating">
-                                    <select class="form-select @error('Proveedor') is-invalid @enderror" 
-                                            id="Proveedor" name="Proveedor" required>
-                                        <option value="">Seleccionar proveedor...</option>
-                                        @foreach($proveedores as $proveedor)
-                                            <option value="{{ $proveedor->id }}" 
-                                                    {{ old('Proveedor') == $proveedor->id ? 'selected' : '' }}
-                                                    data-empresa="{{ $proveedor->Empresa_asociada ?? 'Sin empresa' }}"
-                                                    data-telefono="{{ $proveedor->Telefono ?? '' }}"
-                                                    data-correo="{{ $proveedor->Correo ?? '' }}">
-                                                {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }} 
-                                                {{ $proveedor->ApMaterno ? ' ' . $proveedor->ApMaterno : '' }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <label for="Proveedor" class="text-muted">
-                                        <i class="fas fa-user-tie me-2"></i>Proveedor Asociado *
-                                    </label>
-                                    @error('Proveedor')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                    
-                                    <!-- Preview del proveedor seleccionado -->
-                                    <div class="preview-card p-3 mt-3" id="proveedorPreview" style="display: none;">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-user-check text-success me-3 fs-5"></i>
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1 fw-bold" id="proveedorNombre">Nombre del proveedor</h6>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted d-flex align-items-center">
-                                                            <i class="fas fa-building me-2"></i>
-                                                            <span id="proveedorEmpresa">Empresa</span>
-                                                        </small>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <div class="form-group-enhanced">
+                                            <label class="form-label-enhanced">
+                                                <span class="label-text">Proveedor</span>
+                                                <span class="label-required">*</span>
+                                            </label>
+                                            
+                                            <div class="select-wrapper" data-required="true">
+                                                <div class="select-icon">
+                                                    <i class="fas fa-user-tie"></i>
+                                                </div>
+                                                <select class="select-field @error('Proveedor') is-invalid @enderror" 
+                                                        id="Proveedor" name="Proveedor" required>
+                                                    <option value="" disabled selected hidden>Seleccione un proveedor...</option>
+                                                    @foreach($proveedores as $proveedor)
+                                                        <option value="{{ $proveedor->id }}" 
+                                                                {{ old('Proveedor') == $proveedor->id ? 'selected' : '' }}
+                                                                data-nombre="{{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }} {{ $proveedor->ApMaterno ? ' ' . $proveedor->ApMaterno : '' }}"
+                                                                data-empresa="{{ $proveedor->Empresa_asociada ?? 'Sin empresa' }}"
+                                                                data-telefono="{{ $proveedor->Telefono ?? 'Sin teléfono' }}"
+                                                                data-correo="{{ $proveedor->Correo ?? 'Sin correo' }}">
+                                                            {{ $proveedor->Nombre }} {{ $proveedor->ApPaterno }} 
+                                                            {{ $proveedor->ApMaterno ? ' ' . $proveedor->ApMaterno : '' }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="select-arrow">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                                <div class="select-decoration" style="background: linear-gradient(90deg, #3a56d4, #667eea);"></div>
+                                            </div>
+                                            
+                                            <div class="input-meta">
+                                                <div class="input-hint">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    Seleccione un proveedor de la lista
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Preview del proveedor seleccionado -->
+                                            <div class="preview-card mt-3" id="proveedorPreview" style="display: none;">
+                                                <div class="preview-header">
+                                                    <i class="fas fa-user-check text-success"></i>
+                                                    <span>Proveedor seleccionado</span>
+                                                </div>
+                                                <div class="preview-body">
+                                                    <div class="preview-row">
+                                                        <i class="fas fa-user"></i>
+                                                        <span id="proveedorNombre">Nombre del proveedor</span>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted d-flex align-items-center">
-                                                            <i class="fas fa-phone me-2"></i>
-                                                            <span id="proveedorTelefono">Teléfono</span>
-                                                        </small>
+                                                    <div class="preview-row">
+                                                        <i class="fas fa-building"></i>
+                                                        <span id="proveedorEmpresa">Empresa</span>
                                                     </div>
-                                                    <div class="col-md-12 mt-2">
-                                                        <small class="text-muted d-flex align-items-center">
-                                                            <i class="fas fa-envelope me-2"></i>
-                                                            <span id="proveedorCorreo">Correo</span>
-                                                        </small>
+                                                    <div class="preview-row">
+                                                        <i class="fas fa-phone"></i>
+                                                        <span id="proveedorTelefono">Teléfono</span>
+                                                    </div>
+                                                    <div class="preview-row">
+                                                        <i class="fas fa-envelope"></i>
+                                                        <span id="proveedorCorreo">Correo</span>
                                                     </div>
                                                 </div>
                                             </div>
+                                            
+                                            @error('Proveedor')
+                                                <div class="error-message">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
                                         </div>
-                                    </div>
-                                    <div class="form-text ms-2 mt-2">
-                                        <i class="fas fa-info-circle me-1"></i> Selecciona un proveedor de la lista
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-between pt-4 border-top">
-                        <a href="{{ route('categorias.index') }}" class="btn btn-outline-secondary btn-lg px-4">
-                            <i class="fas fa-arrow-left me-2"></i> Volver
-                        </a>
-                        <div>
-                            <button type="reset" class="btn btn-light btn-lg me-3 px-4">
-                                <i class="fas fa-redo me-2"></i> Limpiar
-                            </button>
-                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
-                                <i class="fas fa-save me-2"></i> Guardar Categoría
-                            </button>
-                        </div>
+                            <!-- Acciones del Formulario -->
+                            <div class="form-actions mt-5 pt-4 border-top">
+                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-4">
+                                    <div class="form-info">
+                                        <div class="form-stats">
+                                            <div class="stat-item">
+                                                <i class="fas fa-asterisk text-danger"></i>
+                                                <span>Campos obligatorios</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span id="validFieldsCount">0/3</span> completados
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-wrap gap-3">
+                                        
+                                        <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
+                                            background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);
+                                            border: none;
+                                            padding: 12px 32px;
+                                            border-radius: 12px;
+                                            font-weight: 700;
+                                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                            position: relative;
+                                            overflow: hidden;
+                                        ">
+                                            <span class="submit-content">
+                                                <i class="fas fa-save me-2"></i>
+                                                Guardar Categoría
+                                            </span>
+                                            <span class="submit-loader">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                Procesando...
+                                            </span>
+                                            <div class="submit-shine"></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('categoria-form');
-    
-    // Elementos del formulario
-    const nombreInput = document.getElementById('Nombre');
-    const descripcionTextarea = document.getElementById('Descripcion');
-    const proveedorSelect = document.getElementById('Proveedor');
-    const proveedorPreview = document.getElementById('proveedorPreview');
-    
-    // Efecto de etiquetas flotantes
-    const floatLabels = document.querySelectorAll('.form-floating input, .form-floating select, .form-floating textarea');
-    floatLabels.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
-        });
-        input.addEventListener('blur', function() {
-            if (!this.value) {
-                this.parentElement.classList.remove('focused');
-            }
-        });
-    });
-
-    // Contadores de caracteres
-    const campos = ['Nombre', 'Descripcion'];
-    campos.forEach(campo => {
-        const input = document.getElementById(campo);
-        const contador = document.getElementById(campo.toLowerCase() + 'Count');
-        if (input && contador) {
-            contador.textContent = input.value.length;
-            input.addEventListener('input', function() {
-                contador.textContent = this.value.length;
-                // Cambiar color según longitud
-                const max = parseInt(input.maxLength) || 255;
-                const percent = (this.value.length / max) * 100;
-                if (percent > 90) {
-                    contador.style.color = '#dc3545';
-                } else if (percent > 70) {
-                    contador.style.color = '#ffc107';
-                } else {
-                    contador.style.color = '#6c757d';
-                }
-                
-                // Efecto de actualización
-                contador.classList.add('updated');
-                setTimeout(() => {
-                    contador.classList.remove('updated');
-                }, 500);
-            });
-            // Trigger inicial
-            input.dispatchEvent(new Event('input'));
-        }
-    });
-
-    // Actualizar preview del proveedor
-    if (proveedorSelect) {
-        proveedorSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const empresa = selectedOption.getAttribute('data-empresa');
-            const telefono = selectedOption.getAttribute('data-telefono');
-            const correo = selectedOption.getAttribute('data-correo');
-            
-            if (selectedOption.value) {
-                // Mostrar preview
-                proveedorPreview.style.display = 'block';
-                document.getElementById('proveedorNombre').textContent = selectedOption.text;
-                document.getElementById('proveedorEmpresa').textContent = empresa || 'Sin empresa registrada';
-                document.getElementById('proveedorTelefono').textContent = telefono || 'Sin teléfono';
-                document.getElementById('proveedorCorreo').textContent = correo || 'Sin correo';
-                
-                // Efecto visual
-                proveedorPreview.classList.add('updated');
-                setTimeout(() => {
-                    proveedorPreview.classList.remove('updated');
-                }, 1000);
-            } else {
-                proveedorPreview.style.display = 'none';
-            }
-        });
-    }
-
-    // Validación del formulario con SweetAlert
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            let isValid = true;
-            const errors = [];
-            
-            // Validar campos requeridos
-            const requiredFields = form.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.classList.add('is-invalid');
-                    const label = field.parentElement.querySelector('label').textContent;
-                    errors.push(`<i class="fas fa-exclamation-circle me-2"></i>${label} es requerido`);
-                    
-                    // Efecto de shake
-                    field.parentElement.classList.add('animate__animated', 'animate__shakeX');
-                    setTimeout(() => {
-                        field.parentElement.classList.remove('animate__animated', 'animate__shakeX');
-                    }, 1000);
-                }
-            });
-            
-            // Validar longitud mínima del nombre
-            if (nombreInput && nombreInput.value.trim().length < 3) {
-                isValid = false;
-                nombreInput.classList.add('is-invalid');
-                errors.push('<i class="fas fa-tag me-2"></i>El nombre debe tener al menos 3 caracteres');
-            }
-            
-            // Validar proveedor seleccionado
-            if (proveedorSelect && !proveedorSelect.value) {
-                isValid = false;
-                proveedorSelect.classList.add('is-invalid');
-                errors.push('<i class="fas fa-user-tie me-2"></i>Debe seleccionar un proveedor');
-            }
-            
-            if (!isValid) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de Validación',
-                    html: `<div class="text-start">${errors.join('<br>')}</div>`,
-                    confirmButtonText: 'Corregir',
-                    confirmButtonColor: '#3a56d4',
-                });
-                // Enfocar el primer campo con error
-                const firstError = form.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstError.focus();
-                }
-            } else {
-                // Confirmación antes de enviar
-                Swal.fire({
-                    title: '¿Crear Categoría?',
-                    html: `
-                        <div class="text-start">
-                            <p><strong>Categoría:</strong> ${nombreInput.value}</p>
-                            <p><strong>Descripción:</strong> ${descripcionTextarea.value || 'Sin descripción'}</p>
-                            <p><strong>Proveedor:</strong> ${proveedorSelect.options[proveedorSelect.selectedIndex].text}</p>
-                            <div class="alert alert-info mt-3">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Esta categoría quedará disponible para asignar productos
-                            </div>
-                        </div>
-                    `,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, crear',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#3a56d4',
-                    cancelButtonColor: '#6c757d',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Mostrar loader
-                        Swal.fire({
-                            title: 'Creando...',
-                            text: 'Por favor espere',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        
-                        // Enviar formulario
-                        form.submit();
-                    }
-                });
-            }
-        });
-    }
-
-    // Limpiar validación al escribir
-    const inputs = form.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('input', function() {
-            if (this.classList.contains('is-invalid')) {
-                this.classList.remove('is-invalid');
-            }
-        });
-    });
-    
-    // Efecto al pasar sobre botones
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.transition = 'transform 0.2s ease';
-        });
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Efecto visual para tarjetas de estadísticas
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px) scale(1.02)';
-            this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
-        });
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-            this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.05)';
-        });
-    });
-});
-</script>
-
 <style>
+/* Variables CSS */
 :root {
     --primary-gradient: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);
-    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
 }
 
-.card {
-    border-radius: 20px;
-    overflow: hidden;
-    border: none;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+/* Animaciones */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
-.card-header {
-    border-bottom: none;
-    padding: 2rem !important;
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-.section-card {
-    background: white;
-    border-radius: 15px;
-    padding: 2rem;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-.section-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+@keyframes shine {
+    0% { transform: rotate(30deg) translateX(-100%); }
+    100% { transform: rotate(30deg) translateX(100%); }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Form Sections */
+.form-section {
+    animation: slideIn 0.6s ease-out;
+    margin-bottom: 2.5rem;
 }
 
 .section-header {
-    position: relative;
+    margin-bottom: 2rem;
 }
 
-.section-line {
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 60px;
-    height: 4px;
+.section-icon-badge {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     background: var(--primary-gradient);
-    border-radius: 2px;
-}
-
-.icon-wrapper {
-    width: 45px;
-    height: 45px;
-    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-md);
 }
 
-.form-floating {
-    position: relative;
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    letter-spacing: -0.5px;
 }
 
-.form-floating.focused label {
-    color: #3a56d4;
+.section-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.section-divider {
+    height: 2px;
+    border-radius: 2px;
+    margin-top: 1rem;
+}
+
+/* Enhanced Form Groups */
+.form-group-enhanced {
+    margin-bottom: 1.5rem;
+}
+
+.form-label-enhanced {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
     font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
 }
 
-.form-control, .form-select, .form-floating textarea {
-    border-radius: 10px;
-    padding: 1rem 0.75rem;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
+.label-text {
+    flex: 1;
 }
 
-.form-control:focus, .form-select:focus, .form-floating textarea:focus {
-    border-color: #3a56d4;
-    box-shadow: 0 0 0 0.25rem rgba(58, 86, 212, 0.1);
+.label-required {
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+.label-optional {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Input Wrapper */
+.input-wrapper,
+.textarea-wrapper,
+.select-wrapper {
+    position: relative;
     background: white;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.input-wrapper:focus-within,
+.textarea-wrapper:focus-within,
+.select-wrapper:focus-within {
+    border-color: #3a56d4;
+    box-shadow: 0 0 0 4px rgba(58, 86, 212, 0.1);
     transform: translateY(-2px);
 }
 
-.form-control.is-invalid, .form-select.is-invalid, .form-floating textarea.is-invalid {
-    border-color: #dc3545;
-    background-image: none;
+.input-wrapper.error,
+.textarea-wrapper.error,
+.select-wrapper.error {
+    border-color: var(--danger-color);
+    animation: shake 0.5s;
 }
 
-.form-control.is-invalid:focus, .form-select.is-invalid:focus {
-    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1);
+.input-wrapper.valid,
+.textarea-wrapper.valid,
+.select-wrapper.valid {
+    border-color: var(--success-color);
 }
 
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3a56d4;
+    font-size: 1.1rem;
+    z-index: 2;
+}
+
+.input-field,
+.textarea-field,
+.select-field {
+    width: 100%;
+    padding: 20px 20px 20px 48px;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    color: #1f2937;
+    outline: none;
+    transition: var(--transition);
+}
+
+.textarea-field {
+    padding: 20px 20px 20px 48px;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.input-field::placeholder,
+.textarea-field::placeholder {
+    color: #9ca3af;
+}
+
+.input-decoration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.input-wrapper:focus-within .input-decoration,
+.textarea-wrapper:focus-within .input-decoration,
+.select-wrapper:focus-within .input-decoration {
+    transform: scaleX(1);
+}
+
+.input-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
+.char-counter {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.input-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Select Wrapper */
+.select-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3a56d4;
+    z-index: 2;
+}
+
+.select-field {
+    padding: 16px 48px 16px 48px;
+    appearance: none;
+    cursor: pointer;
+}
+
+.select-arrow {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.select-wrapper:focus-within .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Preview Card */
 .preview-card {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 12px;
     border-left: 5px solid #3a56d4;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    animation: slideIn 0.4s ease;
 }
 
-.preview-card:hover {
-    transform: translateX(5px);
-}
-
-.preview-card.updated {
-    animation: pulseUpdate 1s ease;
-    border-left-color: #667eea;
-}
-
-@keyframes pulseUpdate {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-/* Progress Steps */
-.progress-steps {
-    position: relative;
-}
-
-.step {
-    text-align: center;
-    z-index: 1;
-    flex: 1;
-}
-
-.step-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #e9ecef;
-    color: #6c757d;
+.preview-header {
+    background: rgba(58, 86, 212, 0.1);
+    padding: 10px 15px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin: 0 auto;
-    border: 3px solid white;
-    transition: all 0.3s ease;
-}
-
-.step.completed .step-circle {
-    background: var(--primary-gradient);
-    color: white;
-}
-
-.step.active .step-circle {
-    background: white;
+    gap: 8px;
+    font-weight: 600;
     color: #3a56d4;
-    border-color: #3a56d4;
-    transform: scale(1.1);
-    box-shadow: 0 0 0 5px rgba(58, 86, 212, 0.2);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.step-label {
+.preview-body {
+    padding: 15px;
+}
+
+.preview-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    font-size: 0.9rem;
+}
+
+.preview-row i {
+    width: 20px;
+    color: #6b7280;
+}
+
+.preview-row span {
+    color: #374151;
+}
+
+/* Form Actions */
+.form-actions {
+    position: relative;
+}
+
+.form-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 0.85rem;
-    color: #6c757d;
-    font-weight: 500;
+    color: #6b7280;
 }
 
-.step.active .step-label {
-    color: #3a56d4;
+.btn-action {
+    padding: 12px 24px;
+    border-radius: 12px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
 }
 
-.progress-line {
-    position: absolute;
-    top: 20px;
-    left: 10%;
-    right: 10%;
-    height: 4px;
-    background: #e9ecef;
-    z-index: 0;
-}
-
-.progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.5s ease;
-}
-
-/* Botones mejorados */
-.btn {
-    border-radius: 10px;
-    padding: 0.875rem 1.75rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
+.btn-submit {
     position: relative;
     overflow: hidden;
+    min-width: 200px;
 }
 
-.btn-primary {
-    background: var(--primary-gradient);
-    border: none;
-    position: relative;
+.submit-content,
+.submit-loader {
+    display: flex;
+    align-items: center;
+    transition: opacity 0.3s ease;
 }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2f48b8 0%, #5a6fd8 100%);
-    box-shadow: 0 10px 25px rgba(58, 86, 212, 0.3);
+.submit-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
 }
 
-.btn-outline-secondary {
-    border-width: 2px;
+.btn-submit.loading .submit-content {
+    opacity: 0;
 }
 
-.btn-outline-secondary:hover {
-    background: #6c757d;
-    color: white;
-    transform: translateY(-2px);
+.btn-submit.loading .submit-loader {
+    opacity: 1;
 }
 
-.btn-light {
-    background: #f8f9fa;
-    border: 2px solid #e9ecef;
+.submit-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite;
 }
 
-.btn-light:hover {
-    background: #e9ecef;
-    border-color: #dee2e6;
+/* Error States */
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: slideIn 0.3s ease;
 }
 
-/* Tarjetas de estadísticas */
-.stat-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+.is-invalid {
+    border-color: var(--danger-color) !important;
 }
 
-.stat-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.is-valid {
+    border-color: var(--success-color) !important;
 }
 
-/* Animaciones */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+/* Progress Overview */
+.progress-overview {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
 }
 
-.btn-primary:active {
-    animation: pulse 0.2s ease;
+.progress-percentage .badge {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Info Footer */
+.info-footer {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    margin: 0 1rem;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6b7280;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 2rem 1.5rem !important;
+    .form-actions .d-flex {
+        flex-direction: column;
+        width: 100%;
     }
     
-    .section-card {
-        padding: 1.5rem;
+    .btn-action,
+    .btn-submit {
+        width: 100%;
+        justify-content: center;
     }
-    
-    .progress-steps .step-label {
-        font-size: 0.75rem;
+
+    .progress-overview {
+        padding: 15px;
     }
-    
-    .btn {
-        padding: 0.75rem 1.25rem;
-        font-size: 0.9rem;
+
+    .form-stats {
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    
-    .stat-card {
-        margin-bottom: 1rem;
-    }
-}
-
-/* Estilos para contadores de caracteres */
-.character-count {
-    font-size: 0.75rem;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.character-count.updated {
-    animation: countUpdate 0.5s ease;
-}
-
-@keyframes countUpdate {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Indicador de campo obligatorio */
-.required-field::after {
-    content: " *";
-    color: #dc3545;
-}
-
-/* Estilo para textarea en form-floating */
-.form-floating textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-/* Efecto especial para campos editados */
-.form-control.edited {
-    border-left: 4px solid #3a56d4;
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-}
-
-/* Animación de carga para botones */
-.btn-loading {
-    position: relative;
-    color: transparent !important;
-}
-
-.btn-loading::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 50%;
-    left: 50%;
-    margin: -10px 0 0 -10px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Estilo para select con iconos */
-.form-select option:checked {
-    background: linear-gradient(135deg, #3a56d4 0%, #667eea 100%);
-    color: white;
-}
-
-/* Tooltip para opciones de proveedor */
-.form-select option {
-    padding: 10px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.form-select option:hover {
-    background-color: #f8f9fa;
 }
 </style>
 
-<!-- Include SweetAlert2 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Sistema de Notificaciones
+class NotificationManager {
+    constructor() {
+        this.notifications = [];
+        this.maxNotifications = 3;
+    }
 
-<!-- Include Animate.css for animations -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    show(message, type = 'info', title = null) {
+        if (this.notifications.length >= this.maxNotifications) {
+            const oldestNotification = this.notifications.shift();
+            this.removeNotification(oldestNotification);
+        }
+
+        const notification = this.createNotification(message, type, title);
+        this.notifications.push(notification);
+        
+        setTimeout(() => {
+            this.removeNotification(notification);
+        }, 4000);
+
+        return notification;
+    }
+
+    createNotification(message, type, title) {
+        const titles = {
+            success: '¡Excelente!',
+            error: '¡Oops! Algo salió mal',
+            warning: '¡Atención!',
+            info: 'Información'
+        };
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        const notificationTitle = title || titles[type] || 'Notificación';
+
+        const notification = document.createElement('div');
+        notification.className = `toast-notification toast-${type}`;
+        notification.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon-wrapper">
+                    <i class="fas ${icons[type]}"></i>
+                </div>
+                <div class="toast-text">
+                    <div class="toast-title">${notificationTitle}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.closest('.toast-notification').classList.add('hiding'); setTimeout(() => this.closest('.toast-notification').remove(), 300)">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="toast-progress"></div>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+        return notification;
+    }
+
+    removeNotification(notification) {
+        if (!notification) return;
+        
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            notification.remove();
+            this.notifications = this.notifications.filter(n => n !== notification);
+        }, 300);
+    }
+
+    showValidationError(fields) {
+        const fieldNames = {
+            'Nombre': 'Nombre de la Categoría',
+            'Proveedor': 'Proveedor'
+        };
+
+        const fieldList = fields.map(f => `<span style="display: inline-block; background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 0.8rem;">${fieldNames[f] || f}</span>`).join(' ');
+        
+        this.show(
+            `<div style="text-align: left; margin-top: 5px;">${fieldList}</div>`,
+            'warning',
+            'Campos requeridos'
+        );
+    }
+
+    showSuccess(message) {
+        this.show(message, 'success', '¡Operación exitosa!');
+    }
+
+    showError(message) {
+        this.show(message, 'error', 'Error en la operación');
+    }
+
+    showWarning(message) {
+        this.show(message, 'warning', 'Advertencia');
+    }
+
+    showInfo(message) {
+        this.show(message, 'info', 'Información');
+    }
+}
+
+// Instancia global del notification manager
+const notifier = new NotificationManager();
+
+class FormManager {
+    constructor() {
+        this.requiredFields = ['Nombre', 'Proveedor'];
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.initCharacterCounters();
+        this.initProveedorPreview();
+        this.updateProgress();
+        this.initRealTimeValidation();
+    }
+
+    setupEventListeners() {
+        document.getElementById('categoriaForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.validateAndSubmit();
+        });
+
+        window.resetForm = () => {
+            if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+                document.getElementById('categoriaForm').reset();
+                this.resetAllVisuals();
+                document.getElementById('proveedorPreview').style.display = 'none';
+                notifier.showSuccess('Formulario restablecido correctamente');
+            }
+        };
+    }
+
+    initRealTimeValidation() {
+        this.requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', () => {
+                    this.validateField(fieldId);
+                    this.updateProgress();
+                });
+                field.addEventListener('change', () => {
+                    this.validateField(fieldId);
+                    this.updateProgress();
+                });
+                field.addEventListener('blur', () => {
+                    this.validateField(fieldId);
+                });
+            }
+        });
+    }
+
+    validateField(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        const wrapper = field.closest('.input-wrapper, .textarea-wrapper, .select-wrapper');
+        if (!wrapper) return;
+
+        wrapper.classList.remove('error', 'valid');
+
+        if (field.hasAttribute('required') && !field.value.trim()) {
+            wrapper.classList.add('error');
+            return false;
+        }
+
+        if (fieldId === 'Nombre') {
+            if (field.value.trim().length < 3) {
+                wrapper.classList.add('error');
+                return false;
+            }
+        }
+
+        wrapper.classList.add('valid');
+        return true;
+    }
+
+    validateAllFields() {
+        const errors = [];
+        
+        if (!this.validateField('Nombre')) errors.push('Nombre');
+        if (!this.validateField('Proveedor')) errors.push('Proveedor');
+
+        if (errors.length > 0) {
+            notifier.showValidationError(errors);
+            
+            const firstErrorId = errors[0];
+            const firstError = document.getElementById(firstErrorId);
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                const wrapper = firstError.closest('.input-wrapper, .textarea-wrapper, .select-wrapper');
+                if (wrapper) {
+                    wrapper.classList.add('shake-enhanced');
+                    setTimeout(() => wrapper.classList.remove('shake-enhanced'), 800);
+                }
+            }
+        }
+
+        return errors.length === 0;
+    }
+
+    updateProgress() {
+        const completedFields = this.requiredFields.filter(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (fieldId === 'Nombre') {
+                return field && field.value.trim().length >= 3;
+            }
+            return field && field.value.trim() !== '';
+        }).length;
+
+        const percentage = Math.round((completedFields / this.requiredFields.length) * 100);
+        
+        document.getElementById('formProgress').style.width = `${percentage}%`;
+        document.getElementById('progressPercentage').textContent = `${percentage}% Completado`;
+        document.getElementById('completedFields').textContent = `${completedFields} de ${this.requiredFields.length} campos completados`;
+        document.getElementById('validFieldsCount').textContent = `${completedFields}/${this.requiredFields.length}`;
+    }
+
+    initCharacterCounters() {
+        const textFields = [
+            { id: 'Nombre', counter: 'nombreCount', max: 255 },
+            { id: 'Descripcion', counter: 'descripcionCount', max: 500 }
+        ];
+        
+        textFields.forEach(item => {
+            const field = document.getElementById(item.id);
+            if (field) {
+                field.addEventListener('input', (e) => {
+                    const length = e.target.value.length;
+                    this.updateCharCounter(item.counter, length, item.max);
+                    
+                    if (item.id === 'Nombre') {
+                        this.validateField('Nombre');
+                        this.updateProgress();
+                    }
+                });
+                this.updateCharCounter(item.counter, field.value.length, item.max);
+            }
+        });
+    }
+
+    updateCharCounter(elementId, length, max) {
+        const counter = document.getElementById(elementId);
+        if (counter) {
+            counter.textContent = `${length}/${max}`;
+            counter.style.color = length > max ? '#ef4444' : length > 0 ? '#10b981' : '#9ca3af';
+        }
+    }
+
+    initProveedorPreview() {
+        const proveedorSelect = document.getElementById('Proveedor');
+        const preview = document.getElementById('proveedorPreview');
+
+        if (proveedorSelect) {
+            proveedorSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                
+                if (selectedOption.value) {
+                    const nombre = selectedOption.getAttribute('data-nombre');
+                    const empresa = selectedOption.getAttribute('data-empresa');
+                    const telefono = selectedOption.getAttribute('data-telefono');
+                    const correo = selectedOption.getAttribute('data-correo');
+                    
+                    document.getElementById('proveedorNombre').textContent = nombre;
+                    document.getElementById('proveedorEmpresa').textContent = empresa;
+                    document.getElementById('proveedorTelefono').textContent = telefono;
+                    document.getElementById('proveedorCorreo').textContent = correo;
+                    
+                    preview.style.display = 'block';
+                    preview.classList.add('updated');
+                    setTimeout(() => preview.classList.remove('updated'), 1000);
+                } else {
+                    preview.style.display = 'none';
+                }
+                
+                this.validateField('Proveedor');
+                this.updateProgress();
+            }.bind(this));
+        }
+    }
+
+    validateAndSubmit() {
+        if (this.validateAllFields()) {
+            this.submitForm();
+        }
+    }
+
+    submitForm() {
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('categoriaForm');
+        const nombre = document.getElementById('Nombre').value;
+        const proveedorSelect = document.getElementById('Proveedor');
+        const proveedorNombre = proveedorSelect.options[proveedorSelect.selectedIndex].text;
+
+        notifier.showInfo('Procesando solicitud...', 'Un momento por favor');
+        
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+
+        setTimeout(() => {
+            form.submit();
+        }, 500);
+    }
+
+    resetAllVisuals() {
+        this.updateCharCounter('nombreCount', 0, 255);
+        this.updateCharCounter('descripcionCount', 0, 500);
+
+        document.querySelectorAll('.input-wrapper, .textarea-wrapper, .select-wrapper').forEach(wrapper => {
+            wrapper.classList.remove('error', 'valid');
+        });
+
+        document.querySelectorAll('.error-message').forEach(msg => {
+            msg.style.display = 'none';
+        });
+
+        this.updateProgress();
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new FormManager();
+});
+</script>
+
+<!-- Toast Notifications CSS -->
+<style>
+.toast-notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    min-width: 380px;
+    max-width: 450px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    overflow: hidden;
+    animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border: none;
+}
+
+.toast-notification.hiding {
+    animation: slideOutRight 0.3s ease-in-out forwards;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+.toast-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.toast-icon-wrapper i {
+    font-size: 24px;
+    color: white;
+}
+
+.toast-text {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: #1f2937;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.toast-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+    background: #e5e7eb;
+    color: #4b5563;
+    transform: rotate(90deg);
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.8));
+    animation: progress 4s linear forwards;
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-success .toast-icon-wrapper {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error .toast-icon-wrapper {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-warning .toast-icon-wrapper {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.toast-info .toast-icon-wrapper {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+@media (max-width: 768px) {
+    .toast-notification {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+        min-width: auto;
+        max-width: none;
+    }
+}
+</style>
+
+<!-- Include Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection

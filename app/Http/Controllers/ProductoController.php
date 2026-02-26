@@ -6,6 +6,7 @@ use App\Models\Producto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProductoController extends Controller
 {
@@ -15,25 +16,28 @@ class ProductoController extends Controller
         $categorias = Categoria::all();
         
         // Iniciar query con eager loading
-        $query = Producto::with('categoria', 'detalleVentas', 'detalleCompras', 'detallePedidos');
+        $query = Producto::with('categoria');
         
-        // Aplicar filtros
-        // Filtro por ID
+        // FILTRO POR NOMBRE/DESCRIPCIÓN
+        if ($request->filled('nombre')) {
+            $search = $request->nombre;
+            $query->where(function($q) use ($search) {
+                $q->where('Nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('Descripcion', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        // FILTRO POR ID
         if ($request->filled('id')) {
             $query->where('id', $request->id);
         }
         
-        // Filtro por nombre
-        if ($request->filled('nombre')) {
-            $query->where('Nombre', 'like', '%' . $request->nombre . '%');
-        }
-        
-        // Filtro por categoría
+        // FILTRO POR CATEGORÍA
         if ($request->filled('categoria_id')) {
             $query->where('Categoria', $request->categoria_id);
         }
         
-        // Filtro por rango de precio
+        // FILTRO POR RANGO DE PRECIO
         if ($request->filled('precio_min')) {
             $query->where('Precio', '>=', $request->precio_min);
         }
@@ -41,7 +45,7 @@ class ProductoController extends Controller
             $query->where('Precio', '<=', $request->precio_max);
         }
         
-        // Filtro por rango de stock
+        // FILTRO POR RANGO DE STOCK
         if ($request->filled('stock_min')) {
             $query->where('Cantidad', '>=', $request->stock_min);
         }
@@ -49,7 +53,7 @@ class ProductoController extends Controller
             $query->where('Cantidad', '<=', $request->stock_max);
         }
         
-        // Filtro por estado de stock
+        // FILTRO POR ESTADO DE STOCK
         if ($request->filled('estado_stock')) {
             switch ($request->estado_stock) {
                 case 'en_stock':
@@ -59,40 +63,56 @@ class ProductoController extends Controller
                     $query->where('Cantidad', '=', 0);
                     break;
                 case 'bajo_stock':
-                    // Usamos whereRaw para comparar Cantidad con Cantidad_minima
                     $query->whereRaw('Cantidad <= Cantidad_minima AND Cantidad > 0');
                     break;
             }
         }
         
-        // Ordenamiento
-        $sort_by = $request->get('sort_by', 'Nombre');
-        $sort_order = $request->get('sort_order', 'asc');
-        $query->orderBy($sort_by, $sort_order);
+        // FILTRO POR ESTADO (activo/inactivo)
+        if ($request->filled('estado')) {
+            if ($request->estado === 'activos') {
+                $query->where('estado', 1);
+            } elseif ($request->estado === 'inactivos') {
+                $query->where('estado', 0);
+            }
+        }
         
-        // Obtener productos filtrados (para estadísticas)
-        $productosFiltrados = $query->get();
+        // Ordenamiento
+        $sortBy = $request->get('sort_by', 'Nombre');
+        $sortOrder = $request->get('sort_order', 'asc');
+        
+        // Validar que el campo de ordenamiento existe
+        $allowedSorts = ['Nombre', 'Precio', 'Cantidad', 'id', 'Categoria', 'estado'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'Nombre';
+        }
+        
+        $query->orderBy($sortBy, $sortOrder);
         
         // Calcular estadísticas para la vista
-        $enStockCount = $productosFiltrados->where('Cantidad', '>', 0)->count();
-        $agotadosCount = $productosFiltrados->where('Cantidad', '=', 0)->count();
-        $bajoStockCount = $productosFiltrados->filter(function($producto) {
-            return $producto->Cantidad > 0 && $producto->Cantidad <= $producto->Cantidad_minima;
-        })->count();
+        $queryForStats = clone $query;
+        $productosFiltrados = $queryForStats->get();
         
-        // Paginación (necesitamos una nueva consulta para la paginación)
-        $queryForPagination = clone $query;
-        $perPage = 10;
-        $productosPaginated = $queryForPagination->paginate($perPage)
-            ->appends($request->except('page'));
+        $stats = [
+            'total' => $productosFiltrados->count(),
+            'en_stock' => $productosFiltrados->where('Cantidad', '>', 0)->count(),
+            'agotados' => $productosFiltrados->where('Cantidad', '=', 0)->count(),
+            'bajo_stock' => $productosFiltrados->filter(function($producto) {
+                return $producto->Cantidad > 0 && $producto->Cantidad <= $producto->Cantidad_minima;
+            })->count(),
+            'total_unidades' => $productosFiltrados->sum('Cantidad'),
+            'activos' => $productosFiltrados->where('estado', 1)->count(),
+            'inactivos' => $productosFiltrados->where('estado', 0)->count()
+        ];
+        
+        // Paginación
+        $productosPaginated = $query->paginate(10)->appends($request->except('page'));
         
         return view('productos.index', compact(
             'categorias',
-            'productosFiltrados',
             'productosPaginated',
-            'enStockCount',
-            'agotadosCount',
-            'bajoStockCount'
+            'productosFiltrados',
+            'stats'
         ));
     }
 
@@ -111,13 +131,21 @@ class ProductoController extends Controller
             'Cantidad' => 'required|integer|min:0',
             'Cantidad_minima' => 'required|integer|min:0',
             'Cantidad_maxima' => 'required|integer|min:0|gte:Cantidad_minima',
-            'Categoria' => 'required|exists:categoria,id'
+            'Categoria' => 'required|exists:categoria,id',
+            'estado' => 'sometimes|boolean'
         ]);
 
-        Producto::create($request->all());
+        $data = $request->all();
+        
+        // Si no se envía el estado, por defecto será 1 (activo)
+        if (!isset($data['estado'])) {
+            $data['estado'] = 1;
+        }
+
+        Producto::create($data);
 
         return redirect()->route('productos.index')
-            ->with('success', 'Producto creado exitosamente.');
+            ->with('success', 'Producto "' . $request->Nombre . '" creado exitosamente.');
     }
 
     public function edit($id)
@@ -136,20 +164,49 @@ class ProductoController extends Controller
             'Cantidad' => 'required|integer|min:0',
             'Cantidad_minima' => 'required|integer|min:0',
             'Cantidad_maxima' => 'required|integer|min:0|gte:Cantidad_minima',
-            'Categoria' => 'required|exists:categoria,id'
+            'Categoria' => 'required|exists:categoria,id',
+            'estado' => 'sometimes|boolean'
         ]);
 
         $producto = Producto::findOrFail($id);
-        $producto->update($request->all());
+        $data = $request->all();
+        
+        // Si no se envía el estado en el formulario, mantener el valor actual
+        if (!isset($data['estado'])) {
+            $data['estado'] = $producto->estado;
+        }
+        
+        $producto->update($data);
 
         return redirect()->route('productos.index')
-            ->with('success', 'Producto actualizado exitosamente.');
+            ->with('success', 'Producto "' . $producto->Nombre . '" actualizado exitosamente.');
     }
 
     /**
-     * Verificar si un producto puede ser eliminado antes de mostrar el modal
+     * Desactivar producto (cambia estado a 0) - SIN VERIFICAR RELACIONES
      */
-    public function verificarAntesDeEliminar($id)
+    public function destroy($id)
+    {
+        try {
+            $producto = Producto::findOrFail($id);
+            
+            // Cambiar el estado a 0 (inactivo) en lugar de eliminar
+            $producto->estado = 0;
+            $producto->save();
+            
+            return redirect()->route('productos.index')
+                ->with('success', 'Producto "' . $producto->Nombre . '" desactivado correctamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('productos.index')
+                ->with('error', 'Error al desactivar el producto: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Verificar si un producto puede ser desactivado (para mostrar información, pero no bloquea)
+     */
+    public function verificarAntesDeDesactivar($id)
     {
         try {
             $producto = Producto::with(['detalleVentas', 'detalleCompras', 'detallePedidos.pedido'])->findOrFail($id);
@@ -162,8 +219,6 @@ class ProductoController extends Controller
                     $query->whereIn('Estado', ['Pendiente', 'En proceso', 'Completado']);
                 })
                 ->count();
-            
-            $puedeEliminar = ($ventasCount == 0 && $comprasCount == 0 && $pedidosActivosCount == 0);
             
             $detalles = [];
             $motivos = [
@@ -179,12 +234,12 @@ class ProductoController extends Controller
                 $detalles[] = "Está registrado en {$comprasCount} compra(s)";
             }
             if ($pedidosActivosCount > 0) {
-                $detalles[] = "Está incluido en {$pedidosActivosCount} pedido(s)";
+                $detalles[] = "Está incluido en {$pedidosActivosCount} pedido(s) activo(s)";
             }
             
             return response()->json([
                 'success' => true,
-                'puede_eliminar' => $puedeEliminar,
+                'tieneRelaciones' => ($ventasCount > 0 || $comprasCount > 0 || $pedidosActivosCount > 0),
                 'motivos' => $motivos,
                 'detalles' => $detalles,
                 'nombre' => $producto->Nombre
@@ -198,61 +253,43 @@ class ProductoController extends Controller
         }
     }
 
-    public function destroy($id)
+    /**
+     * Activar producto
+     */
+    public function activar($id)
     {
         try {
-            $producto = Producto::with(['detalleVentas', 'detalleCompras', 'detallePedidos'])->findOrFail($id);
-            
-            // Verificar si tiene ventas asociadas
-            $ventasCount = $producto->detalleVentas()->count();
-            if ($ventasCount > 0) {
-                return redirect()->route('productos.index')
-                    ->with('foreign_key_error', 'No se puede eliminar el producto "' . $producto->Nombre . '" porque está registrado en ' . $ventasCount . ' venta(s).')
-                    ->with('producto_nombre', $producto->Nombre)
-                    ->with('ventas_count', $ventasCount);
-            }
-            
-            // Verificar si tiene compras asociadas
-            $comprasCount = $producto->detalleCompras()->count();
-            if ($comprasCount > 0) {
-                return redirect()->route('productos.index')
-                    ->with('foreign_key_error', 'No se puede eliminar el producto "' . $producto->Nombre . '" porque está registrado en ' . $comprasCount . ' compra(s).')
-                    ->with('producto_nombre', $producto->Nombre)
-                    ->with('compras_count', $comprasCount);
-            }
-            
-            // Verificar si tiene pedidos asociados
-            $pedidosCount = $producto->detallePedidos()->count();
-            if ($pedidosCount > 0) {
-                return redirect()->route('productos.index')
-                    ->with('foreign_key_error', 'No se puede eliminar el producto "' . $producto->Nombre . '" porque está incluido en ' . $pedidosCount . ' pedido(s).')
-                    ->with('producto_nombre', $producto->Nombre)
-                    ->with('pedidos_count', $pedidosCount);
-            }
-            
-            // Si no tiene relaciones, proceder con la eliminación
-            $producto->delete();
+            $producto = Producto::findOrFail($id);
+            $producto->estado = 1;
+            $producto->save();
             
             return redirect()->route('productos.index')
-                ->with('success', 'Producto "' . $producto->Nombre . '" eliminado correctamente.');
-                
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Capturar error de foreign key
-            if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1451) {
-                $producto = Producto::find($id);
-                $nombreProducto = $producto ? $producto->Nombre : 'desconocido';
-                
-                return redirect()->route('productos.index')
-                    ->with('foreign_key_error', 'No se puede eliminar el producto "' . $nombreProducto . '" porque tiene registros asociados en el sistema.')
-                    ->with('producto_nombre', $nombreProducto);
-            }
-            
-            return redirect()->route('productos.index')
-                ->with('error', 'Error al eliminar el producto: ' . $e->getMessage());
+                ->with('success', 'Producto "' . $producto->Nombre . '" activado correctamente.');
                 
         } catch (\Exception $e) {
             return redirect()->route('productos.index')
-                ->with('error', 'Error al eliminar el producto: ' . $e->getMessage());
+                ->with('error', 'Error al activar el producto: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar el estado de un producto (Activar/Desactivar)
+     */
+    public function toggleEstado($id)
+    {
+        try {
+            $producto = Producto::findOrFail($id);
+            $producto->estado = !$producto->estado;
+            $producto->save();
+            
+            $accion = $producto->estado ? 'activado' : 'desactivado';
+            
+            return redirect()->route('productos.index')
+                ->with('success', "Producto '{$producto->Nombre}' {$accion} correctamente.");
+                
+        } catch (\Exception $e) {
+            return redirect()->route('productos.index')
+                ->with('error', 'Error al cambiar el estado del producto: ' . $e->getMessage());
         }
     }
 }

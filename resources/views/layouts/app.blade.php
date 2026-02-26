@@ -17,6 +17,9 @@
     --purple-soft:#ede9fe;
     --text:#1f2937;
     --border:#e5e7eb;
+    --success:#10b981;
+    --warning:#f59e0b;
+    --danger:#ef4444;
 }
 
 body{
@@ -196,6 +199,181 @@ body{
     margin-top: 1.5rem !important;
 }
 
+/* ===== SESSION TIMER STYLES ===== */
+.session-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+    margin-right: 15px;
+    font-size: 13px;
+    color: #d1d5db;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.session-timer i {
+    color: var(--warning);
+    animation: pulse 2s infinite;
+}
+
+.session-timer.warning {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: var(--warning);
+    color: #fff;
+}
+
+.session-timer.warning i {
+    color: #fff;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* SweetAlert Custom Styles */
+.swal2-popup.custom-swal {
+    border-radius: 24px !important;
+    padding: 2rem !important;
+    background: white !important;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
+}
+
+.swal2-title.custom-title {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    color: var(--text) !important;
+    margin-top: 1rem !important;
+}
+
+.swal2-html-container.custom-html {
+    margin: 1.5rem 0 !important;
+    font-size: 1.1rem !important;
+}
+
+.countdown-container {
+    background: linear-gradient(135deg, var(--purple-soft), #fff);
+    border-radius: 50px;
+    padding: 20px;
+    margin: 15px 0;
+    border: 2px dashed var(--purple);
+}
+
+.countdown-number {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--purple);
+    line-height: 1;
+    font-family: monospace;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.countdown-label {
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.progress-timer {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.progress-timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--warning));
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.toast-notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    min-width: 320px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    z-index: 9999;
+    overflow: hidden;
+    animation: slideInRight 0.3s ease;
+    border-left: 4px solid;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
+}
+
+.toast-notification.success { border-left-color: var(--success); }
+.toast-notification.warning { border-left-color: var(--warning); }
+.toast-notification.danger { border-left-color: var(--danger); }
+.toast-notification.info { border-left-color: var(--purple); }
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.toast-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+.toast-danger .toast-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.toast-info .toast-icon { background: rgba(109, 40, 217, 0.1); color: var(--purple); }
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.toast-close {
+    color: #9ca3af;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: var(--text);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
 /* ===== MEDIA QUERIES - MÓVIL ===== */
 @media(max-width:992px){
     #mobileToggle{
@@ -283,6 +461,13 @@ body{
         margin-left: 0;
         margin-top: 4px;
     }
+
+    .session-timer {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 /* Ajustes para móviles pequeños */
@@ -303,6 +488,17 @@ body{
     .container-fluid.mt-4 {
         padding-left: 12px;
         padding-right: 12px;
+    }
+
+    .toast-notification {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+        min-width: auto;
+    }
+
+    .countdown-number {
+        font-size: 2.5rem;
     }
 }
 
@@ -509,6 +705,9 @@ body{
     padding-left: 12px;
 }
 </style>
+
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -554,6 +753,13 @@ body{
                 $nombreCompleto = trim($empleado->Nombre . ' ' . $empleado->ApPaterno);
             }
         @endphp
+
+        <!-- SESSION TIMER - Nuevo elemento -->
+        <div class="session-timer" id="sessionTimer">
+            <i class="fa-regular fa-clock"></i>
+            <span id="sessionTime">15:00</span>
+            <span>restantes</span>
+        </div>
 
         <!-- INICIO - Accesible para todos -->
         <a class="nav-link-app" href="{{ route('dashboard') }}">
@@ -649,13 +855,260 @@ body{
     @yield('content')
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+class SessionManager {
+    constructor(timeoutMinutes = 2, warningMinutes = 1) {
+        this.timeoutMinutes = timeoutMinutes;
+        this.warningMinutes = warningMinutes;
+        this.timeoutMilliseconds = timeoutMinutes * 60 * 1000;
+        this.warningMilliseconds = warningMinutes * 60 * 1000;
+        this.timeoutTimer = null;
+        this.warningTimer = null;
+        this.lastActivity = Date.now();
+        this.isWarningShown = false;
+        
+        // Elementos del DOM
+        this.sessionTimer = document.getElementById('sessionTimer');
+        this.sessionTimeSpan = document.getElementById('sessionTime');
+        
+        this.init();
+    }
+
+    init() {
+        // Eventos que indican actividad del usuario
+        const events = [
+            'mousedown', 'mousemove', 'keypress', 'keydown',
+            'scroll', 'touchstart', 'click', 'focus', 'load'
+        ];
+        
+        events.forEach(event => {
+            document.addEventListener(event, () => this.resetTimer());
+        });
+
+        // Iniciar el timer
+        this.resetTimer();
+        
+        // Actualizar el temporizador visual cada segundo
+        setInterval(() => this.updateTimerDisplay(), 1000);
+        
+        console.log(`🔒 Sesión configurada: ${this.timeoutMinutes} minutos de inactividad`);
+    }
+
+    resetTimer() {
+        // Limpiar timers existentes
+        clearTimeout(this.timeoutTimer);
+        clearTimeout(this.warningTimer);
+
+        // Actualizar última actividad
+        this.lastActivity = Date.now();
+        this.isWarningShown = false;
+        
+        // Remover clase de warning del timer
+        if (this.sessionTimer) {
+            this.sessionTimer.classList.remove('warning');
+        }
+
+        // Programar advertencia
+        this.warningTimer = setTimeout(() => {
+            this.showWarning();
+        }, this.timeoutMilliseconds - this.warningMilliseconds);
+
+        // Programar cierre de sesión
+        this.timeoutTimer = setTimeout(() => {
+            this.logout();
+        }, this.timeoutMilliseconds);
+    }
+
+    updateTimerDisplay() {
+        if (!this.sessionTimer || !this.sessionTimeSpan) return;
+        
+        const elapsed = (Date.now() - this.lastActivity) / 1000 / 60; // minutos
+        const remaining = Math.max(0, this.timeoutMinutes - elapsed);
+        
+        // Formatear tiempo restante (MM:SS)
+        const minutes = Math.floor(remaining);
+        const seconds = Math.floor((remaining - minutes) * 60);
+        this.sessionTimeSpan.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Cambiar estilo cuando quede poco tiempo
+        if (remaining <= this.warningMinutes && remaining > 0) {
+            this.sessionTimer.classList.add('warning');
+        } else {
+            this.sessionTimer.classList.remove('warning');
+        }
+        
+        // Si el tiempo llegó a cero, el logout se encargará
+        if (remaining <= 0) {
+            this.logout();
+        }
+    }
+
+    showWarning() {
+        if (this.isWarningShown) return;
+        this.isWarningShown = true;
+        
+        let countdownInterval;
+        
+        Swal.fire({
+            title: '¿Todavía estás ahí? 👋',
+            html: `
+                <div class="countdown-container">
+                    <div class="countdown-number" id="countdownNumber">2:00</div>
+                    <div class="countdown-label">minutos restantes</div>
+                </div>
+                <p style="color: #6b7280; margin-top: 15px;">
+                    Tu sesión está por expirar por inactividad.<br>
+                    <strong>Mueve el mouse o presiona una tecla para continuar.</strong>
+                </p>
+                <div class="progress-timer">
+                    <div class="progress-timer-bar" id="progressBar" style="width: 100%;"></div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6d28d9',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-sync-alt me-2"></i>Seguir aquí',
+            cancelButtonText: '<i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: {
+                popup: 'custom-swal',
+                title: 'custom-title',
+                htmlContainer: 'custom-html'
+            },
+            didOpen: () => {
+                // Iniciar cuenta regresiva
+                let secondsLeft = this.warningMinutes * 60;
+                const countdownEl = document.getElementById('countdownNumber');
+                const progressBar = document.getElementById('progressBar');
+                const totalSeconds = this.warningMinutes * 60;
+                
+                countdownInterval = setInterval(() => {
+                    secondsLeft--;
+                    
+                    if (secondsLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        Swal.close();
+                        this.logout();
+                        return;
+                    }
+                    
+                    const minutes = Math.floor(secondsLeft / 60);
+                    const seconds = secondsLeft % 60;
+                    countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    // Actualizar barra de progreso
+                    const percentage = (secondsLeft / totalSeconds) * 100;
+                    progressBar.style.width = percentage + '%';
+                    
+                    // Cambiar color según el tiempo
+                    if (secondsLeft <= 30) {
+                        countdownEl.style.color = '#ef4444';
+                        progressBar.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
+                    } else if (secondsLeft <= 60) {
+                        countdownEl.style.color = '#f59e0b';
+                        progressBar.style.background = 'linear-gradient(90deg, #f59e0b, #6d28d9)';
+                    }
+                }, 1000);
+            }
+        }).then((result) => {
+            // Limpiar intervalo
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            if (result.isConfirmed) {
+                // Usuario quiere continuar
+                this.resetTimer();
+                this.showToast('Sesión extendida', 'Continuarás activo por ' + this.timeoutMinutes + ' minutos más.', 'success');
+            } else {
+                // Usuario eligió cerrar sesión
+                this.logout();
+            }
+        });
+    }
+
+    logout() {
+        // Crear un formulario para logout
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("logout") }}';
+        form.style.display = 'none';
+        
+        // Agregar CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                         '{{ csrf_token() }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        
+        // Mostrar mensaje de cierre
+        Swal.fire({
+            title: '⏰ Sesión expirada',
+            text: 'Serás redirigido al inicio de sesión por inactividad.',
+            icon: 'info',
+            timer: 3000,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            customClass: {
+                popup: 'custom-swal'
+            }
+        });
+        
+        // Enviar formulario después de un breve delay
+        setTimeout(() => {
+            form.submit();
+        }, 3000);
+    }
+
+    showToast(message, title, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                                    type === 'warning' ? 'fa-exclamation-triangle' : 
+                                    type === 'danger' ? 'fa-exclamation-circle' : 
+                                    'fa-info-circle'}"></i>
+                </div>
+                <div class="toast-message">
+                    <strong>${title}</strong><br>
+                    ${message}
+                </div>
+                <div class="toast-close" onclick="this.closest('.toast-notification').remove()">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    @auth
+    const sessionManager = new SessionManager(16, 1); // 15 minutos de timeout, advertencia 2 minutos antes
+    @endauth
+
     const toggle = document.getElementById('mobileToggle');
     const menu = document.getElementById('navMenu');
     const items = document.querySelectorAll('.nav-item-app');

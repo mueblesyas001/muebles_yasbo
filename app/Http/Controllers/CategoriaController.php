@@ -24,12 +24,21 @@ class CategoriaController extends Controller{
             $query->where('Proveedor', $request->proveedor_id);
         }
         
+        // FILTRO POR ESTADO
+        if ($request->filled('estado')) {
+            if ($request->estado === 'activas') {
+                $query->activas();
+            } elseif ($request->estado === 'inactivas') {
+                $query->inactivas();
+            }
+        }
+        
         // Ordenamiento
         $sortBy = $request->get('sort_by', 'Nombre');
         $sortOrder = $request->get('sort_order', 'asc');
         
         // Validar que el campo de ordenamiento existe
-        $allowedSorts = ['Nombre', 'id', 'productos_count'];
+        $allowedSorts = ['Nombre', 'id', 'productos_count', 'estado'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'Nombre';
         }
@@ -58,10 +67,17 @@ class CategoriaController extends Controller{
         $request->validate([
             'Nombre' => 'required|string|max:100',
             'Descripcion' => 'required|string|max:200',
-            'Proveedor' => 'required|exists:proveedores,id'
+            'Proveedor' => 'required|exists:proveedores,id',
+            'estado' => 'sometimes|boolean'
         ]);
 
-        Categoria::create($request->all());
+        $data = $request->all();
+        // Si no se envía el estado, por defecto será 1 (activa)
+        if (!isset($data['estado'])) {
+            $data['estado'] = 1;
+        }
+
+        Categoria::create($data);
 
         return redirect()->route('categorias.index')
             ->with('success', 'Categoría creada exitosamente.');
@@ -79,11 +95,19 @@ class CategoriaController extends Controller{
         $request->validate([
             'Nombre' => 'required|string|max:100',
             'Descripcion' => 'required|string|max:200',
-            'Proveedor' => 'required|exists:proveedores,id'
+            'Proveedor' => 'required|exists:proveedores,id',
+            'estado' => 'sometimes|boolean'
         ]);
 
         $categoria = Categoria::findOrFail($id);
-        $categoria->update($request->all());
+        $data = $request->all();
+        
+        // Si no se envía el estado en el formulario, mantener el valor actual
+        if (!isset($data['estado'])) {
+            $data['estado'] = $categoria->estado;
+        }
+        
+        $categoria->update($data);
 
         return redirect()->route('categorias.index')
             ->with('success', 'Categoría actualizada exitosamente.');
@@ -93,34 +117,52 @@ class CategoriaController extends Controller{
         try {
             $categoria = Categoria::findOrFail($id);
             
-            // Verificar si tiene productos asociados
-            if ($categoria->productos()->count() > 0) {
-                return redirect()->route('categorias.index')
-                    ->with('foreign_key_error', 'No se puede eliminar la categoría "' . $categoria->Nombre . '" porque tiene ' . $categoria->productos()->count() . ' productos asociados.')
-                    ->with('categoria_nombre', $categoria->Nombre)
-                    ->with('productos_count', $categoria->productos()->count());
-            }
-            
-            $categoria->delete();
+            // Cambiar el estado a 0 (inactivo) en lugar de eliminar
+            $categoria->estado = 0;
+            $categoria->save();
             
             return redirect()->route('categorias.index')
-                ->with('success', 'Categoría eliminada correctamente.');
-                
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Capturar error de foreign key
-            if ($e->errorInfo[1] == 1451) {
-                return redirect()->route('categorias.index')
-                    ->with('foreign_key_error', 'No se puede eliminar la categoría porque tiene productos asociados.')
-                    ->with('categoria_nombre', $categoria->Nombre ?? '')
-                    ->with('productos_count', $categoria->productos()->count() ?? 0);
-            }
-            
-            return redirect()->route('categorias.index')
-                ->with('error', 'Error al eliminar la categoría: ' . $e->getMessage());
+                ->with('success', 'Categoría "' . $categoria->Nombre . '" desactivada correctamente.');
                 
         } catch (\Exception $e) {
             return redirect()->route('categorias.index')
-                ->with('error', 'Error al eliminar la categoría: ' . $e->getMessage());
+                ->with('error', 'Error al desactivar la categoría: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar el estado de una categoría (Activar/Desactivar)
+     */
+    public function toggleEstado($id)
+    {
+        try {
+            $categoria = Categoria::findOrFail($id);
+            $categoria->estado = !$categoria->estado;
+            $categoria->save();
+            
+            $estado = $categoria->isActive() ? 'activada' : 'desactivada';
+            
+            return redirect()->route('categorias.index')
+                ->with('success', "Categoría '{$categoria->Nombre}' {$estado} correctamente.");
+                
+        } catch (\Exception $e) {
+            return redirect()->route('categorias.index')
+                ->with('error', 'Error al cambiar el estado de la categoría: ' . $e->getMessage());
+        }
+    }
+
+    public function activar($id){
+        try {
+            $categoria = Categoria::findOrFail($id);
+            $categoria->estado = 1;
+            $categoria->save();
+            
+            return redirect()->route('categorias.index')
+                ->with('success', 'Categoría "' . $categoria->Nombre . '" activada correctamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('categorias.index')
+                ->with('error', 'Error al activar la categoría: ' . $e->getMessage());
         }
     }
 }

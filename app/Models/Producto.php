@@ -20,7 +20,12 @@ class Producto extends Model{
         'Cantidad',
         'Cantidad_minima',
         'Cantidad_maxima',
-        'Categoria'
+        'Categoria',
+        'estado'  // Agregado campo estado
+    ];
+
+    protected $casts = [
+        'estado' => 'boolean', // Para tratar como booleano
     ];
 
     // Relación con Categoria
@@ -63,5 +68,45 @@ class Producto extends Model{
     public function scopeBajoStock($query)
     {
         return $query->where('Cantidad', '<=', DB::raw('Cantidad_minima'));
+    }
+    
+    // Scope para productos activos
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', 1);
+    }
+    
+    // Scope para productos inactivos
+    public function scopeInactivos($query)
+    {
+        return $query->where('estado', 0);
+    }
+    
+    // Métodos de estado
+    public function isActive(): bool
+    {
+        return $this->estado == 1;
+    }
+    
+    public function isInactive(): bool
+    {
+        return $this->estado == 0;
+    }
+    
+    public function getEstadoTextAttribute(): string
+    {
+        return $this->estado ? 'Activo' : 'Inactivo';
+    }
+    
+    public function getEstadoColorAttribute(): string
+    {
+        return $this->estado ? 'success' : 'danger';
+    }
+    
+    public function getEstadoBadgeAttribute(): string
+    {
+        return $this->estado 
+            ? '<span class="badge bg-success">Activo</span>' 
+            : '<span class="badge bg-danger">Inactivo</span>';
     }
 }

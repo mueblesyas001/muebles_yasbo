@@ -21,11 +21,13 @@ class Empleado extends Model
         'Fecha_nacimiento',
         'Cargo',
         'Sexo',
-        'Area_trabajo'
+        'Area_trabajo',
+        'estado'  // Agregado campo estado
     ];
 
     protected $casts = [
-        'Fecha_nacimiento' => 'date'
+        'Fecha_nacimiento' => 'date',
+        'estado' => 'boolean', // Para tratar como booleano
     ];
 
     /**
@@ -78,5 +80,45 @@ class Empleado extends Model
               ->orWhere('ApPaterno', 'LIKE', "%{$termino}%")
               ->orWhere('ApMaterno', 'LIKE', "%{$termino}%");
         });
+    }
+    
+    // Scope para empleados activos
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', 1);
+    }
+    
+    // Scope para empleados inactivos
+    public function scopeInactivos($query)
+    {
+        return $query->where('estado', 0);
+    }
+    
+    // Métodos de estado
+    public function isActive(): bool
+    {
+        return $this->estado == 1;
+    }
+    
+    public function isInactive(): bool
+    {
+        return $this->estado == 0;
+    }
+    
+    public function getEstadoTextAttribute(): string
+    {
+        return $this->estado ? 'Activo' : 'Inactivo';
+    }
+    
+    public function getEstadoColorAttribute(): string
+    {
+        return $this->estado ? 'success' : 'danger';
+    }
+    
+    public function getEstadoBadgeAttribute(): string
+    {
+        return $this->estado 
+            ? '<span class="badge bg-success">Activo</span>' 
+            : '<span class="badge bg-danger">Inactivo</span>';
     }
 }

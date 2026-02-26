@@ -1,970 +1,983 @@
 @extends('layouts.app')
 
 @section('content')
-<div id="compras-page" class="container-fluid px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
-    <!-- Header con Glassmorphism -->
-    <div class="glass-header py-4 px-4 mb-4" style="
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border-radius: 24px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        margin-top: 20px;
-    ">
-        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-4">
-                <div class="header-icon" style="
-                    width: 70px;
-                    height: 70px;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-radius: 18px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+<div id="compras-page" class="container-fluid px-0" style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+    <!-- Fondo decorativo -->
+    <div class="position-fixed top-0 end-0 w-50 h-100 d-none d-xxl-block" style="
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.03) 100%);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%, 25% 0);
+        z-index: 0;
+    "></div>
+
+    <div class="position-relative z-1">
+        <div class="row justify-content-center g-0">
+            <div class="col-12 col-xxl-12">
+                <!-- Header Superior Mejorado -->
+                <div class="header-glass py-4 px-4 px-lg-5 mb-4" style="
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(10px);
+                    border-bottom: 1px solid rgba(0,0,0,0.08);
                 ">
-                    <i class="fas fa-shopping-cart fa-2x"></i>
-                </div>
-                <div>
-                    <h1 class="display-6 fw-bold mb-1" style="
-                        background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        letter-spacing: -0.5px;
-                    ">
-                        Gestión de Compras
-                    </h1>
-                    <p class="mb-0 text-muted">
-                        <i class="fas fa-bolt me-1 text-warning"></i>
-                        Administra el registro y seguimiento de todas las compras del sistema
-                    </p>
-                </div>
-            </div>
-            <div>
-                <a href="{{ route('compras.create') }}" class="btn btn-primary" style="
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border: none;
-                    border-radius: 14px;
-                    padding: 12px 28px;
-                    font-weight: 600;
-                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-                ">
-                    <i class="fas fa-plus-circle me-2"></i> Nueva Compra
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alertas Mejoradas -->
-    @if(session('success'))
-        <div class="alert alert-modern alert-success d-flex align-items-center mb-4" role="alert" style="
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
-        ">
-            <div class="alert-icon me-3">
-                <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h6 class="alert-heading fw-bold mb-1" style="color: #155724;">¡Operación Exitosa!</h6>
-                <p class="mb-0" style="color: #155724;">{{ session('success') }}</p>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-modern alert-danger d-flex align-items-center mb-4" role="alert" style="
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
-        ">
-            <div class="alert-icon me-3">
-                <i class="fas fa-exclamation-circle fa-2x" style="color: #dc3545;"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h6 class="alert-heading fw-bold mb-1" style="color: #721c24;">¡Error!</h6>
-                <p class="mb-0" style="color: #721c24;">{{ session('error') }}</p>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <!-- Tarjetas de Estadísticas Mejoradas -->
-    <div class="row g-4 mb-4">
-        @php
-            $comprasHoy = $comprasFiltradas->filter(function($compra) {
-                return \Carbon\Carbon::parse($compra->Fecha_compra)->isToday();
-            })->count();
-            
-            $totalInversion = $comprasFiltradas->sum('Total');
-            $promedioCompra = $comprasFiltradas->count() > 0 ? $comprasFiltradas->avg('Total') : 0;
-            
-            $stats = [
-                [
-                    'titulo' => 'Compras Filtradas',
-                    'valor' => $comprasFiltradas->count(),
-                    'icono' => 'fas fa-shopping-cart',
-                    'color' => '#667eea',
-                    'gradiente' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    'descripcion' => request()->anyFilled(['id', 'fecha', 'fecha_desde', 'fecha_hasta', 'proveedor_id', 'monto_min', 'monto_max', 'producto']) ? 'Con filtros aplicados' : 'Todas las compras'
-                ],
-                [
-                    'titulo' => 'Compras Hoy',
-                    'valor' => $comprasHoy,
-                    'icono' => 'fas fa-bolt',
-                    'color' => '#10b981',
-                    'gradiente' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    'descripcion' => 'Actividad del día'
-                ],
-                [
-                    'titulo' => 'Inversión Total',
-                    'valor' => '$' . number_format($totalInversion, 2),
-                    'icono' => 'fas fa-dollar-sign',
-                    'color' => '#f59e0b',
-                    'gradiente' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    'descripcion' => 'Suma total'
-                ],
-                [
-                    'titulo' => 'Promedio Compra',
-                    'valor' => '$' . number_format($promedioCompra, 2),
-                    'icono' => 'fas fa-chart-line',
-                    'color' => '#3b82f6',
-                    'gradiente' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    'descripcion' => 'Por transacción'
-                ]
-            ];
-        @endphp
-
-        @foreach($stats as $stat)
-        <div class="col-md-6 col-lg-3">
-            <div class="stat-card h-100" style="
-                background: white;
-                border-radius: 24px;
-                padding: 1.5rem;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-                border: 1px solid rgba(0,0,0,0.03);
-                transition: all 0.3s ease;
-                cursor: default;
-                position: relative;
-                overflow: hidden;
-            ">
-                <div class="stat-decoration" style="
-                    position: absolute;
-                    top: -50%;
-                    right: -50%;
-                    width: 200px;
-                    height: 200px;
-                    background: {{ $stat['gradiente'] }};
-                    opacity: 0.05;
-                    border-radius: 50%;
-                    transition: all 0.5s ease;
-                "></div>
-                
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <span class="badge" style="
-                            background: {{ $stat['gradiente'] }};
-                            color: white;
-                            padding: 0.5rem 1rem;
-                            border-radius: 50px;
-                            font-size: 0.75rem;
-                            font-weight: 600;
-                            letter-spacing: 0.5px;
-                        ">
-                            {{ $stat['descripcion'] }}
-                        </span>
-                    </div>
-                    <div class="stat-icon" style="
-                        width: 50px;
-                        height: 50px;
-                        background: {{ $stat['gradiente'] }};
-                        border-radius: 16px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-size: 1.5rem;
-                        box-shadow: 0 8px 20px {{ $stat['color'] }}40;
-                    ">
-                        <i class="{{ $stat['icono'] }}"></i>
-                    </div>
-                </div>
-                
-                <h3 class="fw-bold mb-1" style="font-size: 2rem; color: #1f2937;">{{ $stat['valor'] }}</h3>
-                <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $stat['titulo'] }}</p>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Panel de Filtros Mejorado -->
-    <div class="filters-panel mb-4" style="
-        background: white;
-        border-radius: 24px;
-        padding: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        border: 1px solid rgba(0,0,0,0.03);
-    ">
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="filters-icon" style="
-                width: 45px;
-                height: 45px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-            ">
-                <i class="fas fa-filter"></i>
-            </div>
-            <div>
-                <h5 class="fw-bold mb-1" style="color: #1f2937;">Filtros de Búsqueda</h5>
-                <p class="text-muted small mb-0">Encuentra compras específicas usando los siguientes filtros</p>
-            </div>
-        </div>
-
-        <form id="filtrosForm" method="GET" action="{{ route('compras.index') }}">
-            <div class="row g-3">
-                <!-- ID de Compra -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-hashtag me-1" style="color: #667eea;"></i>
-                        ID de Compra
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light">
-                            <i class="fas fa-id-badge text-primary"></i>
-                        </span>
-                        <input type="number" 
-                               class="form-control border-0 bg-light" 
-                               name="id" 
-                               placeholder="Ej: 123" 
-                               value="{{ request('id') }}"
-                               min="1">
-                        @if(request('id'))
-                        <button type="button" 
-                                class="btn btn-outline-danger border-0" 
-                                onclick="clearFilter('id')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Fecha Específica -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-calendar me-1" style="color: #667eea;"></i>
-                        Fecha Específica
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light">
-                            <i class="fas fa-calendar-alt text-primary"></i>
-                        </span>
-                        <input type="date" 
-                               class="form-control border-0 bg-light" 
-                               name="fecha" 
-                               value="{{ request('fecha') }}">
-                        @if(request('fecha'))
-                        <button type="button" 
-                                class="btn btn-outline-danger border-0" 
-                                onclick="clearFilter('fecha')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Rango de Fechas -->
-                <div class="col-md-6">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-calendar-range me-1" style="color: #667eea;"></i>
-                        Rango de Fechas
-                    </label>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="input-group">
-                                <span class="input-group-text border-0 bg-light">
-                                    <i class="fas fa-calendar-plus text-primary"></i>
-                                </span>
-                                <input type="date" 
-                                       class="form-control border-0 bg-light" 
-                                       name="fecha_desde" 
-                                       value="{{ request('fecha_desde') }}"
-                                       placeholder="Desde">
+                    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="header-icon" style="
+                                width: 60px;
+                                height: 60px;
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                border-radius: 16px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+                                animation: float 6s ease-in-out infinite;
+                            ">
+                                <i class="fas fa-shopping-cart fa-lg"></i>
+                            </div>
+                            <div>
+                                <h1 class="h3 fw-800 mb-1" style="
+                                    background: linear-gradient(135deg, #2c3e50 0%, #4a5568 100%);
+                                    -webkit-background-clip: text;
+                                    -webkit-text-fill-color: transparent;
+                                    letter-spacing: -0.5px;
+                                ">
+                                    Gestión de Compras
+                                </h1>
+                                <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                                    <i class="fas fa-bolt me-1 text-warning"></i>
+                                    Administra el registro y seguimiento de todas las compras del sistema
+                                </p>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="input-group">
-                                <span class="input-group-text border-0 bg-light">
-                                    <i class="fas fa-calendar-minus text-primary"></i>
-                                </span>
-                                <input type="date" 
-                                       class="form-control border-0 bg-light" 
-                                       name="fecha_hasta" 
-                                       value="{{ request('fecha_hasta') }}"
-                                       placeholder="Hasta">
-                                @if(request('fecha_desde') || request('fecha_hasta'))
-                                <button type="button" 
-                                        class="btn btn-outline-danger border-0" 
-                                        onclick="clearFilters(['fecha_desde', 'fecha_hasta'])">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Proveedor -->
-                <div class="col-md-4">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-truck me-1" style="color: #667eea;"></i>
-                        Proveedor
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light">
-                            <i class="fas fa-user-tie text-primary"></i>
-                        </span>
-                        <select class="form-select border-0 bg-light" name="proveedor_id">
-                            <option value="">Todos los proveedores</option>
-                            @foreach($proveedores as $proveedor)
-                            <option value="{{ $proveedor->id }}" {{ request('proveedor_id') == $proveedor->id ? 'selected' : '' }}>
-                                {{ $proveedor->Nombre ?? '' }} {{ $proveedor->ApPaterno ?? $proveedor->ApellidoPaterno ?? '' }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @if(request('proveedor_id'))
-                        <button type="button" 
-                                class="btn btn-outline-danger border-0" 
-                                onclick="clearFilter('proveedor_id')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Rango de Monto -->
-                <div class="col-md-4">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-dollar-sign me-1" style="color: #667eea;"></i>
-                        Monto Total
-                    </label>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="input-group">
-                                <span class="input-group-text border-0 bg-light">$</span>
-                                <input type="number" 
-                                       class="form-control border-0 bg-light" 
-                                       name="monto_min" 
-                                       placeholder="Mínimo" 
-                                       value="{{ request('monto_min') }}"
-                                       step="0.01"
-                                       min="0">
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="input-group">
-                                <span class="input-group-text border-0 bg-light">$</span>
-                                <input type="number" 
-                                       class="form-control border-0 bg-light" 
-                                       name="monto_max" 
-                                       placeholder="Máximo" 
-                                       value="{{ request('monto_max') }}"
-                                       step="0.01"
-                                       min="0">
-                                @if(request('monto_min') || request('monto_max'))
-                                <button type="button" 
-                                        class="btn btn-outline-danger border-0" 
-                                        onclick="clearFilters(['monto_min', 'monto_max'])">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Producto -->
-                <div class="col-md-4">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-box me-1" style="color: #667eea;"></i>
-                        Producto
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text border-0 bg-light">
-                            <i class="fas fa-search text-primary"></i>
-                        </span>
-                        <input type="text" 
-                               class="form-control border-0 bg-light" 
-                               name="producto" 
-                               placeholder="Nombre del producto" 
-                               value="{{ request('producto') }}">
-                        @if(request('producto'))
-                        <button type="button" 
-                                class="btn btn-outline-danger border-0" 
-                                onclick="clearFilter('producto')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Ordenamiento -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-sort me-1" style="color: #667eea;"></i>
-                        Ordenar por
-                    </label>
-                    <select class="form-select border-0 bg-light" name="sort_by">
-                        <option value="Fecha_compra" {{ request('sort_by', 'Fecha_compra') == 'Fecha_compra' ? 'selected' : '' }}>Fecha</option>
-                        <option value="Total" {{ request('sort_by') == 'Total' ? 'selected' : '' }}>Monto Total</option>
-                        <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID de Compra</option>
-                    </select>
-                </div>
-
-                <!-- Dirección de orden -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold">
-                        <i class="fas fa-sort-amount-down me-1" style="color: #667eea;"></i>
-                        Dirección
-                    </label>
-                    <select class="form-select border-0 bg-light" name="sort_order">
-                        <option value="desc" {{ request('sort_order', 'desc') == 'desc' ? 'selected' : '' }}>Descendente</option>
-                        <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Ascendente</option>
-                    </select>
-                </div>
-
-                <!-- Botones de acción -->
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-end align-items-center h-100 gap-2">
-                        @php
-                            $filtrosActivos = collect(request()->all())
-                                ->filter(function($value, $key) {
-                                    return in_array($key, ['id', 'fecha', 'fecha_desde', 'fecha_hasta', 'proveedor_id', 'monto_min', 'monto_max', 'producto']) 
-                                           && !empty($value);
-                                })
-                                ->count();
-                        @endphp
                         
-                        @if($filtrosActivos > 0)
-                        <span class="badge px-3 py-2" style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: white;
-                            border-radius: 50px;
-                            font-size: 0.85rem;
-                        ">
-                            <i class="fas fa-filter me-1"></i>
-                            {{ $filtrosActivos }} filtro(s) activo(s)
-                        </span>
-                        @endif
-                        
-                        <div class="btn-group">
-                            <button type="submit" class="btn btn-primary px-4" style="
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('compras.create') }}" class="btn btn-primary d-flex align-items-center gap-2" style="
                                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                                 border: none;
-                                border-radius: 12px 0 0 12px;
+                                border-radius: 12px;
+                                padding: 10px 24px;
+                                font-weight: 600;
+                                transition: all 0.3s ease;
                             ">
-                                <i class="fas fa-search me-1"></i> Aplicar
-                            </button>
-                            <a href="{{ route('compras.index') }}" class="btn btn-outline-secondary px-4" style="
-                                border-radius: 0 12px 12px 0;
-                                border: 1px solid #e5e7eb;
-                            ">
-                                <i class="fas fa-redo me-1"></i> Limpiar
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Nueva Compra</span>
                             </a>
                         </div>
                     </div>
                 </div>
-            </div>
-        </form>
-    </div>
 
-    <!-- Indicadores de Filtros Activos -->
-    @php
-        $filtrosActivosLista = [];
-        if(request('id')) $filtrosActivosLista[] = ['ID Compra', request('id'), 'id'];
-        if(request('fecha')) $filtrosActivosLista[] = ['Fecha', \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y'), 'fecha'];
-        if(request('fecha_desde')) $filtrosActivosLista[] = ['Desde', \Carbon\Carbon::parse(request('fecha_desde'))->format('d/m/Y'), 'fecha_desde'];
-        if(request('fecha_hasta')) $filtrosActivosLista[] = ['Hasta', \Carbon\Carbon::parse(request('fecha_hasta'))->format('d/m/Y'), 'fecha_hasta'];
-        if(request('proveedor_id')) {
-            $proveedor = $proveedores->firstWhere('id', request('proveedor_id'));
-            $filtrosActivosLista[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? $proveedor->ApellidoPaterno ?? '') : 'No encontrado', 'proveedor_id'];
-        }
-        if(request('monto_min')) $filtrosActivosLista[] = ['Monto Mín', '$' . number_format(request('monto_min'), 2), 'monto_min'];
-        if(request('monto_max')) $filtrosActivosLista[] = ['Monto Máx', '$' . number_format(request('monto_max'), 2), 'monto_max'];
-        if(request('producto')) $filtrosActivosLista[] = ['Producto', request('producto'), 'producto'];
-    @endphp
-    
-    @if(count($filtrosActivosLista) > 0)
-    <div class="active-filters mb-4" style="
-        background: white;
-        border-radius: 16px;
-        padding: 1rem 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    ">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-            <span class="text-muted small fw-semibold">
-                <i class="fas fa-filter me-1 text-primary"></i>
-                Filtros activos:
-            </span>
-            @foreach($filtrosActivosLista as $filtro)
-            <span class="badge d-inline-flex align-items-center gap-2 px-3 py-2" style="
-                background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-                color: #4a5568;
-                border: 1px solid rgba(102, 126, 234, 0.2);
-                border-radius: 50px;
-                font-size: 0.85rem;
-            ">
-                <i class="fas fa-check-circle text-primary"></i>
-                {{ $filtro[0] }}: {{ $filtro[1] }}
-                <button type="button" class="btn-close btn-close-sm ms-2" 
-                        style="font-size: 0.6rem;"
-                        onclick="clearFilter('{{ $filtro[2] }}')">
-                </button>
-            </span>
-            @endforeach
-        </div>
-    </div>
-    @endif
+                <!-- Alertas Mejoradas -->
+                @if(session('success'))
+                    <div class="alert-modern alert-success d-flex align-items-center mb-4 mx-3 mx-lg-4" role="alert" style="
+                        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                        border: none;
+                        border-radius: 16px;
+                        padding: 1rem 1.5rem;
+                        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+                    ">
+                        <div class="alert-icon me-3">
+                            <i class="fas fa-check-circle fa-2x" style="color: #28a745;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading fw-bold mb-1" style="color: #155724;">¡Operación Exitosa!</h6>
+                            <p class="mb-0" style="color: #155724;">{{ session('success') }}</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
-    <!-- Tabla de compras Mejorada -->
-    <div class="table-container" style="
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.03);
-    ">
-        <div class="table-header p-4 d-flex justify-content-between align-items-center" style="
-            border-bottom: 1px solid #e5e7eb;
-            background: white;
-        ">
-            <div>
-                <h5 class="fw-bold mb-1" style="color: #1f2937;">
-                    <i class="fas fa-list-ul me-2 text-primary"></i>
-                    Historial de Compras
-                </h5>
-                <p class="text-muted small mb-0">
-                    <i class="fas fa-info-circle me-1"></i>
-                    @if($comprasPaginated->total() > 0)
-                    Mostrando {{ $comprasPaginated->firstItem() ?? 0 }}-{{ $comprasPaginated->lastItem() ?? 0 }} de {{ $comprasPaginated->total() }} compra(s)
-                    @else
-                    No hay compras que mostrar
-                    @endif
-                </p>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge px-3 py-2" style="
-                    background: #f3f4f6;
-                    color: #4b5563;
-                    border-radius: 50px;
-                    font-size: 0.85rem;
-                ">
-                    <i class="fas fa-arrow-{{ request('sort_order', 'desc') == 'asc' ? 'up' : 'down' }} me-1"></i>
-                    Orden: {{ request('sort_by', 'Fecha_compra') == 'Fecha_compra' ? 'Fecha' : (request('sort_by') == 'Total' ? 'Monto' : 'ID') }}
-                </span>
-            </div>
-        </div>
+                @if(session('error'))
+                    <div class="alert-modern alert-danger d-flex align-items-center mb-4 mx-3 mx-lg-4" role="alert" style="
+                        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+                        border: none;
+                        border-radius: 16px;
+                        padding: 1rem 1.5rem;
+                        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+                    ">
+                        <div class="alert-icon me-3">
+                            <i class="fas fa-exclamation-circle fa-2x" style="color: #dc3545;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading fw-bold mb-1" style="color: #721c24;">¡Error!</h6>
+                            <p class="mb-0" style="color: #721c24;">{{ session('error') }}</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr style="background: #f8fafc;">
-                        <th class="py-3 ps-4" width="50px"></th>
-                        <th class="py-3">Compra</th>
-                        <th class="py-3">Fecha y Hora</th>
-                        <th class="py-3">Proveedor</th>
-                        <th class="py-3">Productos</th>
-                        <th class="py-3">Total</th>
-                        <th class="py-3 pe-4 text-end">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($comprasPaginated as $compra)
+                <!-- Tarjetas de Estadísticas Mejoradas -->
+                <div class="row g-4 mb-4 mx-2">
                     @php
-                        // Obtener nombre completo del proveedor
-                        $proveedorNombreCompleto = 'Sin proveedor';
-                        if ($compra->proveedor) {
-                            $nombre = $compra->proveedor->Nombre ?? '';
-                            $apellidoPaterno = $compra->proveedor->ApPaterno ?? $compra->proveedor->ApellidoPaterno ?? '';
-                            $apellidoMaterno = $compra->proveedor->ApMaterno ?? $compra->proveedor->ApellidoMaterno ?? '';
-                            
-                            $nombreCompleto = trim($nombre . ' ' . $apellidoPaterno . ' ' . $apellidoMaterno);
-                            $proveedorNombreCompleto = $nombreCompleto ?: $compra->proveedor->Nombre ?? 'Proveedor sin nombre';
-                        }
+                        $comprasHoy = $comprasFiltradas->filter(function($compra) {
+                            return \Carbon\Carbon::parse($compra->Fecha_compra)->isToday();
+                        })->count();
                         
-                        $totalProductos = $compra->detalleCompras->count();
-                        $totalUnidades = $compra->detalleCompras->sum('Cantidad');
+                        $totalInversion = $comprasFiltradas->sum('Total');
+                        $promedioCompra = $comprasFiltradas->count() > 0 ? $comprasFiltradas->avg('Total') : 0;
+                        
+                        $stats = [
+                            [
+                                'titulo' => 'Compras Filtradas',
+                                'valor' => $comprasFiltradas->count(),
+                                'icono' => 'fas fa-shopping-cart',
+                                'color' => '#667eea',
+                                'gradiente' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                'descripcion' => request()->anyFilled(['id', 'fecha', 'fecha_desde', 'fecha_hasta', 'proveedor_id', 'monto_min', 'monto_max', 'producto']) ? 'Con filtros aplicados' : 'Todas las compras'
+                            ],
+                            [
+                                'titulo' => 'Compras Hoy',
+                                'valor' => $comprasHoy,
+                                'icono' => 'fas fa-bolt',
+                                'color' => '#10b981',
+                                'gradiente' => 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                'descripcion' => 'Actividad del día'
+                            ],
+                            [
+                                'titulo' => 'Inversión Total',
+                                'valor' => '$' . number_format($totalInversion, 2),
+                                'icono' => 'fas fa-dollar-sign',
+                                'color' => '#f59e0b',
+                                'gradiente' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                'descripcion' => 'Suma total'
+                            ],
+                            [
+                                'titulo' => 'Promedio Compra',
+                                'valor' => '$' . number_format($promedioCompra, 2),
+                                'icono' => 'fas fa-chart-line',
+                                'color' => '#3b82f6',
+                                'gradiente' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                'descripcion' => 'Por transacción'
+                            ]
+                        ];
                     @endphp
-                    <tr class="align-middle compra-row">
-                        <!-- Botón expandir -->
-                        <td class="ps-4">
-                            <button class="btn btn-sm btn-expand" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#detallesCompra{{ $compra->id }}"
-                                    style="
-                                        width: 32px;
-                                        height: 32px;
-                                        border-radius: 8px;
-                                        border: 1px solid #e5e7eb;
-                                        color: #6b7280;
-                                        transition: all 0.3s ease;
+
+                    @foreach($stats as $stat)
+                    <div class="col-md-6 col-lg-3">
+                        <div class="stat-card h-100" style="
+                            background: white;
+                            border-radius: 24px;
+                            padding: 1.5rem;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                            border: 1px solid rgba(0,0,0,0.03);
+                            transition: all 0.3s ease;
+                            cursor: default;
+                            position: relative;
+                            overflow: hidden;
+                        ">
+                            <div class="stat-decoration" style="
+                                position: absolute;
+                                top: -50%;
+                                right: -50%;
+                                width: 200px;
+                                height: 200px;
+                                background: {{ $stat['gradiente'] }};
+                                opacity: 0.05;
+                                border-radius: 50%;
+                                transition: all 0.5s ease;
+                            "></div>
+                            
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="badge" style="
+                                        background: {{ $stat['gradiente'] }};
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 50px;
+                                        font-size: 0.75rem;
+                                        font-weight: 600;
+                                        letter-spacing: 0.5px;
                                     ">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </td>
-                        
-                        <!-- Compra -->
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="compra-avatar me-3" style="
-                                    width: 48px;
-                                    height: 48px;
-                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                    border-radius: 14px;
+                                        {{ $stat['descripcion'] }}
+                                    </span>
+                                </div>
+                                <div class="stat-icon" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    background: {{ $stat['gradiente'] }};
+                                    border-radius: 16px;
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
                                     color: white;
-                                    font-weight: 600;
-                                    font-size: 1.2rem;
-                                    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+                                    font-size: 1.5rem;
+                                    box-shadow: 0 8px 20px {{ $stat['color'] }}40;
                                 ">
-                                    <i class="fas fa-receipt"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Compra #{{ str_pad($compra->id, 5, '0', STR_PAD_LEFT) }}</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-boxes me-1"></i>{{ $totalUnidades }} unidad(es)
-                                    </small>
+                                    <i class="{{ $stat['icono'] }}"></i>
                                 </div>
                             </div>
-                        </td>
+                            
+                            <h3 class="fw-bold mb-1" style="font-size: 2rem; color: #1f2937;">{{ $stat['valor'] }}</h3>
+                            <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ $stat['titulo'] }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
 
-                        <!-- Fecha y Hora -->
-                        <td>
-                            <div class="fw-medium">
-                                {{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('d/m/Y') }}
-                            </div>
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-1" style="color: #f59e0b;"></i>
-                                {{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('h:i A') }}
-                            </small>
-                        </td>
+                <!-- Panel de Filtros Mejorado -->
+                <div class="filters-panel mb-4 mx-3 mx-lg-4" style="
+                    background: white;
+                    border-radius: 24px;
+                    padding: 1.5rem;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                    border: 1px solid rgba(0,0,0,0.03);
+                ">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="filters-icon" style="
+                            width: 45px;
+                            height: 45px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                        ">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color: #1f2937;">Filtros de Búsqueda</h5>
+                            <p class="text-muted small mb-0">Encuentra compras específicas usando los siguientes filtros</p>
+                        </div>
+                    </div>
 
-                        <!-- Proveedor -->
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="proveedor-avatar me-2" style="
-                                    width: 32px;
-                                    height: 32px;
-                                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                                    border-radius: 10px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    color: white;
-                                    font-size: 0.9rem;
-                                ">
-                                    <i class="fas fa-truck"></i>
-                                </div>
-                                <div>
-                                    <span class="fw-medium">{{ Str::limit($proveedorNombreCompleto, 20) }}</span>
-                                    @if($compra->proveedor)
-                                        <br>
-                                        <small class="text-muted">ID: {{ $compra->proveedor->id }}</small>
+                    <form id="filtrosForm" method="GET" action="{{ route('compras.index') }}">
+                        <div class="row g-3">
+                            <!-- ID de Compra -->
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-hashtag me-1" style="color: #667eea;"></i>
+                                    ID de Compra
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0 bg-light">
+                                        <i class="fas fa-id-badge text-primary"></i>
+                                    </span>
+                                    <input type="number" 
+                                           class="form-control border-0 bg-light" 
+                                           name="id" 
+                                           placeholder="Ej: 123" 
+                                           value="{{ request('id') }}"
+                                           min="1">
+                                    @if(request('id'))
+                                    <button type="button" 
+                                            class="btn btn-outline-danger border-0" 
+                                            onclick="clearFilter('id')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                     @endif
                                 </div>
                             </div>
-                        </td>
 
-                        <!-- Productos -->
-                        <td>
-                            <span class="badge px-3 py-2" style="
-                                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                                color: white;
-                                border-radius: 50px;
-                                font-size: 0.75rem;
-                            ">
-                                <i class="fas fa-boxes me-1"></i>{{ $totalProductos }} productos
-                            </span>
-                            <div class="mt-1">
-                                <small class="text-muted">{{ $totalUnidades }} unidades</small>
-                            </div>
-                        </td>
-
-                        <!-- Total -->
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="total-avatar me-2" style="
-                                    width: 32px;
-                                    height: 32px;
-                                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                                    border-radius: 10px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    color: white;
-                                    font-size: 0.9rem;
-                                ">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold" style="color: #10b981;">${{ number_format($compra->Total, 2) }}</h6>
+                            <!-- Fecha Específica -->
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-calendar me-1" style="color: #667eea;"></i>
+                                    Fecha Específica
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0 bg-light">
+                                        <i class="fas fa-calendar-alt text-primary"></i>
+                                    </span>
+                                    <input type="date" 
+                                           class="form-control border-0 bg-light" 
+                                           name="fecha" 
+                                           value="{{ request('fecha') }}">
+                                    @if(request('fecha'))
+                                    <button type="button" 
+                                            class="btn btn-outline-danger border-0" 
+                                            onclick="clearFilter('fecha')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    @endif
                                 </div>
                             </div>
-                        </td>
 
-                        <!-- Acciones -->
-                        <td class="pe-4">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <a href="{{ route('compras.edit', $compra->id) }}" 
-                                   class="btn btn-sm btn-outline-primary" 
-                                   style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                   title="Editar compra">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" 
-                                        class="btn btn-sm btn-outline-danger" 
-                                        style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                        onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')"
-                                        title="Eliminar compra">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Fila expandible con detalles de la compra -->
-                    <tr class="detalle-compra-row">
-                        <td colspan="7" class="p-0 border-0">
-                            <div class="collapse" id="detallesCompra{{ $compra->id }}">
-                                <div class="p-4" style="background: #f8fafc; border-top: 1px solid #e5e7eb;">
-                                    <div class="row g-4">
-                                        <!-- Detalles de los productos -->
-                                        <div class="col-md-8">
-                                            <div class="detail-card p-3" style="
-                                                background: white;
-                                                border-radius: 16px;
-                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                                            ">
-                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
-                                                    <i class="fas fa-boxes me-2 text-primary"></i>
-                                                    Productos Comprados
-                                                </h6>
-                                                
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm">
-                                                        <thead>
-                                                            <tr class="text-muted small">
-                                                                <th>Producto</th>
-                                                                <th class="text-center">Precio Unitario</th>
-                                                                <th class="text-center">Cantidad</th>
-                                                                <th class="text-end">Subtotal</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @forelse($compra->detalleCompras as $detalle)
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="d-flex align-items-center">
-                                                                        <div class="avatar-xs me-2" style="
-                                                                            width: 24px;
-                                                                            height: 24px;
-                                                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                                                            border-radius: 6px;
-                                                                            display: flex;
-                                                                            align-items: center;
-                                                                            justify-content: center;
-                                                                            color: white;
-                                                                            font-size: 0.7rem;
-                                                                        ">
-                                                                            <i class="fas fa-box"></i>
-                                                                        </div>
-                                                                        <div>
-                                                                            <span class="fw-medium">{{ $detalle->producto->Nombre ?? 'Producto no disponible' }}</span>
-                                                                            <br>
-                                                                            <small class="text-muted">Código: {{ $detalle->Producto ?? 'N/A' }}</small>
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="text-center fw-semibold">
-                                                                    ${{ number_format($detalle->Precio_unitario, 2) }}
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <span class="badge px-3 py-1" style="
-                                                                        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                                                                        color: white;
-                                                                        border-radius: 50px;
-                                                                    ">
-                                                                        {{ $detalle->Cantidad }}
-                                                                    </span>
-                                                                </td>
-                                                                <td class="text-end fw-bold" style="color: #10b981;">
-                                                                    ${{ number_format($detalle->Subtotal, 2) }}
-                                                                </td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="4" class="text-center py-4">
-                                                                    <div class="text-muted">
-                                                                        <i class="fas fa-box-open fa-2x mb-2"></i>
-                                                                        <p class="mb-0">No hay productos en esta compra</p>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                            @endforelse
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                            <!-- Rango de Fechas -->
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-calendar-range me-1" style="color: #667eea;"></i>
+                                    Rango de Fechas
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">
+                                                <i class="fas fa-calendar-plus text-primary"></i>
+                                            </span>
+                                            <input type="date" 
+                                                   class="form-control border-0 bg-light" 
+                                                   name="fecha_desde" 
+                                                   value="{{ request('fecha_desde') }}"
+                                                   placeholder="Desde">
                                         </div>
-                                        
-                                        <!-- Resumen de la compra -->
-                                        <div class="col-md-4">
-                                            <div class="detail-card p-3" style="
-                                                background: white;
-                                                border-radius: 16px;
-                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                                            ">
-                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
-                                                    <i class="fas fa-chart-pie me-2 text-primary"></i>
-                                                    Resumen de Compra
-                                                </h6>
-                                                
-                                                <div class="mb-3">
-                                                    <div class="detail-item d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">Subtotal:</span>
-                                                        <span class="fw-medium">${{ number_format($compra->Total, 2) }}</span>
-                                                    </div>
-                                                    
-                                                    <div class="detail-item d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">Productos:</span>
-                                                        <span class="fw-medium">{{ $totalProductos }}</span>
-                                                    </div>
-                                                    
-                                                    <div class="detail-item d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">Unidades:</span>
-                                                        <span class="fw-medium">{{ $totalUnidades }}</span>
-                                                    </div>
-                                                    
-                                                    <div class="detail-item d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">Fecha:</span>
-                                                        <span class="fw-medium">{{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('d/m/Y') }}</span>
-                                                    </div>
-                                                    
-                                                    <div class="detail-item d-flex justify-content-between">
-                                                        <span class="text-muted">Hora:</span>
-                                                        <span class="fw-medium">{{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('h:i A') }}</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <hr style="margin: 1rem 0; border-color: #e5e7eb;">
-                                                
-                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <span class="fw-bold">Total:</span>
-                                                    <h5 class="mb-0 fw-bold" style="color: #10b981;">
-                                                        ${{ number_format($compra->Total, 2) }}
-                                                    </h5>
-                                                </div>
-                                                
-                                                <!-- Información del proveedor -->
-                                                @if($compra->proveedor)
-                                                <hr style="margin: 1rem 0; border-color: #e5e7eb;">
-                                                <div class="mt-3">
-                                                    <h6 class="fw-bold mb-2 text-muted small">Proveedor:</h6>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="avatar-sm me-2" style="
-                                                            width: 36px;
-                                                            height: 36px;
-                                                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                                                            border-radius: 10px;
-                                                            display: flex;
-                                                            align-items: center;
-                                                            justify-content: center;
-                                                            color: white;
-                                                        ">
-                                                            <i class="fas fa-truck"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium">{{ $proveedorNombreCompleto }}</div>
-                                                            <small class="text-muted">ID: {{ $compra->proveedor->id ?? 'N/A' }}</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                @endif
-                                                
-                                                <!-- Botones de acción -->
-                                                <div class="mt-4 d-grid gap-2">
-                                                    <a href="{{ route('compras.edit', $compra->id) }}" 
-                                                       class="btn btn-outline-primary btn-sm" 
-                                                       style="border-radius: 10px; border: 1px solid #e5e7eb;">
-                                                        <i class="fas fa-edit me-1"></i> Editar compra
-                                                    </a>
-                                                    <button type="button" 
-                                                            class="btn btn-outline-danger btn-sm"
-                                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                            onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')">
-                                                        <i class="fas fa-trash me-1"></i> Eliminar compra
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">
+                                                <i class="fas fa-calendar-minus text-primary"></i>
+                                            </span>
+                                            <input type="date" 
+                                                   class="form-control border-0 bg-light" 
+                                                   name="fecha_hasta" 
+                                                   value="{{ request('fecha_hasta') }}"
+                                                   placeholder="Hasta">
+                                            @if(request('fecha_desde') || request('fecha_hasta'))
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger border-0" 
+                                                    onclick="clearFilters(['fecha_desde', 'fecha_hasta'])">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="empty-state py-5">
-                                <i class="fas fa-shopping-cart fa-4x mb-3" style="color: #9ca3af;"></i>
-                                <h5 class="fw-bold mb-2">No hay compras registradas</h5>
-                                <p class="text-muted mb-4">
-                                    @if(count($filtrosActivosLista) > 0)
-                                        No se encontraron compras con los filtros aplicados.
-                                    @else
-                                        Comienza registrando la primera compra en el sistema.
+
+                            <!-- Proveedor -->
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-truck me-1" style="color: #667eea;"></i>
+                                    Proveedor
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0 bg-light">
+                                        <i class="fas fa-user-tie text-primary"></i>
+                                    </span>
+                                    <select class="form-select border-0 bg-light" name="proveedor_id">
+                                        <option value="">Todos los proveedores</option>
+                                        @foreach($proveedores as $proveedor)
+                                        <option value="{{ $proveedor->id }}" {{ request('proveedor_id') == $proveedor->id ? 'selected' : '' }}>
+                                            {{ $proveedor->Nombre ?? '' }} {{ $proveedor->ApPaterno ?? $proveedor->ApellidoPaterno ?? '' }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                    @if(request('proveedor_id'))
+                                    <button type="button" 
+                                            class="btn btn-outline-danger border-0" 
+                                            onclick="clearFilter('proveedor_id')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                     @endif
-                                </p>
-                                <div class="d-flex gap-2 justify-content-center">
-                                    @if(count($filtrosActivosLista) > 0)
-                                    <a href="{{ route('compras.index') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-redo me-2"></i>Limpiar Filtros
-                                    </a>
-                                    @endif
-                                    <a href="{{ route('compras.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus-circle me-2"></i>Registrar Compra
-                                    </a>
                                 </div>
                             </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
 
-        <!-- Paginación -->
-        @if($comprasPaginated->hasPages())
-        <div class="p-4 d-flex justify-content-between align-items-center" style="border-top: 1px solid #e5e7eb;">
-            <div class="text-muted small">
-                Página {{ $comprasPaginated->currentPage() }} de {{ $comprasPaginated->lastPage() }}
-            </div>
-            <div>
-                {{ $comprasPaginated->appends(request()->query())->links() }}
+                            <!-- Rango de Monto -->
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-dollar-sign me-1" style="color: #667eea;"></i>
+                                    Monto Total
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">$</span>
+                                            <input type="number" 
+                                                   class="form-control border-0 bg-light" 
+                                                   name="monto_min" 
+                                                   placeholder="Mínimo" 
+                                                   value="{{ request('monto_min') }}"
+                                                   step="0.01"
+                                                   min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-light">$</span>
+                                            <input type="number" 
+                                                   class="form-control border-0 bg-light" 
+                                                   name="monto_max" 
+                                                   placeholder="Máximo" 
+                                                   value="{{ request('monto_max') }}"
+                                                   step="0.01"
+                                                   min="0">
+                                            @if(request('monto_min') || request('monto_max'))
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger border-0" 
+                                                    onclick="clearFilters(['monto_min', 'monto_max'])">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Producto -->
+                            <div class="col-md-4">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-box me-1" style="color: #667eea;"></i>
+                                    Producto
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0 bg-light">
+                                        <i class="fas fa-search text-primary"></i>
+                                    </span>
+                                    <input type="text" 
+                                           class="form-control border-0 bg-light" 
+                                           name="producto" 
+                                           placeholder="Nombre del producto" 
+                                           value="{{ request('producto') }}">
+                                    @if(request('producto'))
+                                    <button type="button" 
+                                            class="btn btn-outline-danger border-0" 
+                                            onclick="clearFilter('producto')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Ordenamiento -->
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-sort me-1" style="color: #667eea;"></i>
+                                    Ordenar por
+                                </label>
+                                <select class="form-select border-0 bg-light" name="sort_by">
+                                    <option value="Fecha_compra" {{ request('sort_by', 'Fecha_compra') == 'Fecha_compra' ? 'selected' : '' }}>Fecha</option>
+                                    <option value="Total" {{ request('sort_by') == 'Total' ? 'selected' : '' }}>Monto Total</option>
+                                    <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID de Compra</option>
+                                </select>
+                            </div>
+
+                            <!-- Dirección de orden -->
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted fw-semibold">
+                                    <i class="fas fa-sort-amount-down me-1" style="color: #667eea;"></i>
+                                    Dirección
+                                </label>
+                                <select class="form-select border-0 bg-light" name="sort_order">
+                                    <option value="desc" {{ request('sort_order', 'desc') == 'desc' ? 'selected' : '' }}>Descendente</option>
+                                    <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Ascendente</option>
+                                </select>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-end align-items-center h-100 gap-2">
+                                    @php
+                                        $filtrosActivos = collect(request()->all())
+                                            ->filter(function($value, $key) {
+                                                return in_array($key, ['id', 'fecha', 'fecha_desde', 'fecha_hasta', 'proveedor_id', 'monto_min', 'monto_max', 'producto']) 
+                                                       && !empty($value);
+                                            })
+                                            ->count();
+                                    @endphp
+                                    
+                                    @if($filtrosActivos > 0)
+                                    <span class="badge px-3 py-2" style="
+                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        color: white;
+                                        border-radius: 50px;
+                                        font-size: 0.85rem;
+                                    ">
+                                        <i class="fas fa-filter me-1"></i>
+                                        {{ $filtrosActivos }} filtro(s) activo(s)
+                                    </span>
+                                    @endif
+                                    
+                                    <div class="btn-group">
+                                        <button type="submit" class="btn btn-primary px-4" style="
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            border: none;
+                                            border-radius: 12px 0 0 12px;
+                                        ">
+                                            <i class="fas fa-search me-1"></i> Aplicar
+                                        </button>
+                                        <a href="{{ route('compras.index') }}" class="btn btn-outline-secondary px-4" style="
+                                            border-radius: 0 12px 12px 0;
+                                            border: 1px solid #e5e7eb;
+                                        ">
+                                            <i class="fas fa-redo me-1"></i> Limpiar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Indicadores de Filtros Activos -->
+                @php
+                    $filtrosActivosLista = [];
+                    if(request('id')) $filtrosActivosLista[] = ['ID Compra', request('id'), 'id'];
+                    if(request('fecha')) $filtrosActivosLista[] = ['Fecha', \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y'), 'fecha'];
+                    if(request('fecha_desde')) $filtrosActivosLista[] = ['Desde', \Carbon\Carbon::parse(request('fecha_desde'))->format('d/m/Y'), 'fecha_desde'];
+                    if(request('fecha_hasta')) $filtrosActivosLista[] = ['Hasta', \Carbon\Carbon::parse(request('fecha_hasta'))->format('d/m/Y'), 'fecha_hasta'];
+                    if(request('proveedor_id')) {
+                        $proveedor = $proveedores->firstWhere('id', request('proveedor_id'));
+                        $filtrosActivosLista[] = ['Proveedor', $proveedor ? ($proveedor->Nombre ?? '') . ' ' . ($proveedor->ApPaterno ?? $proveedor->ApellidoPaterno ?? '') : 'No encontrado', 'proveedor_id'];
+                    }
+                    if(request('monto_min')) $filtrosActivosLista[] = ['Monto Mín', '$' . number_format(request('monto_min'), 2), 'monto_min'];
+                    if(request('monto_max')) $filtrosActivosLista[] = ['Monto Máx', '$' . number_format(request('monto_max'), 2), 'monto_max'];
+                    if(request('producto')) $filtrosActivosLista[] = ['Producto', request('producto'), 'producto'];
+                @endphp
+                
+                @if(count($filtrosActivosLista) > 0)
+                <div class="active-filters mb-4 mx-3 mx-lg-4" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1rem 1.5rem;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+                ">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="text-muted small fw-semibold">
+                            <i class="fas fa-filter me-1 text-primary"></i>
+                            Filtros activos:
+                        </span>
+                        @foreach($filtrosActivosLista as $filtro)
+                        <span class="badge d-inline-flex align-items-center gap-2 px-3 py-2" style="
+                            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                            color: #4a5568;
+                            border: 1px solid rgba(102, 126, 234, 0.2);
+                            border-radius: 50px;
+                            font-size: 0.85rem;
+                        ">
+                            <i class="fas fa-check-circle text-primary"></i>
+                            {{ $filtro[0] }}: {{ $filtro[1] }}
+                            <button type="button" class="btn-close btn-close-sm ms-2" 
+                                    style="font-size: 0.6rem;"
+                                    onclick="clearFilter('{{ $filtro[2] }}')">
+                            </button>
+                        </span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Tabla de compras Mejorada -->
+                <div class="table-container mx-3 mx-lg-4 mb-5" style="
+                    background: white;
+                    border-radius: 24px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+                    overflow: hidden;
+                    border: 1px solid rgba(0,0,0,0.03);
+                ">
+                    <div class="table-header p-4 d-flex justify-content-between align-items-center" style="
+                        border-bottom: 1px solid #e5e7eb;
+                        background: white;
+                    ">
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color: #1f2937;">
+                                <i class="fas fa-list-ul me-2 text-primary"></i>
+                                Historial de Compras
+                            </h5>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-info-circle me-1"></i>
+                                @if($comprasPaginated->total() > 0)
+                                Mostrando {{ $comprasPaginated->firstItem() ?? 0 }}-{{ $comprasPaginated->lastItem() ?? 0 }} de {{ $comprasPaginated->total() }} compra(s)
+                                @else
+                                No hay compras que mostrar
+                                @endif
+                            </p>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge px-3 py-2" style="
+                                background: #f3f4f6;
+                                color: #4b5563;
+                                border-radius: 50px;
+                                font-size: 0.85rem;
+                            ">
+                                <i class="fas fa-arrow-{{ request('sort_order', 'desc') == 'asc' ? 'up' : 'down' }} me-1"></i>
+                                Orden: {{ request('sort_by', 'Fecha_compra') == 'Fecha_compra' ? 'Fecha' : (request('sort_by') == 'Total' ? 'Monto' : 'ID') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th class="py-3 ps-4" width="50px"></th>
+                                    <th class="py-3">Compra</th>
+                                    <th class="py-3">Fecha y Hora</th>
+                                    <th class="py-3">Proveedor</th>
+                                    <th class="py-3">Productos</th>
+                                    <th class="py-3">Total</th>
+                                    <th class="py-3 pe-4 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($comprasPaginated as $compra)
+                                @php
+                                    // Obtener nombre completo del proveedor
+                                    $proveedorNombreCompleto = 'Sin proveedor';
+                                    if ($compra->proveedor) {
+                                        $nombre = $compra->proveedor->Nombre ?? '';
+                                        $apellidoPaterno = $compra->proveedor->ApPaterno ?? $compra->proveedor->ApellidoPaterno ?? '';
+                                        $apellidoMaterno = $compra->proveedor->ApMaterno ?? $compra->proveedor->ApellidoMaterno ?? '';
+                                        
+                                        $nombreCompleto = trim($nombre . ' ' . $apellidoPaterno . ' ' . $apellidoMaterno);
+                                        $proveedorNombreCompleto = $nombreCompleto ?: $compra->proveedor->Nombre ?? 'Proveedor sin nombre';
+                                    }
+                                    
+                                    $totalProductos = $compra->detalleCompras->count();
+                                    $totalUnidades = $compra->detalleCompras->sum('Cantidad');
+                                @endphp
+                                <tr class="align-middle compra-row">
+                                    <!-- Botón expandir -->
+                                    <td class="ps-4">
+                                        <button class="btn btn-sm btn-expand" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#detallesCompra{{ $compra->id }}"
+                                                style="
+                                                    width: 32px;
+                                                    height: 32px;
+                                                    border-radius: 8px;
+                                                    border: 1px solid #e5e7eb;
+                                                    color: #6b7280;
+                                                    transition: all 0.3s ease;
+                                                ">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </td>
+                                    
+                                    <!-- Compra -->
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="compra-avatar me-3" style="
+                                                width: 48px;
+                                                height: 48px;
+                                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                border-radius: 14px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                                font-weight: 600;
+                                                font-size: 1.2rem;
+                                                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+                                            ">
+                                                <i class="fas fa-receipt"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1">Compra #{{ str_pad($compra->id, 5, '0', STR_PAD_LEFT) }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-boxes me-1"></i>{{ $totalUnidades }} unidad(es)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Fecha y Hora -->
+                                    <td>
+                                        <div class="fw-medium">
+                                            {{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('d/m/Y') }}
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1" style="color: #f59e0b;"></i>
+                                            {{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('h:i A') }}
+                                        </small>
+                                    </td>
+
+                                    <!-- Proveedor -->
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="proveedor-avatar me-2" style="
+                                                width: 32px;
+                                                height: 32px;
+                                                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                                border-radius: 10px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                                font-size: 0.9rem;
+                                            ">
+                                                <i class="fas fa-truck"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-medium">{{ Str::limit($proveedorNombreCompleto, 20) }}</span>
+                                                @if($compra->proveedor)
+                                                    <br>
+                                                    <small class="text-muted">ID: {{ $compra->proveedor->id }}</small>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Productos -->
+                                    <td>
+                                        <span class="badge px-3 py-2" style="
+                                            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                                            color: white;
+                                            border-radius: 50px;
+                                            font-size: 0.75rem;
+                                        ">
+                                            <i class="fas fa-boxes me-1"></i>{{ $totalProductos }} productos
+                                        </span>
+                                        <div class="mt-1">
+                                            <small class="text-muted">{{ $totalUnidades }} unidades</small>
+                                        </div>
+                                    </td>
+
+                                    <!-- Total -->
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="total-avatar me-2" style="
+                                                width: 32px;
+                                                height: 32px;
+                                                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                                                border-radius: 10px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                                font-size: 0.9rem;
+                                            ">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold" style="color: #10b981;">${{ number_format($compra->Total, 2) }}</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Acciones -->
+                                    <td class="pe-4">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ route('compras.edit', $compra->id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                               title="Editar compra">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                    onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')"
+                                                    title="Eliminar compra">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Fila expandible con detalles de la compra -->
+                                <tr class="detalle-compra-row">
+                                    <td colspan="7" class="p-0 border-0">
+                                        <div class="collapse" id="detallesCompra{{ $compra->id }}">
+                                            <div class="p-4" style="background: #f8fafc; border-top: 1px solid #e5e7eb;">
+                                                <div class="row g-4">
+                                                    <!-- Detalles de los productos -->
+                                                    <div class="col-md-8">
+                                                        <div class="detail-card p-3" style="
+                                                            background: white;
+                                                            border-radius: 16px;
+                                                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                                        ">
+                                                            <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                                <i class="fas fa-boxes me-2 text-primary"></i>
+                                                                Productos Comprados
+                                                            </h6>
+                                                            
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm">
+                                                                    <thead>
+                                                                        <tr class="text-muted small">
+                                                                            <th>Producto</th>
+                                                                            <th class="text-center">Precio Unitario</th>
+                                                                            <th class="text-center">Cantidad</th>
+                                                                            <th class="text-end">Subtotal</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @forelse($compra->detalleCompras as $detalle)
+                                                                        <tr>
+                                                                            <td>
+                                                                                <div class="d-flex align-items-center">
+                                                                                    <div class="avatar-xs me-2" style="
+                                                                                        width: 24px;
+                                                                                        height: 24px;
+                                                                                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                                                                        border-radius: 6px;
+                                                                                        display: flex;
+                                                                                        align-items: center;
+                                                                                        justify-content: center;
+                                                                                        color: white;
+                                                                                        font-size: 0.7rem;
+                                                                                    ">
+                                                                                        <i class="fas fa-box"></i>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <span class="fw-medium">{{ $detalle->producto->Nombre ?? 'Producto no disponible' }}</span>
+                                                                                        <br>
+                                                                                        <small class="text-muted">Código: {{ $detalle->Producto ?? 'N/A' }}</small>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td class="text-center fw-semibold">
+                                                                                ${{ number_format($detalle->Precio_unitario, 2) }}
+                                                                            </td>
+                                                                            <td class="text-center">
+                                                                                <span class="badge px-3 py-1" style="
+                                                                                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                                                                                    color: white;
+                                                                                    border-radius: 50px;
+                                                                                ">
+                                                                                    {{ $detalle->Cantidad }}
+                                                                                </span>
+                                                                            </td>
+                                                                            <td class="text-end fw-bold" style="color: #10b981;">
+                                                                                ${{ number_format($detalle->Subtotal, 2) }}
+                                                                            </td>
+                                                                        </tr>
+                                                                        @empty
+                                                                        <tr>
+                                                                            <td colspan="4" class="text-center py-4">
+                                                                                <div class="text-muted">
+                                                                                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                                                                                    <p class="mb-0">No hay productos en esta compra</p>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                        @endforelse
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Resumen de la compra -->
+                                                    <div class="col-md-4">
+                                                        <div class="detail-card p-3" style="
+                                                            background: white;
+                                                            border-radius: 16px;
+                                                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                                        ">
+                                                            <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                                <i class="fas fa-chart-pie me-2 text-primary"></i>
+                                                                Resumen de Compra
+                                                            </h6>
+                                                            
+                                                            <div class="mb-3">
+                                                                <div class="detail-item d-flex justify-content-between mb-2">
+                                                                    <span class="text-muted">Subtotal:</span>
+                                                                    <span class="fw-medium">${{ number_format($compra->Total, 2) }}</span>
+                                                                </div>
+                                                                
+                                                                <div class="detail-item d-flex justify-content-between mb-2">
+                                                                    <span class="text-muted">Productos:</span>
+                                                                    <span class="fw-medium">{{ $totalProductos }}</span>
+                                                                </div>
+                                                                
+                                                                <div class="detail-item d-flex justify-content-between mb-2">
+                                                                    <span class="text-muted">Unidades:</span>
+                                                                    <span class="fw-medium">{{ $totalUnidades }}</span>
+                                                                </div>
+                                                                
+                                                                <div class="detail-item d-flex justify-content-between mb-2">
+                                                                    <span class="text-muted">Fecha:</span>
+                                                                    <span class="fw-medium">{{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('d/m/Y') }}</span>
+                                                                </div>
+                                                                
+                                                                <div class="detail-item d-flex justify-content-between">
+                                                                    <span class="text-muted">Hora:</span>
+                                                                    <span class="fw-medium">{{ \Carbon\Carbon::parse($compra->Fecha_compra)->format('h:i A') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <hr style="margin: 1rem 0; border-color: #e5e7eb;">
+                                                            
+                                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                                <span class="fw-bold">Total:</span>
+                                                                <h5 class="mb-0 fw-bold" style="color: #10b981;">
+                                                                    ${{ number_format($compra->Total, 2) }}
+                                                                </h5>
+                                                            </div>
+                                                            
+                                                            <!-- Información del proveedor -->
+                                                            @if($compra->proveedor)
+                                                            <hr style="margin: 1rem 0; border-color: #e5e7eb;">
+                                                            <div class="mt-3">
+                                                                <h6 class="fw-bold mb-2 text-muted small">Proveedor:</h6>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="avatar-sm me-2" style="
+                                                                        width: 36px;
+                                                                        height: 36px;
+                                                                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                                                        border-radius: 10px;
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        justify-content: center;
+                                                                        color: white;
+                                                                    ">
+                                                                        <i class="fas fa-truck"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div class="fw-medium">{{ $proveedorNombreCompleto }}</div>
+                                                                        <small class="text-muted">ID: {{ $compra->proveedor->id ?? 'N/A' }}</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            @endif
+                                                            
+                                                            <!-- Botones de acción -->
+                                                            <div class="mt-4 d-grid gap-2">
+                                                                <a href="{{ route('compras.edit', $compra->id) }}" 
+                                                                   class="btn btn-outline-primary btn-sm" 
+                                                                   style="border-radius: 10px; border: 1px solid #e5e7eb;">
+                                                                    <i class="fas fa-edit me-1"></i> Editar compra
+                                                                </a>
+                                                                <button type="button" 
+                                                                        class="btn btn-outline-danger btn-sm"
+                                                                        style="border-radius: 10px; border: 1px solid #e5e7eb;"
+                                                                        onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')">
+                                                                    <i class="fas fa-trash me-1"></i> Eliminar compra
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="empty-state py-5">
+                                            <i class="fas fa-shopping-cart fa-4x mb-3" style="color: #9ca3af;"></i>
+                                            <h5 class="fw-bold mb-2">No hay compras registradas</h5>
+                                            <p class="text-muted mb-4">
+                                                @if(count($filtrosActivosLista) > 0)
+                                                    No se encontraron compras con los filtros aplicados.
+                                                @else
+                                                    Comienza registrando la primera compra en el sistema.
+                                                @endif
+                                            </p>
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                @if(count($filtrosActivosLista) > 0)
+                                                <a href="{{ route('compras.index') }}" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-redo me-2"></i>Limpiar Filtros
+                                                </a>
+                                                @endif
+                                                <a href="{{ route('compras.create') }}" class="btn btn-primary">
+                                                    <i class="fas fa-plus-circle me-2"></i>Registrar Compra
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    @if($comprasPaginated->hasPages())
+                    <div class="p-4 d-flex justify-content-between align-items-center" style="border-top: 1px solid #e5e7eb;">
+                        <div class="text-muted small">
+                            Página {{ $comprasPaginated->currentPage() }} de {{ $comprasPaginated->lastPage() }}
+                        </div>
+                        <div>
+                            {{ $comprasPaginated->appends(request()->query())->links() }}
+                        </div>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
-        @endif
     </div>
 </div>
 
@@ -1041,8 +1054,108 @@
     </div>
 </div>
 
+<!-- Toast Notifications Container -->
+<div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
 @push('scripts')
 <script>
+// Sistema de Notificaciones
+class NotificationManager {
+    constructor() {
+        this.notifications = [];
+        this.maxNotifications = 3;
+        this.container = document.getElementById('toastContainer');
+    }
+
+    show(message, type = 'info', title = null) {
+        if (this.notifications.length >= this.maxNotifications) {
+            const oldestNotification = this.notifications.shift();
+            this.removeNotification(oldestNotification);
+        }
+
+        const notification = this.createNotification(message, type, title);
+        this.notifications.push(notification);
+        
+        setTimeout(() => {
+            this.removeNotification(notification);
+        }, 4000);
+
+        return notification;
+    }
+
+    createNotification(message, type, title) {
+        const titles = {
+            success: '¡Excelente!',
+            error: '¡Oops! Algo salió mal',
+            warning: '¡Atención!',
+            info: 'Información'
+        };
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        const notificationTitle = title || titles[type] || 'Notificación';
+
+        const notification = document.createElement('div');
+        notification.className = `toast-notification toast-${type}`;
+        notification.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon-wrapper">
+                    <i class="fas ${icons[type]}"></i>
+                </div>
+                <div class="toast-text">
+                    <div class="toast-title">${notificationTitle}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.closest('.toast-notification').classList.add('hiding'); setTimeout(() => this.closest('.toast-notification').remove(), 300)">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="toast-progress"></div>
+            </div>
+        `;
+
+        this.container.appendChild(notification);
+        return notification;
+    }
+
+    removeNotification(notification) {
+        if (!notification) return;
+        
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            notification.remove();
+            this.notifications = this.notifications.filter(n => n !== notification);
+        }, 300);
+    }
+
+    showValidationError(message) {
+        this.show(message, 'warning', 'Errores en el formulario');
+    }
+
+    showSuccess(message) {
+        this.show(message, 'success', '¡Operación exitosa!');
+    }
+
+    showError(message) {
+        this.show(message, 'error', 'Error en la operación');
+    }
+
+    showWarning(message) {
+        this.show(message, 'warning', 'Advertencia');
+    }
+
+    showInfo(message) {
+        this.show(message, 'info', 'Información');
+    }
+}
+
+// Instancia global del notification manager
+const notifier = new NotificationManager();
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips
     initTooltips();
@@ -1059,6 +1172,23 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('filtrosForm').submit();
         });
     });
+    
+    // Mostrar notificaciones de sesión si existen
+    @if(session('success'))
+        notifier.showSuccess("{{ session('success') }}");
+    @endif
+    
+    @if(session('error'))
+        notifier.showError("{{ session('error') }}");
+    @endif
+    
+    @if(session('warning'))
+        notifier.showWarning("{{ session('warning') }}");
+    @endif
+    
+    @if(session('info'))
+        notifier.showInfo("{{ session('info') }}");
+    @endif
 });
 
 function initTooltips() {
@@ -1116,7 +1246,7 @@ function setupFormValidations() {
             if (montoMin && montoMax && montoMin.value && montoMax.value) {
                 if (parseFloat(montoMin.value) > parseFloat(montoMax.value)) {
                     e.preventDefault();
-                    showNotification('El monto mínimo no puede ser mayor al monto máximo.', 'error');
+                    notifier.showWarning('El monto mínimo no puede ser mayor al monto máximo.');
                     montoMin.focus();
                     return false;
                 }
@@ -1126,52 +1256,13 @@ function setupFormValidations() {
             if (fechaDesde && fechaHasta && fechaDesde.value && fechaHasta.value) {
                 if (new Date(fechaDesde.value) > new Date(fechaHasta.value)) {
                     e.preventDefault();
-                    showNotification('La fecha "Desde" no puede ser mayor que la fecha "Hasta".', 'error');
+                    notifier.showWarning('La fecha "Desde" no puede ser mayor que la fecha "Hasta".');
                     fechaDesde.focus();
                     return false;
                 }
             }
         });
     }
-}
-
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = 'toast-notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 30px;
-        right: 30px;
-        min-width: 350px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        padding: 1rem 1.5rem;
-        z-index: 9999;
-        animation: slideIn 0.3s ease;
-        border-left: 4px solid ${type === 'success' ? '#10b981' : '#ef4444'};
-    `;
-    
-    notification.innerHTML = `
-        <div class="d-flex align-items-center gap-3">
-            <div class="notification-icon">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" 
-                   style="color: ${type === 'success' ? '#10b981' : '#ef4444'}; font-size: 1.5rem;"></i>
-            </div>
-            <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1">${type === 'success' ? '¡Operación exitosa!' : 'Error'}</h6>
-                <p class="mb-0 small text-muted">${message}</p>
-            </div>
-            <button class="btn-close" onclick="this.closest('.toast-notification').remove()"></button>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
 }
 
 function clearFilter(filterName) {
@@ -1191,7 +1282,7 @@ function clearFilters(filterNames) {
 function setDeleteCompra(compraId, total) {
     try {
         // Actualizar elementos del modal
-        document.getElementById('deleteCompraDisplay').textContent = `¿Eliminar Compra #${compraId}?`;
+        document.getElementById('deleteCompraDisplay').textContent = `¿Eliminar Compra #${String(compraId).padStart(5, '0')}?`;
         document.getElementById('deleteCompraInfo').innerHTML = `<small class="text-muted">Esta acción no se puede deshacer</small>`;
         document.getElementById('deleteCompraId').textContent = `#${String(compraId).padStart(5, '0')}`;
         document.getElementById('deleteCompraTotal').textContent = `$${total}`;
@@ -1208,93 +1299,173 @@ function setDeleteCompra(compraId, total) {
         
     } catch (error) {
         console.error('Error:', error);
-        alert('Error al preparar la eliminación. Por favor, recarga la página.');
+        notifier.showError('Error al preparar la eliminación. Por favor, recarga la página.');
     }
 }
-
-// Agregar estilos de animación
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .stat-card:hover .stat-decoration {
-        transform: scale(1.2);
-    }
-    
-    .btn-expand:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-    }
-    
-    .detail-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    .delete-icon-circle {
-        animation: pulseIcon 2s infinite;
-    }
-    
-    .pagination {
-        gap: 5px;
-    }
-    
-    .page-link {
-        border-radius: 10px !important;
-        border: 1px solid #e5e7eb !important;
-        color: #4b5563 !important;
-        padding: 0.5rem 1rem !important;
-        transition: all 0.3s ease;
-    }
-    
-    .page-link:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-        transform: translateY(-2px);
-    }
-    
-    .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border: none !important;
-    }
-`;
-document.head.appendChild(style);
 </script>
 @endpush
 
 <style>
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 350px;
+    max-width: 450px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    overflow: hidden;
+    z-index: 10000;
+    animation: slideInRight 0.3s ease forwards;
+    border-left: 4px solid;
+}
+
+.toast-notification.hiding {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+.toast-notification.toast-success {
+    border-left-color: #10b981;
+}
+
+.toast-notification.toast-error {
+    border-left-color: #ef4444;
+}
+
+.toast-notification.toast-warning {
+    border-left-color: #f59e0b;
+}
+
+.toast-notification.toast-info {
+    border-left-color: #3b82f6;
+}
+
+.toast-content {
+    position: relative;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+}
+
+.toast-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.toast-success .toast-icon-wrapper {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.toast-error .toast-icon-wrapper {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.toast-warning .toast-icon-wrapper {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.toast-info .toast-icon-wrapper {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.toast-text {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+.toast-message {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.toast-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    animation: progress 4s linear forwards;
+}
+
+.toast-success .toast-progress {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.toast-error .toast-progress {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.toast-warning .toast-progress {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.toast-info .toast-progress {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
 #compras-page {
-    padding-top: 20px;
+    padding-top: 0;
 }
 
 #compras-page .avatar {
@@ -1348,14 +1519,6 @@ document.head.appendChild(style);
     font-weight: 500;
 }
 
-#compras-page .card {
-    border-radius: 12px;
-}
-
-#compras-page .shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-}
-
 #compras-page .fw-semibold {
     font-weight: 600;
 }
@@ -1378,7 +1541,79 @@ document.head.appendChild(style);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
 }
 
+/* Hover effects */
+.stat-card:hover .stat-decoration {
+    transform: scale(1.2);
+}
+
+.btn-expand:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.empty-state {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.delete-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+/* Paginación */
+.pagination {
+    gap: 5px;
+}
+
+.page-link {
+    border-radius: 10px !important;
+    border: 1px solid #e5e7eb !important;
+    color: #4b5563 !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
 @media (max-width: 768px) {
+    .toast-notification {
+        min-width: 300px;
+        max-width: 350px;
+        top: 10px;
+        right: 10px;
+    }
+    
     #compras-page .btn-expand {
         width: 28px;
         height: 28px;
@@ -1436,44 +1671,9 @@ document.head.appendChild(style);
     }
 }
 
-/* Hover effects para botones de acción */
-#compras-page .btn-outline-primary:hover,
-#compras-page .btn-outline-danger:hover,
-#compras-page .btn-outline-warning:hover,
-#compras-page .btn-outline-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
 /* Tooltips personalizados */
 [data-bs-toggle="tooltip"] {
     cursor: help;
-}
-
-/* Estilos para la paginación */
-.pagination {
-    gap: 5px;
-}
-
-.page-link {
-    border-radius: 10px !important;
-    border: 1px solid #e5e7eb !important;
-    color: #4b5563 !important;
-    padding: 0.5rem 1rem !important;
-    transition: all 0.3s ease;
-}
-
-.page-link:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border-color: transparent !important;
-    transform: translateY(-2px);
-}
-
-.page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border: none !important;
 }
 </style>
 @endsection

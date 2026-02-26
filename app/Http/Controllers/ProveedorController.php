@@ -8,49 +8,59 @@ use Illuminate\Http\Request;
 class ProveedorController extends Controller
 {
     public function index(Request $request){
-        // Consulta base con relaciones
-        $query = Proveedor::with('compras');
+        // Consulta base con relaciones y conteo de compras
+        $query = Proveedor::with('compras')->withCount('compras');
         
-        // Aplicar filtros
-        if ($request->filled('id')) {
-            $query->where('id', $request->id);
-        }
-        
-        if ($request->filled('nombre')) {
-            $query->where(function($q) use ($request) {
-                $q->where('Nombre', 'LIKE', '%' . $request->nombre . '%')
-                  ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
-                  ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
+        // FILTRO DE BÚSQUEDA UNIFICADO
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('Nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('ApPaterno', 'LIKE', "%{$search}%")
+                  ->orWhere('ApMaterno', 'LIKE', "%{$search}%")
+                  ->orWhere('Empresa_asociada', 'LIKE', "%{$search}%")
+                  ->orWhere('Correo', 'LIKE', "%{$search}%")
+                  ->orWhere('Telefono', 'LIKE', "%{$search}%")
+                  ->orWhere('id', 'LIKE', "%{$search}%");
             });
         }
         
-        // CORRECCIÓN: Aquí debe ser 'empresa' que viene del formulario
+        // FILTRO POR EMPRESA
         if ($request->filled('empresa')) {
             $query->where('Empresa_asociada', 'LIKE', '%' . $request->empresa . '%');
         }
         
-        if ($request->filled('correo')) {
-            $query->where('Correo', 'LIKE', '%' . $request->correo . '%');
-        }
-        
-        if ($request->filled('telefono')) {
-            $query->where('Telefono', 'LIKE', '%' . $request->telefono . '%');
-        }
-        
+        // FILTRO POR SEXO
         if ($request->filled('sexo')) {
             $query->where('Sexo', $request->sexo);
         }
         
+        // FILTRO POR ESTADO
+        if ($request->filled('estado')) {
+            if ($request->estado === 'activos') {
+                $query->where('estado', 1);
+            } elseif ($request->estado === 'inactivos') {
+                $query->where('estado', 0);
+            }
+        }
+        // Si no se especifica estado, se muestran TODOS (activos e inactivos)
+        
         // Ordenamiento
-        $sortBy = $request->get('sort_by', 'id');
+        $sortBy = $request->get('sort_by', 'Nombre');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        $allowedSortColumns = ['id', 'Nombre', 'Empresa_asociada', 'Correo', 'Telefono', 'Sexo'];
-        if (!in_array($sortBy, $allowedSortColumns)) {
-            $sortBy = 'id';
+        // Validar que el campo de ordenamiento existe
+        $allowedSorts = ['id', 'Nombre', 'ApPaterno', 'Empresa_asociada', 'Correo', 'Telefono', 'Sexo', 'estado', 'compras_count'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'Nombre';
         }
         
-        $query->orderBy($sortBy, $sortOrder);
+        // Si ordenamos por compras_count, necesitamos un orderBy especial
+        if ($sortBy === 'compras_count') {
+            $query->orderBy('compras_count', $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
         
         // Obtener valores únicos para filtros
         $empresasUnicas = Proveedor::distinct()
@@ -62,17 +72,27 @@ class ProveedorController extends Controller
             ->values()
             ->toArray();
         
-        // Paginación
-        $proveedoresPaginated = $query->paginate(10)->appends($request->query());
+        // Obtener sexos únicos para el filtro
+        $sexos = Proveedor::select('Sexo')->distinct()->whereNotNull('Sexo')->pluck('Sexo');
         
-        // Obtener proveedores filtrados sin paginación para estadísticas
-        // USAMOS LA MISMA CONSULTA PERO SIN PAGINAR
-        $proveedoresFiltrados = $query->get();
+        // Obtener contadores para las estadísticas (TODOS los proveedores)
+        $todosProveedores = Proveedor::withCount('compras')->get();
+        
+        $totalActivos = Proveedor::where('estado', 1)->count();
+        $totalInactivos = Proveedor::where('estado', 0)->count();
+        $totalTodos = Proveedor::count();
+        
+        // Paginación
+        $proveedores = $query->paginate(10)->appends($request->except('page'));
         
         return view('proveedores.index', compact(
-            'proveedoresPaginated',
-            'proveedoresFiltrados',
-            'empresasUnicas'
+            'proveedores',
+            'empresasUnicas',
+            'sexos',
+            'todosProveedores', // Para las estadísticas
+            'totalActivos',
+            'totalInactivos',
+            'totalTodos'
         ));
     }
 
@@ -89,19 +109,26 @@ class ProveedorController extends Controller
             'ApMaterno' => 'required|string|max:255',
             'Telefono' => 'required|string|max:10',
             'Empresa_asociada' => 'required|string|max:255',
-            'Correo' => 'required|email|max:255',
-            'Sexo' => 'required|string|max:255'
+            'Correo' => 'required|email|max:255|unique:proveedores,Correo',
+            'Sexo' => 'required|string|max:255',
+            'estado' => 'sometimes|boolean'
         ]);
 
-        Proveedor::create($request->all());
+        $data = $request->all();
+        // Si no se envía el estado, por defecto será 1 (activo)
+        if (!isset($data['estado'])) {
+            $data['estado'] = 1;
+        }
+        
+        Proveedor::create($data);
 
         return redirect()->route('proveedores.index')
-            ->with('success', 'Proveedor creado exitosamente.');
+            ->with('success', 'Proveedor "' . $request->Nombre . ' ' . $request->ApPaterno . '" creado exitosamente.');
     }
 
     public function edit($id)
     {
-        $proveedor = Proveedor::findOrFail($id);
+        $proveedor = Proveedor::with('compras')->findOrFail($id);
         return view('proveedores.edit', compact('proveedor'));
     }
 
@@ -113,51 +140,176 @@ class ProveedorController extends Controller
             'ApMaterno' => 'required|string|max:255',
             'Telefono' => 'required|string|max:10',
             'Empresa_asociada' => 'required|string|max:255',
-            'Correo' => 'required|email|max:255',
-            'Sexo' => 'required|string|max:255'
+            'Correo' => 'required|email|max:255|unique:proveedores,Correo,' . $id,
+            'Sexo' => 'required|string|max:255',
+            'estado' => 'sometimes|boolean'
         ]);
 
         $proveedor = Proveedor::findOrFail($id);
-        $proveedor->update($request->all());
+        $data = $request->all();
+        
+        // Si no se envía el estado en el formulario, mantener el valor actual
+        if (!isset($data['estado'])) {
+            $data['estado'] = $proveedor->estado;
+        }
+        
+        $proveedor->update($data);
 
         return redirect()->route('proveedores.index')
-            ->with('success', 'Proveedor actualizado exitosamente.');
+            ->with('success', 'Proveedor "' . $proveedor->nombreCompleto . '" actualizado exitosamente.');
     }
 
-    public function destroy($id)
+    public function destroy($id){
+        try {
+            $proveedor = Proveedor::withCount('compras')->findOrFail($id);
+            
+            // Obtener el conteo de compras
+            $comprasCount = $proveedor->compras_count;
+            
+            // Cambiar el estado a 0 (inactivo) en lugar de eliminar
+            $proveedor->estado = 0;
+            $proveedor->save();
+            
+            if ($comprasCount > 0) {
+                return redirect()->route('proveedores.index')
+                    ->with('success', 'El proveedor "' . $proveedor->nombreCompleto . '" ha sido desactivado correctamente. Tenía ' . $comprasCount . ' compras asociadas.');
+            } else {
+                return redirect()->route('proveedores.index')
+                    ->with('success', 'El proveedor "' . $proveedor->nombreCompleto . '" ha sido desactivado correctamente.');
+            }
+                
+        } catch (\Exception $e) {
+            return redirect()->route('proveedores.index')
+                ->with('error', 'Error al desactivar el proveedor: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar el estado de un proveedor (Activar/Desactivar)
+     */
+    public function toggleEstado($id)
     {
         try {
             $proveedor = Proveedor::findOrFail($id);
             
-            // Verificar si tiene compras asociadas
-            if ($proveedor->compras()->count() > 0) {
-                return redirect()->route('proveedores.index')
-                    ->with('foreign_key_error', [
-                        'mensaje' => 'No se puede eliminar el proveedor "' . $proveedor->Nombre . ' ' . $proveedor->ApPaterno . '" porque tiene ' . $proveedor->compras()->count() . ' compras asociadas.',
-                        'proveedor_nombre' => $proveedor->Nombre . ' ' . $proveedor->ApPaterno,
-                        'proveedor_id' => $proveedor->id,
-                        'compras_count' => $proveedor->compras()->count()
-                    ]);
+            // Si va a desactivar, verificar si tiene correo único (opcional)
+            if ($proveedor->estado == 1) {
+                // No necesita verificación especial para desactivar
+                $proveedor->estado = 0;
+                $accion = 'desactivado';
+            } else {
+                // Si va a activar, verificar que el correo no esté en uso por otro activo
+                $correoExistente = Proveedor::where('Correo', $proveedor->Correo)
+                    ->where('id', '!=', $proveedor->id)
+                    ->where('estado', 1)
+                    ->exists();
+                    
+                if ($correoExistente) {
+                    return redirect()->route('proveedores.index')
+                        ->with('error', 'No se puede activar el proveedor porque el correo "' . $proveedor->Correo . '" ya está siendo utilizado por otro proveedor activo.');
+                }
+                
+                $proveedor->estado = 1;
+                $accion = 'activado';
             }
             
-            $proveedor->delete();
+            $proveedor->save();
             
             return redirect()->route('proveedores.index')
-                ->with('success', 'Proveedor eliminado exitosamente.');
+                ->with('success', "Proveedor '{$proveedor->nombreCompleto}' {$accion} correctamente.");
                 
         } catch (\Exception $e) {
             return redirect()->route('proveedores.index')
-                ->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
+                ->with('error', 'Error al cambiar el estado del proveedor: ' . $e->getMessage());
         }
     }
 
-    public function verificarCompras($id)
+    public function activar($id)
     {
-        $proveedor = Proveedor::withCount('compras')->findOrFail($id);
-        
-        return response()->json([
-            'tieneCompras' => $proveedor->compras_count > 0,
-            'comprasCount' => $proveedor->compras_count
+        try {
+            $proveedor = Proveedor::findOrFail($id);
+            
+            if ($proveedor->estado == 1) {
+                return redirect()->route('proveedores.index')
+                    ->with('warning', 'El proveedor "' . $proveedor->nombreCompleto . '" ya está activo.');
+            }
+            
+            // Verificar si el correo ya existe en otro proveedor activo
+            $correoExistente = Proveedor::where('Correo', $proveedor->Correo)
+                ->where('id', '!=', $proveedor->id)
+                ->where('estado', 1)
+                ->exists();
+                
+            if ($correoExistente) {
+                return redirect()->route('proveedores.index')
+                    ->with('error', 'No se puede activar el proveedor porque el correo "' . $proveedor->Correo . '" ya está siendo utilizado por otro proveedor activo.');
+            }
+            
+            $proveedor->estado = 1;
+            $proveedor->save();
+            
+            return redirect()->route('proveedores.index')
+                ->with('success', 'Proveedor "' . $proveedor->nombreCompleto . '" activado correctamente.');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('proveedores.index')
+                ->with('error', 'Error al activar el proveedor: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Mostrar lista de proveedores inactivos (por compatibilidad)
+     */
+    public function inactivos()
+    {
+        $proveedores = Proveedor::where('estado', 0)
+            ->with('compras')
+            ->withCount('compras')
+            ->orderBy('Nombre')
+            ->paginate(10);
+            
+        return view('proveedores.inactivos', compact('proveedores'));
+    }
+
+    /**
+     * Cambiar estado de múltiples proveedores
+     */
+    public function cambiarEstadoMasivo(Request $request)
+    {
+        $request->validate([
+            'proveedores' => 'required|array',
+            'proveedores.*' => 'exists:proveedores,id',
+            'accion' => 'required|in:activar,desactivar'
         ]);
+
+        $proveedores = Proveedor::whereIn('id', $request->proveedores);
+        
+        if ($request->accion === 'activar') {
+            // Verificar conflictos de correo antes de activar múltiples
+            $proveedoresAActivar = Proveedor::whereIn('id', $request->proveedores)
+                ->where('estado', 0)
+                ->get();
+                
+            foreach ($proveedoresAActivar as $proveedor) {
+                $correoExistente = Proveedor::where('Correo', $proveedor->Correo)
+                    ->where('id', '!=', $proveedor->id)
+                    ->where('estado', 1)
+                    ->exists();
+                    
+                if ($correoExistente) {
+                    return redirect()->route('proveedores.index')
+                        ->with('error', 'No se puede activar el proveedor "' . $proveedor->nombreCompleto . '" porque su correo ya está en uso por otro proveedor activo.');
+                }
+            }
+            
+            $proveedores->update(['estado' => 1]);
+            $mensaje = 'Proveedores activados exitosamente.';
+        } else {
+            $proveedores->update(['estado' => 0]);
+            $mensaje = 'Proveedores desactivados exitosamente.';
+        }
+
+        return redirect()->route('proveedores.index')
+            ->with('success', $mensaje);
     }
 }

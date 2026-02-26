@@ -14,104 +14,123 @@ use Illuminate\Validation\Rule;
 class EmpleadoController extends Controller
 {
     public function index(Request $request){
-    $query = Empleado::with('usuario')  
-        ->withCount(['pedidos', 'ventas']); 
-    
-    if ($request->filled('id')) {
-        $query->where('id', $request->id);
-    }
-    
-    if ($request->filled('nombre')) {
-        $query->where(function($q) use ($request) {
-            $q->where('Nombre', 'LIKE', '%' . $request->nombre . '%')
-              ->orWhere('ApPaterno', 'LIKE', '%' . $request->nombre . '%')
-              ->orWhere('ApMaterno', 'LIKE', '%' . $request->nombre . '%');
-        });
-    }
-    
-    if ($request->filled('cargo')) {
-        $query->where('Cargo', $request->cargo);
-    }
-    
-    if ($request->filled('area')) {
-        $query->where('Area_trabajo', $request->area);
-    }
-    
-    if ($request->filled('estado_usuario')) {
-        if ($request->estado_usuario == 'con_usuario') {
-            $query->whereHas('usuario');
-        } elseif ($request->estado_usuario == 'sin_usuario') {
-            $query->whereDoesntHave('usuario');
-        }
-    }
-    
-    if ($request->filled('rol')) {
-        $query->whereHas('usuario', function($q) use ($request) {
-            $q->where('rol', $request->rol);
-        });
-    }
-    
-    // Ordenamiento
-    $sortBy = $request->get('sort_by', 'id');
-    $sortOrder = $request->get('sort_order', 'asc');
-    
-    $query->orderBy($sortBy, $sortOrder);
-    
-    // Paginación con filtros
-    $empleadosPaginated = $query->paginate(10)->appends($request->query());
-    
-    // Para estadísticas (empleados filtrados)
-    $empleadosFiltrados = $query->get();
-    
-    // Para compatibilidad con estadísticas cuando no hay filtros
-    $empleados = Empleado::with('usuario')->withCount(['pedidos', 'ventas'])->get();
-    $usuarios = Usuario::with('empleado')->get();
-    
-    // Valores para filtros
-    $areas = Empleado::distinct()->pluck('Area_trabajo')->filter()->values()->toArray();
-    $cargos = Empleado::distinct()->pluck('Cargo')->filter()->values()->toArray();
-    $roles = ['Administración', 'Almacén', 'Logística'];
-    
-    // Alias para la vista
-    $areasUnicas = $areas;
-    $cargosUnicos = $cargos;
+        $query = Empleado::with('usuario')
+            ->withCount(['pedidos', 'ventas']);
+            // Eliminado el where('estado', 1) para mostrar TODOS los empleados
 
-    return view('personal.index', compact(
-        'empleados',           // Todos los empleados (para estadísticas)
-        'empleadosPaginated',  // Empleados paginados con filtros
-        'empleadosFiltrados',  // Empleados filtrados sin paginar
-        'usuarios',            // Todos los usuarios
-        'areas', 
-        'cargos', 
-        'roles',
-        'areasUnicas',
-        'cargosUnicos'
-    ));
-}
+        // Filtro por estado del empleado (NUEVO)
+        if ($request->filled('estado_empleado')) {
+            if ($request->estado_empleado == 'activos') {
+                $query->where('estado', 1);
+            } elseif ($request->estado_empleado == 'inactivos') {
+                $query->where('estado', 0);
+            }
+        } else {
+            // Por defecto, mostrar todos (activos e inactivos)
+            // No aplicar filtro de estado
+        }
+
+        // Filtro por ID
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
+
+        // Filtro por nombre
+        if ($request->filled('nombre')) {
+            $search = $request->nombre;
+            $query->where(function($q) use ($search) {
+                $q->where('Nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('ApPaterno', 'LIKE', "%{$search}%")
+                  ->orWhere('ApMaterno', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filtro por cargo
+        if ($request->filled('cargo')) {
+            $query->where('Cargo', $request->cargo);
+        }
+
+        // Filtro por área
+        if ($request->filled('area')) {
+            $query->where('Area_trabajo', $request->area);
+        }
+
+        // Filtro por estado de usuario (CORREGIDO)
+        if ($request->filled('estado_usuario')) {
+            if ($request->estado_usuario == 'con_usuario') {
+                // Tiene usuario (ACTIVO O INACTIVO)
+                $query->whereHas('usuario'); // Eliminado el where('estado', 1)
+            } elseif ($request->estado_usuario == 'sin_usuario') {
+                $query->whereDoesntHave('usuario');
+            } elseif ($request->estado_usuario == 'usuario_activo') {
+                // Usuario activo específicamente
+                $query->whereHas('usuario', function($q) {
+                    $q->where('estado', 1);
+                });
+            } elseif ($request->estado_usuario == 'usuario_inactivo') {
+                // Usuario inactivo específicamente
+                $query->whereHas('usuario', function($q) {
+                    $q->where('estado', 0);
+                });
+            }
+        }
+
+        // Filtro por rol de usuario (CORREGIDO - muestra todos sin importar estado)
+        if ($request->filled('rol')) {
+            $query->whereHas('usuario', function($q) use ($request) {
+                $q->where('rol', $request->rol);
+                // Eliminado el filtro de estado
+            });
+        }
+
+        // Ordenamiento
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'asc');
+        
+        // Validar que el campo de ordenamiento existe
+        $allowedSorts = ['id', 'Nombre', 'Cargo', 'Area_trabajo', 'estado'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'id';
+        }
+        
+        $query->orderBy($sortBy, $sortOrder);
+        
+        $empleados = $query->paginate(10)->appends($request->query());
+        
+        // Obtener datos para filtros
+        $areasUnicas = Empleado::distinct()->whereNotNull('Area_trabajo')->pluck('Area_trabajo');
+        $cargosUnicos = Empleado::distinct()->whereNotNull('Cargo')->pluck('Cargo');
+        
+        return view('personal.index', compact('empleados', 'areasUnicas', 'cargosUnicos'));
+    }
 
     /**
-     * Formulario crear
+     * Mostrar empleados inactivos (opcional, si aún lo necesitas)
      */
+    public function inactivos(Request $request)
+    {
+        $empleados = Empleado::with('usuario')
+            ->withCount(['pedidos', 'ventas'])
+            ->where('estado', 0)
+            ->paginate(10);
+
+        return view('personal.inactivos', compact('empleados'));
+    }
+
     public function create()
     {
-        $roles = ['Administración', 'Almacén', 'Logística'];
         $cargos = ['Administrador', 'Gerente', 'Encargado de almacén', 'Supervisor', 'Auxiliar'];
         $areas = ['Almacén', 'Oficina', 'Logística', 'Recursos Humanos', 'Ventas', 'Producción'];
-        
-        return view('personal.create', compact('roles', 'cargos', 'areas'));
+        $roles = ['Administración', 'Almacén', 'Logística'];
+
+        return view('personal.create', compact('cargos', 'areas', 'roles'));
     }
 
-    /**
-     * Guardar empleado - VERSIÓN MEJORADA CON VALIDACIÓN DE DUPLICADOS
-     */
     public function store(Request $request)
     {
         DB::beginTransaction();
+        
         try {
-            // Log para debugging
-            Log::info('Datos recibidos en store:', $request->all());
-            
-            // Validación con valores corregidos y validación de duplicados
             $validated = $request->validate([
                 'Nombre' => 'required|string|max:85',
                 'ApPaterno' => 'required|string|max:85',
@@ -121,51 +140,26 @@ class EmpleadoController extends Controller
                     'string',
                     'max:10',
                     'regex:/^[0-9]+$/',
-                    // Validar teléfono único
                     Rule::unique('empleados', 'Telefono')
                 ],
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
                 'Sexo' => 'required|in:M,F,Otro',
                 'Area_trabajo' => 'required|string|max:80',
-                
                 'correo_usuario' => [
                     'required',
                     'email',
-                    // Validar correo único en tabla usuarios
                     Rule::unique('usuarios', 'correo')
                 ],
                 'contrasena' => 'required|min:6|confirmed',
                 'rol' => 'required|in:Administración,Almacén,Logística',
             ], [
-                'Telefono.unique' => 'El número de teléfono ya está registrado por otro empleado.',
-                'correo_usuario.unique' => 'El correo electrónico ya está en uso por otro usuario.',
+                'Telefono.unique' => 'El número de teléfono ya está registrado.',
+                'correo_usuario.unique' => 'El correo electrónico ya está en uso.',
             ]);
 
-            Log::info('Datos validados:', $validated);
-
-            // Validación personalizada adicional para evitar duplicados por nombre completo
-            $nombreCompleto = $validated['Nombre'] . ' ' . $validated['ApPaterno'] . ' ' . ($validated['ApMaterno'] ?? '');
-            
-            $empleadoExistente = Empleado::where('Nombre', $validated['Nombre'])
-                ->where('ApPaterno', $validated['ApPaterno'])
-                ->where(function($query) use ($validated) {
-                    if (isset($validated['ApMaterno']) && !empty($validated['ApMaterno'])) {
-                        $query->where('ApMaterno', $validated['ApMaterno']);
-                    } else {
-                        $query->whereNull('ApMaterno')->orWhere('ApMaterno', '');
-                    }
-                })
-                ->first();
-                
-            if ($empleadoExistente) {
-                return back()->withInput()->with('error', 'Ya existe un empleado con el mismo nombre completo: ' . $nombreCompleto);
-            }
-
-            // Calcular edad
+            // Verificar edad mínima
             $edad = Carbon::parse($validated['Fecha_nacimiento'])->age;
-            
-            // Verificar que sea mayor de edad
             if ($edad < 18) {
                 return back()->withInput()->with('error', 'El empleado debe ser mayor de 18 años.');
             }
@@ -180,72 +174,44 @@ class EmpleadoController extends Controller
                 'Cargo' => $validated['Cargo'],
                 'Sexo' => $validated['Sexo'],
                 'Area_trabajo' => $validated['Area_trabajo'],
+                'estado' => 1,
             ]);
 
-            Log::info('Empleado creado:', $empleado->toArray());
-
-            // Siempre crear usuario
-            $usuario = Usuario::create([
+            // Crear usuario
+            Usuario::create([
                 'empleado_id' => $empleado->id,
                 'correo' => $validated['correo_usuario'],
                 'contrasena' => Hash::make($validated['contrasena']),
-                'rol' => $validated['rol']
+                'rol' => $validated['rol'],
+                'estado' => 1,
             ]);
-
-            Log::info('Usuario creado:', $usuario->toArray());
 
             DB::commit();
 
-            return redirect()->route('personal.index')->with(
-                'success',
-                'Empleado y usuario creados exitosamente.'
-            );
+            return redirect()->route('personal.index')
+                ->with('success', 'Empleado y usuario creados exitosamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            Log::error('Error de validación en store:', $e->errors());
             return back()->withInput()->withErrors($e->errors());
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error store empleado: ' . $e->getMessage());
-            Log::error('Trace: ' . $e->getTraceAsString());
-
+            Log::error('Error al crear empleado: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Error al crear el empleado: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Mostrar empleado
-     */
-    public function show($id)
-    {
-        $empleado = Empleado::with(['usuario', 'pedidos', 'ventas'])->withCount(['pedidos', 'ventas'])->findOrFail($id);
-
-        return view('personal.show', [
-            'empleado' => $empleado,
-            'totalEmpleados' => Empleado::count(),
-            'empleadosArea' => Empleado::where('Area_trabajo', $empleado->Area_trabajo)->count(),
-            'totalUsuarios' => Usuario::count(),
-        ]);
-    }
-
-    /**
-     * Editar
-     */
     public function edit($id)
     {
         $empleado = Empleado::with('usuario')->findOrFail($id);
-        $roles = ['Administración', 'Almacén', 'Logística'];
         $cargos = ['Administrador', 'Gerente', 'Encargado de almacén', 'Supervisor', 'Auxiliar'];
         $areas = ['Almacén', 'Oficina', 'Logística', 'Recursos Humanos', 'Ventas', 'Producción'];
+        $roles = ['Administración', 'Almacén', 'Logística'];
 
-        return view('personal.edit', compact('empleado', 'roles', 'cargos', 'areas'));
+        return view('personal.edit', compact('empleado', 'cargos', 'areas', 'roles'));
     }
 
-    /**
-     * Actualizar - VERSIÓN MEJORADA CON VALIDACIÓN DE DUPLICADOS
-     */
     public function update(Request $request, $id)
     {
         DB::beginTransaction();
@@ -263,7 +229,6 @@ class EmpleadoController extends Controller
                     'string',
                     'max:10',
                     'regex:/^[0-9]+$/',
-                    // Validar teléfono único excepto para este empleado
                     Rule::unique('empleados', 'Telefono')->ignore($empleado->id)
                 ],
                 'Fecha_nacimiento' => 'required|date',
@@ -272,48 +237,26 @@ class EmpleadoController extends Controller
                 'Area_trabajo' => 'required|string|max:80',
             ];
 
-            // Validación para editar credenciales de usuario
+            // Si tiene usuario y se editan credenciales
             if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
                 $rules['correo'] = [
                     'required',
                     'email',
-                    'max:100',
-                    // Validar correo único excepto para este usuario
                     Rule::unique('usuarios', 'correo')->ignore($empleado->usuario->id)
                 ];
                 $rules['rol'] = 'required|in:Administración,Almacén,Logística';
-                
-                // Si se va a cambiar la contraseña
+
                 if ($request->filled('contrasena')) {
                     $rules['contrasena'] = 'min:6|confirmed';
                 }
             }
 
             $validated = $request->validate($rules, [
-                'Telefono.unique' => 'El número de teléfono ya está registrado por otro empleado.',
-                'correo.unique' => 'El correo electrónico ya está en uso por otro usuario.',
+                'Telefono.unique' => 'El número de teléfono ya está registrado.',
+                'correo.unique' => 'El correo electrónico ya está en uso.',
             ]);
 
-            // Validación personalizada para evitar duplicados por nombre completo (excluyendo este empleado)
-            $nombreCompleto = $validated['Nombre'] . ' ' . $validated['ApPaterno'] . ' ' . ($validated['ApMaterno'] ?? '');
-            
-            $empleadoExistente = Empleado::where('Nombre', $validated['Nombre'])
-                ->where('ApPaterno', $validated['ApPaterno'])
-                ->where(function($query) use ($validated) {
-                    if (isset($validated['ApMaterno']) && !empty($validated['ApMaterno'])) {
-                        $query->where('ApMaterno', $validated['ApMaterno']);
-                    } else {
-                        $query->whereNull('ApMaterno')->orWhere('ApMaterno', '');
-                    }
-                })
-                ->where('id', '!=', $empleado->id) // Excluir el empleado actual
-                ->first();
-                
-            if ($empleadoExistente) {
-                return back()->withInput()->with('error', 'Ya existe otro empleado con el mismo nombre completo: ' . $nombreCompleto);
-            }
-
-            // Calcular edad y verificar
+            // Verificar edad
             $edad = Carbon::parse($validated['Fecha_nacimiento'])->age;
             if ($edad < 18) {
                 return back()->withInput()->with('error', 'El empleado debe ser mayor de 18 años.');
@@ -331,217 +274,217 @@ class EmpleadoController extends Controller
                 'Area_trabajo' => $validated['Area_trabajo'],
             ]);
 
-            // Actualizar usuario si existe y se marcó para editar
+            // Actualizar usuario si corresponde
             if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
-                $updateData = [
+                $userData = [
                     'correo' => $validated['correo'],
                     'rol' => $validated['rol'],
                 ];
-                
-                // Actualizar contraseña si se proporcionó
+
                 if ($request->filled('contrasena')) {
-                    $updateData['contrasena'] = Hash::make($request->contrasena);
+                    $userData['contrasena'] = Hash::make($request->contrasena);
                 }
-                
-                $empleado->usuario->update($updateData);
+
+                $empleado->usuario->update($userData);
             }
 
             DB::commit();
 
             return redirect()->route('personal.index')
-                             ->with('success', 'Empleado actualizado correctamente.');
+                ->with('success', 'Empleado actualizado correctamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            Log::error('Error de validación en update:', $e->errors());
             return back()->withInput()->withErrors($e->errors());
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error update empleado: ' . $e->getMessage());
-
+            Log::error('Error al actualizar empleado: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Error al actualizar el empleado: ' . $e->getMessage());
         }
     }
 
     /**
-     * Eliminar empleado (y su usuario si existe) - VERSIÓN CORREGIDA
+     * Desactivar empleado (Soft Delete)
      */
     public function destroy($id)
     {
-        DB::beginTransaction();
-
         try {
-            // Cargar empleado con sus relaciones y conteos
-            $empleado = Empleado::with(['usuario'])
-                ->withCount(['pedidos', 'ventas'])
-                ->findOrFail($id);
-                
-            $nombreEmpleado = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
-            $teniaUsuario = $empleado->usuario !== null;
-            
-            // Verificar si tiene pedidos o ventas
-            $tienePedidos = $empleado->pedidos_count > 0;
-            $tieneVentas = $empleado->ventas_count > 0;
-            
-            $mensajeError = [];
-            if ($tienePedidos) {
-                $mensajeError[] = "{$empleado->pedidos_count} pedido(s)";
-            }
-            if ($tieneVentas) {
-                $mensajeError[] = "{$empleado->ventas_count} venta(s)";
+            $empleado = Empleado::with('usuario')->findOrFail($id);
+            $nombreCompleto = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
+
+            // Desactivar empleado
+            $empleado->estado = 0;
+            $empleado->save();
+
+            // Desactivar usuario si existe
+            if ($empleado->usuario) {
+                $empleado->usuario->estado = 0;
+                $empleado->usuario->save();
             }
 
-            // CASO 1: El empleado TIENE registros relacionados
-            if ($tienePedidos || $tieneVentas) {
-                DB::rollBack();
-                
-                $mensaje = 'No se puede eliminar el empleado porque tiene ';
-                $mensaje .= implode(' y ', $mensajeError) . ' asociada(s).';
-                
-                return redirect()->route('personal.index')
-                    ->with('foreign_key_error', $mensaje)
-                    ->with('empleado_nombre', $nombreEmpleado)
-                    ->with('pedidos_count', $empleado->pedidos_count)
-                    ->with('ventas_count', $empleado->ventas_count);
-            }
+            return redirect()->route('personal.index')
+                ->with('success', 'Empleado "' . $nombreCompleto . '" desactivado correctamente.');
 
-            // CASO 2: El empleado NO tiene registros relacionados - proceder con eliminación
-            // Eliminar usuario primero (si existe)
-            if ($teniaUsuario) {
-                $empleado->usuario->delete();
-                Log::info("Usuario eliminado para empleado ID: {$id}");
-            }
-
-            // Eliminar el empleado
-            $empleado->delete();
-            
-            DB::commit();
-
-            // Mensaje según lo que se eliminó
-            $mensaje = $teniaUsuario
-                ? "✅ Empleado '{$nombreEmpleado}' y su usuario eliminados exitosamente."
-                : "✅ Empleado '{$nombreEmpleado}' eliminado exitosamente.";
-
-            return redirect()->route('personal.index')->with('success', $mensaje);
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-            
-            // Error específico de foreign key
-            if ($e->getCode() == '23000') {
-                Log::error('Error de foreign key al eliminar empleado: ' . $e->getMessage());
-                
-                return redirect()->route('personal.index')->with(
-                    'error', 
-                    'No se puede eliminar el empleado porque tiene registros relacionados (pedidos o ventas).'
-                );
-            }
-            
-            Log::error('Error query al eliminar empleado: ' . $e->getMessage());
-            return back()->with('error', 'Error en la base de datos al eliminar el empleado.');
-            
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error destroy empleado: ' . $e->getMessage());
-            Log::error('Trace: ' . $e->getTraceAsString());
-
-            return back()->with('error', 'Error al eliminar el empleado: ' . $e->getMessage());
+            Log::error('Error al desactivar empleado: ' . $e->getMessage());
+            return redirect()->route('personal.index')
+                ->with('error', 'Error al desactivar el empleado: ' . $e->getMessage());
         }
     }
 
     /**
-     * Crear usuario para empleado existente - VERSIÓN MEJORADA CON VALIDACIÓN
+     * Activar empleado
+     */
+    public function activar($id)
+    {
+        try {
+            $empleado = Empleado::with('usuario')->findOrFail($id);
+            $nombreCompleto = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
+
+            // Activar empleado
+            $empleado->estado = 1;
+            $empleado->save();
+
+            // Activar usuario si existe
+            if ($empleado->usuario) {
+                $empleado->usuario->estado = 1;
+                $empleado->usuario->save();
+            }
+
+            return redirect()->route('personal.index')
+                ->with('success', 'Empleado "' . $nombreCompleto . '" activado correctamente.');
+
+        } catch (\Exception $e) {
+            Log::error('Error al activar empleado: ' . $e->getMessage());
+            return redirect()->route('personal.index')
+                ->with('error', 'Error al activar el empleado: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Toggle estado (alternar entre activo/inactivo)
+     */
+    public function toggleEstado($id)
+    {
+        try {
+            $empleado = Empleado::with('usuario')->findOrFail($id);
+            $nombreCompleto = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
+            
+            $estadoAnterior = $empleado->estado;
+            $empleado->estado = !$empleado->estado;
+            $empleado->save();
+
+            // Sincronizar estado del usuario
+            if ($empleado->usuario) {
+                $empleado->usuario->estado = $empleado->estado;
+                $empleado->usuario->save();
+            }
+
+            $accion = $estadoAnterior ? 'desactivado' : 'activado';
+
+            return redirect()->route('personal.index')
+                ->with('success', "Empleado '{$nombreCompleto}' {$accion} correctamente.");
+
+        } catch (\Exception $e) {
+            Log::error('Error al cambiar estado del empleado: ' . $e->getMessage());
+            return redirect()->route('personal.index')
+                ->with('error', 'Error al cambiar el estado del empleado: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Crear usuario para empleado existente
      */
     public function storeUser(Request $request, $id)
     {
-        DB::beginTransaction();
-        
         try {
             $empleado = Empleado::findOrFail($id);
-            
-            // Verificar si ya tiene usuario
+
             if ($empleado->usuario) {
                 return redirect()->route('personal.index')
                     ->with('error', 'Este empleado ya tiene un usuario asociado.');
             }
-            
+
             $validated = $request->validate([
                 'correo' => [
                     'required',
                     'email',
-                    // Validar correo único
                     Rule::unique('usuarios', 'correo')
                 ],
                 'rol' => 'required|in:Administración,Almacén,Logística',
                 'contrasena' => 'required|min:6|confirmed',
             ], [
-                'correo.unique' => 'El correo electrónico ya está en uso por otro usuario.'
+                'correo.unique' => 'El correo electrónico ya está en uso.'
             ]);
-            
-            // Crear usuario
+
             Usuario::create([
                 'empleado_id' => $empleado->id,
                 'correo' => $validated['correo'],
                 'contrasena' => Hash::make($validated['contrasena']),
                 'rol' => $validated['rol'],
+                'estado' => 1,
             ]);
-            
-            DB::commit();
-            
+
+            $nombreCompleto = $empleado->Nombre . ' ' . $empleado->ApPaterno . ($empleado->ApMaterno ? ' ' . $empleado->ApMaterno : '');
+
             return redirect()->route('personal.index')
-                ->with('success', 'Usuario creado exitosamente para ' . $empleado->Nombre . ' ' . $empleado->ApPaterno);
-                
+                ->with('success', 'Usuario creado exitosamente para ' . $nombreCompleto);
+
         } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            Log::error('Error de validación al crear usuario:', $e->errors());
             return back()->withInput()->withErrors($e->errors());
-            
+
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error al crear usuario: ' . $e->getMessage());
-            
             return back()->withInput()->with('error', 'Error al crear el usuario: ' . $e->getMessage());
         }
     }
 
     /**
-     * Eliminar solo el usuario (sin eliminar el empleado)
+     * Desactivar usuario
      */
     public function destroyUser($id)
     {
-        DB::beginTransaction();
-        
         try {
             $usuario = Usuario::with('empleado')->findOrFail($id);
-            $empleadoNombre = $usuario->empleado ? 
+            $nombreEmpleado = $usuario->empleado ? 
                 $usuario->empleado->Nombre . ' ' . $usuario->empleado->ApPaterno : 
-                'Empleado';
-            
-            $usuario->delete();
-            
-            DB::commit();
-            
+                'desconocido';
+
+            $usuario->estado = 0;
+            $usuario->save();
+
             return redirect()->route('personal.index')
-                ->with('success', 'Usuario eliminado exitosamente de ' . $empleadoNombre);
-                
+                ->with('success', 'Usuario desactivado exitosamente de ' . $nombreEmpleado);
+
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al eliminar usuario: ' . $e->getMessage());
-            
-            return back()->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
+            Log::error('Error al desactivar usuario: ' . $e->getMessage());
+            return redirect()->route('personal.index')
+                ->with('error', 'Error al desactivar el usuario: ' . $e->getMessage());
         }
     }
-    
+
     /**
-     * Página de confirmación para eliminar empleado
+     * Activar usuario
      */
-    public function confirmDestroy($id)
+    public function activateUser($id)
     {
-        $empleado = Empleado::with(['usuario'])
-            ->withCount(['pedidos', 'ventas'])
-            ->findOrFail($id);
-            
-        return view('personal.confirm-destroy', compact('empleado'));
+        try {
+            $usuario = Usuario::with('empleado')->findOrFail($id);
+            $nombreEmpleado = $usuario->empleado ? 
+                $usuario->empleado->Nombre . ' ' . $usuario->empleado->ApPaterno : 
+                'desconocido';
+
+            $usuario->estado = 1;
+            $usuario->save();
+
+            return redirect()->route('personal.index')
+                ->with('success', 'Usuario activado exitosamente para ' . $nombreEmpleado);
+
+        } catch (\Exception $e) {
+            Log::error('Error al activar usuario: ' . $e->getMessage());
+            return redirect()->route('personal.index')
+                ->with('error', 'Error al activar el usuario: ' . $e->getMessage());
+        }
     }
 }

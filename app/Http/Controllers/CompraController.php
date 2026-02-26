@@ -176,14 +176,6 @@ class CompraController extends Controller
                 $subtotal = $precioUnitario * $cantidad;
                 $total += $subtotal;
 
-                Log::info("Producto procesado:", [
-                    'id' => $producto->id,
-                    'nombre' => $producto->Nombre,
-                    'cantidad' => $cantidad,
-                    'precio_unitario' => $precioUnitario,
-                    'subtotal' => $subtotal
-                ]);
-
                 $detallesCompra[] = [
                     'Producto' => $productoData['id'],
                     'Cantidad' => $cantidad,
@@ -252,19 +244,14 @@ class CompraController extends Controller
             return back()->with('error', 'Compra no encontrada: ' . $e->getMessage());
         }
     }
-
-    public function edit($id)
-    {
-        try {
-            $compra = Compra::with(['proveedor', 'detalleCompras.producto'])->findOrFail($id);
-            $proveedores = Proveedor::orderBy('Nombre')->get();
-            $productos = Producto::orderBy('Nombre')->get();
-
-            return view('compras.edit', compact('compra', 'proveedores', 'productos'));
-        } catch (\Exception $e) {
-            Log::error("Error en edit compra: " . $e->getMessage());
-            return back()->with('error', 'Error al cargar formulario de edición: ' . $e->getMessage());
-        }
+    
+    public function edit($id){
+        $compra = Compra::with('detalleCompras.producto.categoria')->findOrFail($id);
+        $proveedores = Proveedor::all();
+        $productos = Producto::with('categoria')->get();
+        $categorias = Categoria::all(); // <-- AÑADE ESTA LÍNEA
+        
+        return view('compras.edit', compact('compra', 'proveedores', 'productos', 'categorias'));
     }
 
     public function update(Request $request, $id)
