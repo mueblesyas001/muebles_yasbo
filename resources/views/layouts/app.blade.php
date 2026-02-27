@@ -1106,7 +1106,7 @@ class SessionManager {
 
 document.addEventListener('DOMContentLoaded', function() {
     @auth
-    const sessionManager = new SessionManager(16, 1); // 15 minutos de timeout, advertencia 2 minutos antes
+    const sessionManager = new SessionManager(16, 1); 
     @endauth
 
     const toggle = document.getElementById('mobileToggle');
