@@ -435,10 +435,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <a href="{{ route('compras.index') }}" class="btn btn-outline-secondary btn-action">
-                                            <i class="fas fa-times me-2"></i>
-                                            Cancelar
-                                        </a>
                                         <button type="button" class="btn btn-success btn-submit" id="btnActualizarCompra" style="
                                             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                             border: none;

@@ -165,7 +165,7 @@
                                         ">
                                             <i class="fas fa-clock" style="color: #28a745;"></i>
                                         </div>
-                                        <span class="fw-medium">⏱️ Fecha y hora: <strong>{{ session('fecha_restauracion') ?? \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}</strong></span>
+                                        <span class="fw-medium">⏱️ Fecha: <strong>{{ session('fecha_restauracion') ?? \Carbon\Carbon::now()->format('d/m/Y') }}</strong></span>
                                     </div>
                                 </div>
                                 <div class="col-md-4 text-center d-flex align-items-center justify-content-center">
@@ -494,17 +494,6 @@
                            onkeyup="filtrarTabla()">
                 </div>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted fw-semibold">
-                    <i class="fas fa-check-circle me-1" style="color: #667eea;"></i>
-                    Estado
-                </label>
-                <select class="form-select border-0 bg-light" id="estadoFilter" onchange="filtrarTabla()">
-                    <option value="">Todos los estados</option>
-                    <option value="disponible">✅ Disponibles</option>
-                    <option value="no_encontrado">❌ No encontrados</option>
-                </select>
-            </div>
             <div class="col-md-4">
                 <label class="form-label small text-muted fw-semibold">
                     <i class="fas fa-sort me-1" style="color: #667eea;"></i>
@@ -555,8 +544,6 @@
                         <th class="py-3">Archivo</th>
                         <th class="py-3">Fecha</th>
                         <th class="py-3">Usuario</th>
-                        <th class="py-3">Tamaño</th>
-                        <th class="py-3">Estado</th>
                         <th class="py-3 pe-4 text-end">Acciones</th>
                     </tr>
                 </thead>
@@ -598,8 +585,6 @@
                                     <i class="fas fa-chevron-down"></i>
                                 </button>
                             </td>
-                            
-                            <!-- Nombre -->
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="respaldo-avatar me-3" style="
@@ -662,7 +647,7 @@
                                 </div>
                             </td>
 
-                            <!-- Fecha -->
+                            <!-- Fecha - MODIFICADO: Solo se muestra la fecha, sin hora -->
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="icon-badge me-2" style="
@@ -679,7 +664,6 @@
                                     </div>
                                     <div>
                                         <div class="fw-medium">{{ \Carbon\Carbon::parse($respaldo->Fecha)->format('d/m/Y') }}</div>
-                                        <small class="text-muted">{{ \Carbon\Carbon::parse($respaldo->Fecha)->format('H:i') }}</small>
                                     </div>
                                 </div>
                             </td>
@@ -705,38 +689,6 @@
                                     </div>
                                 </div>
                             </td>
-
-                            <!-- Tamaño -->
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-badge me-2" style="
-                                        width: 32px;
-                                        height: 32px;
-                                        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-                                        border-radius: 8px;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        color: white;
-                                    ">
-                                        <i class="fas fa-weight-hanging"></i>
-                                    </div>
-                                    <span class="fw-bold">{{ $tamaño }}</span>
-                                </div>
-                            </td>
-
-                            <!-- Estado -->
-                            <td>
-                                <span class="badge px-3 py-2" style="
-                                    background: {{ $estadoGradiente }};
-                                    color: white;
-                                    border-radius: 50px;
-                                    font-size: 0.75rem;
-                                ">
-                                    <i class="fas {{ $estadoIcon }} me-1"></i>{{ $estadoTexto }}
-                                </span>
-                            </td>
-
                             <!-- Acciones -->
                             <td class="pe-4">
                                 <div class="d-flex gap-2 justify-content-end">
@@ -766,7 +718,7 @@
                             </td>
                         </tr>
                         
-                        <!-- Fila expandible con detalles del respaldo -->
+                        <!-- Fila expandible con detalles del respaldo - MODIFICADO: Fecha sin hora -->
                         <tr class="detalle-respaldo-row">
                             <td colspan="9" class="p-0 border-0">
                                 <div class="collapse" id="detallesRespaldo{{ $respaldo->id }}">
@@ -795,7 +747,7 @@
                                                         <div class="col-6">
                                                             <div class="detail-item d-flex justify-content-between mb-2">
                                                                 <span class="text-muted">Fecha creación:</span>
-                                                                <span class="fw-medium">{{ \Carbon\Carbon::parse($respaldo->Fecha)->format('d/m/Y H:i:s') }}</span>
+                                                                <span class="fw-medium">{{ \Carbon\Carbon::parse($respaldo->Fecha)->format('d/m/Y') }}</span>
                                                             </div>
                                                             <div class="detail-item d-flex justify-content-between">
                                                                 <span class="text-muted">Usuario:</span>

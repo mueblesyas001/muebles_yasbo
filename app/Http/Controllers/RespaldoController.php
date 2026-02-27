@@ -142,21 +142,85 @@ class RespaldoController extends Controller
             ->with('success', 'Respaldo actualizado exitosamente!');
     }
 
-    public function destroy(Respaldo $respaldo)
-    {
+    public function destroy($id){
         try {
-            if (file_exists($respaldo->Ruta)) {
-                if (!unlink($respaldo->Ruta)) {
-                    throw new \Exception('No se pudo eliminar el archivo físico.');
+            \Log::info('=== INICIANDO ELIMINACIÓN DE RESPALDO ===');
+            \Log::info('ID recibido: ' . $id);
+            
+            // Buscar el respaldo por ID
+            $respaldo = Respaldo::find($id);
+            
+            if (!$respaldo) {
+                \Log::error('Respaldo no encontrado con ID: ' . $id);
+                
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Respaldo no encontrado'
+                    ], 404);
+                }
+                
+                return redirect()->route('respaldos.index')
+                    ->with('error', 'Respaldo no encontrado');
+            }
+            
+            \Log::info('Respaldo encontrado:');
+            \Log::info('ID: ' . $respaldo->id);
+            \Log::info('Nombre: ' . $respaldo->Nombre);
+            \Log::info('Ruta en BD: ' . $respaldo->Ruta);
+            
+            // Eliminar archivo físico si existe
+            $archivoEliminado = false;
+            
+            if (!empty($respaldo->Ruta) && file_exists($respaldo->Ruta)) {
+                \Log::info('Archivo encontrado en: ' . $respaldo->Ruta);
+                if (unlink($respaldo->Ruta)) {
+                    $archivoEliminado = true;
+                    \Log::info('Archivo eliminado exitosamente');
+                } else {
+                    \Log::warning('No se pudo eliminar el archivo: ' . $respaldo->Ruta);
+                }
+            } else {
+                \Log::warning('El archivo no existe o la ruta está vacía');
+                
+                // Buscar archivo por nombre en ubicaciones comunes
+                $nombreArchivo = $this->generarNombreArchivoDesdeRespaldo($respaldo);
+                if ($nombreArchivo) {
+                    $rutasAlternativas = [
+                        storage_path('app/backups/' . $nombreArchivo),
+                        storage_path('app/' . $nombreArchivo),
+                        public_path('backups/' . $nombreArchivo)
+                    ];
+                    
+                    foreach ($rutasAlternativas as $ruta) {
+                        if (file_exists($ruta)) {
+                            \Log::info('Archivo encontrado en ruta alternativa: ' . $ruta);
+                            if (unlink($ruta)) {
+                                $archivoEliminado = true;
+                                \Log::info('Archivo eliminado de ruta alternativa');
+                            }
+                            break;
+                        }
+                    }
                 }
             }
             
-            $respaldo->delete();
+            // Eliminar el registro de la base de datos
+            $deleted = $respaldo->delete();
             
-            if (request()->ajax()) {
+            if (!$deleted) {
+                throw new \Exception('No se pudo eliminar el registro de la base de datos.');
+            }
+            
+            \Log::info('Registro eliminado de la BD exitosamente');
+            \Log::info('Archivo físico eliminado: ' . ($archivoEliminado ? 'SÍ' : 'NO'));
+            \Log::info('=== ELIMINACIÓN COMPLETADA ===');
+            
+            if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Respaldo eliminado exitosamente!'
+                    'message' => 'Respaldo eliminado exitosamente!',
+                    'archivo_eliminado' => $archivoEliminado
                 ]);
             }
             
@@ -164,7 +228,10 @@ class RespaldoController extends Controller
                 ->with('success', 'Respaldo eliminado exitosamente!');
                 
         } catch (\Exception $e) {
-            if (request()->ajax()) {
+            \Log::error('Error en destroy(): ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
+            if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Error al eliminar el respaldo: ' . $e->getMessage()
@@ -173,6 +240,42 @@ class RespaldoController extends Controller
             
             return redirect()->route('respaldos.index')
                 ->with('error', 'Error al eliminar el respaldo: ' . $e->getMessage());
+        }
+    }
+
+    private function generarNombreArchivoDesdeRespaldo($respaldo)
+    {
+        try {
+            // Intentar generar desde la fecha
+            if (!empty($respaldo->Fecha)) {
+                $fecha = Carbon::parse($respaldo->Fecha);
+                return "backup_" . $fecha->format('Y-m-d_His') . ".sql";
+            }
+            
+            // Intentar extraer del nombre
+            if (!empty($respaldo->Nombre)) {
+                // Buscar patrón de fecha en el nombre
+                preg_match('/\d{4}-\d{2}-\d{2}_\d{6}/', $respaldo->Nombre, $matches);
+                if (!empty($matches)) {
+                    return "backup_" . $matches[0] . ".sql";
+                }
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            \Log::warning('Error generando nombre de archivo: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Método auxiliar para generar nombre de archivo desde fecha
+    private function generarNombreArchivoDesdeFecha($fecha)
+    {
+        try {
+            $carbonFecha = Carbon::parse($fecha);
+            return "backup_" . $carbonFecha->format('Y-m-d_His') . ".sql";
+        } catch (\Exception $e) {
+            return null;
         }
     }
 

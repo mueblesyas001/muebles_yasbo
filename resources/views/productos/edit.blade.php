@@ -232,7 +232,7 @@
                                             <div class="input-meta">
                                                 <div class="char-counter">
                                                     <i class="fas fa-text-height"></i>
-                                                    <span id="descripcionCount">{{ strlen($producto->Descripcion) }}/200</span>
+                                                    <span id="descripcionCount">{{ strlen($producto->Descripcion ?? '') }}/200</span>
                                                 </div>
                                                 <div class="input-hint">
                                                     <i class="fas fa-lightbulb"></i>
@@ -361,6 +361,13 @@
                                                 <div class="input-decoration" style="background: linear-gradient(135deg, #ff6b6b, #ffa726);"></div>
                                             </div>
                                             
+                                            <div class="input-meta">
+                                                <div class="input-hint">
+                                                    <i class="fas fa-lightbulb"></i>
+                                                    Cantidad actual en inventario
+                                                </div>
+                                            </div>
+                                            
                                             @error('Cantidad') 
                                                 <div class="error-message animated">
                                                     <i class="fas fa-exclamation-circle"></i>
@@ -387,12 +394,18 @@
                                                     @php
                                                         $cantidad = $producto->Cantidad;
                                                         $minima = $producto->Cantidad_minima;
+                                                        $maxima = $producto->Cantidad_maxima;
                                                         
                                                         if($cantidad == 0) {
                                                             $icono = 'fa-times-circle';
                                                             $texto = 'Sin Stock';
                                                             $color = 'danger';
                                                             $borderColor = '#dc3545';
+                                                        } elseif($cantidad > $maxima) {
+                                                            $icono = 'fa-exclamation-triangle';
+                                                            $texto = 'Stock Excedido';
+                                                            $color = 'warning';
+                                                            $borderColor = '#ffc107';
                                                         } elseif($cantidad <= $minima) {
                                                             $icono = 'fa-exclamation-triangle';
                                                             $texto = 'Stock Bajo';
@@ -600,16 +613,18 @@
                                                 
                                                 <div class="progress mt-4" style="height: 10px; border-radius: 10px;">
                                                     <div class="progress-bar" id="stockProgress" role="progressbar" 
-                                                         style="width: {{ ($producto->Cantidad / max($producto->Cantidad_maxima, 1)) * 100 }}%; background: linear-gradient(90deg, #ff6b6b, #ffa726); border-radius: 10px;"></div>
+                                                         style="width: {{ min(($producto->Cantidad / max($producto->Cantidad_maxima, 1)) * 100, 100) }}%; background: linear-gradient(90deg, #ff6b6b, #ffa726); border-radius: 10px;"></div>
                                                 </div>
                                                 
                                                 <div class="text-center mt-3">
                                                     <small class="text-muted" id="stockStatus">
                                                         @php
-                                                            if($producto->Cantidad < $producto->Cantidad_minima) {
-                                                                echo '<i class="fas fa-exclamation-circle me-1 text-danger"></i>Stock crítico - por debajo del mínimo';
+                                                            if($producto->Cantidad < 0) {
+                                                                echo '<i class="fas fa-exclamation-circle me-1 text-secondary"></i>Error: Stock negativo';
                                                             } elseif($producto->Cantidad > $producto->Cantidad_maxima) {
                                                                 echo '<i class="fas fa-exclamation-triangle me-1 text-warning"></i>Stock excede capacidad máxima';
+                                                            } elseif($producto->Cantidad < $producto->Cantidad_minima) {
+                                                                echo '<i class="fas fa-exclamation-circle me-1 text-danger"></i>Stock crítico - por debajo del mínimo';
                                                             } elseif($producto->Cantidad <= $producto->Cantidad_minima * 1.5) {
                                                                 echo '<i class="fas fa-info-circle me-1 text-warning"></i>Stock cercano al mínimo';
                                                             } else {
@@ -641,6 +656,10 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
+                                        <button type="button" class="btn btn-action btn-outline-secondary" onclick="resetForm()">
+                                            <i class="fas fa-redo me-2"></i>
+                                            Restaurar
+                                        </button>
                                         
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
@@ -975,8 +994,32 @@
 }
 
 .input-wrapper.error {
-    border-color: var(--danger-color);
+    border-color: var(--danger-color) !important;
     animation: shake 0.5s;
+}
+
+.input-wrapper.error .input-decoration {
+    background: linear-gradient(90deg, #ef4444, #ff6b6b);
+}
+
+/* Indicador visual para campos con error */
+.input-wrapper.error::after {
+    content: '!';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 2;
 }
 
 .input-wrapper.valid {
@@ -1122,6 +1165,13 @@
     min-width: 200px;
 }
 
+.btn-submit.btn-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+    background: #6c757d !important;
+}
+
 .submit-content,
 .submit-loader {
     display: flex;
@@ -1145,12 +1195,12 @@
     opacity: 1;
 }
 
-.btn-submit:hover:not(.loading) {
+.btn-submit:hover:not(.loading):not(.btn-disabled) {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
 }
 
-.btn-submit:active:not(.loading) {
+.btn-submit:active:not(.loading):not(.btn-disabled) {
     transform: translateY(1px);
 }
 
@@ -1179,6 +1229,23 @@
     align-items: center;
     gap: 6px;
     animation: slideIn 0.3s ease;
+}
+
+.field-error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: slideIn 0.3s ease;
+    padding: 4px 8px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 6px;
+}
+
+.field-error-message i {
+    font-size: 0.9rem;
 }
 
 .is-invalid {
@@ -1442,6 +1509,12 @@ class FormManager {
         this.calcularInventario();
         this.updateCategoryPreview();
         this.updateProgress();
+        
+        // Quitar errores
+        document.querySelectorAll('.input-wrapper').forEach(wrapper => {
+            wrapper.classList.remove('error', 'valid');
+        });
+        document.querySelectorAll('.field-error-message').forEach(msg => msg.remove());
     }
 
     initRealTimeValidation() {
@@ -1480,10 +1553,14 @@ class FormManager {
 
     validateField(fieldId) {
         const field = document.getElementById(fieldId);
-        if (!field) return;
+        if (!field) return true;
 
         const wrapper = field.closest('.input-wrapper');
-        if (!wrapper) return;
+        if (!wrapper) return true;
+
+        // Remover mensajes de error previos
+        const existingError = wrapper.closest('.form-group-enhanced').querySelector('.field-error-message');
+        if (existingError) existingError.remove();
 
         wrapper.classList.remove('error', 'valid');
 
@@ -1497,6 +1574,7 @@ class FormManager {
             const precio = parseFloat(field.value);
             if (precio <= 0) {
                 wrapper.classList.add('error');
+                this.showFieldError(fieldId, 'El precio debe ser mayor a 0');
                 return false;
             }
         }
@@ -1505,6 +1583,55 @@ class FormManager {
             const valor = parseInt(field.value);
             if (valor < 0) {
                 wrapper.classList.add('error');
+                this.showFieldError(fieldId, 'El valor no puede ser negativo');
+                return false;
+            }
+        }
+
+        // Validación especial para Cantidad contra mínimos y máximos
+        if (fieldId === 'Cantidad' && field.value) {
+            const cantidad = parseInt(field.value) || 0;
+            const minima = parseInt(document.getElementById('Cantidad_minima').value) || 0;
+            const maxima = parseInt(document.getElementById('Cantidad_maxima').value) || 0;
+            
+            if (cantidad < 0) {
+                wrapper.classList.add('error');
+                this.showFieldError(fieldId, 'La cantidad no puede ser negativa');
+                return false;
+            }
+            
+            if (minima > 0 && minima < maxima && cantidad < minima) {
+                wrapper.classList.add('error');
+                this.showFieldError(fieldId, `La cantidad (${cantidad}) no puede ser menor al mínimo (${minima})`);
+                return false;
+            }
+            
+            if (maxima > 0 && minima < maxima && cantidad > maxima) {
+                wrapper.classList.add('error');
+                this.showFieldError(fieldId, `La cantidad (${cantidad}) no puede ser mayor al máximo (${maxima})`);
+                return false;
+            }
+        }
+
+        // Validación de consistencia entre mínimo y máximo
+        if (fieldId === 'Cantidad_minima' || fieldId === 'Cantidad_maxima') {
+            const minima = parseInt(document.getElementById('Cantidad_minima').value) || 0;
+            const maxima = parseInt(document.getElementById('Cantidad_maxima').value) || 0;
+            
+            if (minima >= maxima && minima > 0 && maxima > 0) {
+                wrapper.classList.add('error');
+                this.showFieldError(fieldId, minima >= maxima ? 
+                    'El mínimo debe ser menor que el máximo' : 'El máximo debe ser mayor que el mínimo');
+                
+                // También marcar el otro campo como error
+                const otroCampo = fieldId === 'Cantidad_minima' ? 'Cantidad_maxima' : 'Cantidad_minima';
+                const otroWrapper = document.getElementById(otroCampo)?.closest('.input-wrapper');
+                if (otroWrapper) {
+                    otroWrapper.classList.add('error');
+                    this.showFieldError(otroCampo, minima >= maxima ? 
+                        'El máximo debe ser mayor que el mínimo' : 'El mínimo debe ser menor que el máximo');
+                }
+                
                 return false;
             }
         }
@@ -1516,35 +1643,81 @@ class FormManager {
         return true;
     }
 
+    showFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        
+        // Buscar o crear elemento de error
+        let errorElement = field.closest('.form-group-enhanced').querySelector('.field-error-message');
+        
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.className = 'field-error-message animated';
+            field.closest('.form-group-enhanced').appendChild(errorElement);
+        }
+        
+        errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        
+        // Remover el error después de 3 segundos
+        setTimeout(() => {
+            if (errorElement && errorElement.parentNode) {
+                errorElement.remove();
+            }
+        }, 3000);
+    }
+
     validateAllFields() {
         const errors = [];
+        let hasCriticalError = false;
         
-        if (!this.validateField('Nombre')) errors.push('Nombre');
-        if (!this.validateField('Categoria')) errors.push('Categoria');
-        if (!this.validateField('Precio')) errors.push('Precio');
-        if (!this.validateField('Cantidad')) errors.push('Cantidad');
-        if (!this.validateField('Cantidad_minima')) errors.push('Cantidad_minima');
-        if (!this.validateField('Cantidad_maxima')) errors.push('Cantidad_maxima');
+        // Validar campos requeridos
+        this.requiredFields.forEach(fieldId => {
+            if (!this.validateField(fieldId)) {
+                errors.push(fieldId);
+            }
+        });
 
-        // Validar relaciones entre cantidades
+        // Obtener valores
         const cantidad = parseInt(document.getElementById('Cantidad').value) || 0;
         const minima = parseInt(document.getElementById('Cantidad_minima').value) || 0;
         const maxima = parseInt(document.getElementById('Cantidad_maxima').value) || 0;
 
-        if (minima >= maxima) {
-            errors.push('minima_maxima');
+        // Validar relaciones entre cantidades
+        if (minima >= maxima && minima > 0 && maxima > 0) {
+            hasCriticalError = true;
             notifier.showWarning('El stock mínimo debe ser menor que el máximo');
             
             document.getElementById('Cantidad_minima').closest('.input-wrapper').classList.add('error');
             document.getElementById('Cantidad_maxima').closest('.input-wrapper').classList.add('error');
+            this.showFieldError('Cantidad_minima', 'El mínimo debe ser menor que el máximo');
         }
 
         if (cantidad < 0) {
-            errors.push('cantidad_negativa');
+            hasCriticalError = true;
             notifier.showWarning('La cantidad no puede ser negativa');
+            document.getElementById('Cantidad').closest('.input-wrapper').classList.add('error');
+            this.showFieldError('Cantidad', 'La cantidad no puede ser negativa');
         }
 
-        if (errors.length > 0 && !errors.includes('minima_maxima') && !errors.includes('cantidad_negativa')) {
+        // Validar cantidad contra mínimos y máximos (solo si mínimos y máximos son válidos)
+        if (minima < maxima) {
+            if (cantidad < minima) {
+                hasCriticalError = true;
+                notifier.showWarning(`La cantidad actual (${cantidad}) es menor al mínimo permitido (${minima})`);
+                document.getElementById('Cantidad').closest('.input-wrapper').classList.add('error');
+                this.showFieldError('Cantidad', `La cantidad no puede ser menor a ${minima}`);
+            }
+            
+            if (cantidad > maxima) {
+                hasCriticalError = true;
+                notifier.showWarning(`La cantidad actual (${cantidad}) es mayor al máximo permitido (${maxima})`);
+                document.getElementById('Cantidad').closest('.input-wrapper').classList.add('error');
+                this.showFieldError('Cantidad', `La cantidad no puede ser mayor a ${maxima}`);
+            }
+        }
+
+        // Mostrar errores de campos requeridos
+        if (errors.length > 0 && !hasCriticalError) {
             notifier.showValidationError(errors);
             
             const firstErrorId = errors[0];
@@ -1560,7 +1733,14 @@ class FormManager {
             }
         }
 
-        return errors.length === 0;
+        const submitBtn = document.getElementById('submitBtn');
+        if (errors.length > 0 || hasCriticalError) {
+            submitBtn.classList.add('btn-disabled');
+            return false;
+        } else {
+            submitBtn.classList.remove('btn-disabled');
+            return true;
+        }
     }
 
     updateProgress() {
@@ -1637,6 +1817,15 @@ class FormManager {
         const minima = parseInt(document.getElementById('Cantidad_minima').value) || 0;
         const maxima = parseInt(document.getElementById('Cantidad_maxima').value) || 0;
         
+        // Validar cantidad contra límites
+        const cantidadWrapper = document.getElementById('Cantidad').closest('.input-wrapper');
+        const minimaWrapper = document.getElementById('Cantidad_minima').closest('.input-wrapper');
+        const maximaWrapper = document.getElementById('Cantidad_maxima').closest('.input-wrapper');
+        
+        // Remover mensajes de error previos
+        const errorMsg = cantidadWrapper?.closest('.form-group-enhanced')?.querySelector('.field-error-message');
+        if (errorMsg) errorMsg.remove();
+        
         // Calcular valor total
         const valorTotal = precio * cantidad;
         document.getElementById('valorTotal').textContent = `$${valorTotal.toFixed(2)}`;
@@ -1656,21 +1845,25 @@ class FormManager {
             progressBar.style.width = `${porcentaje}%`;
             
             // Cambiar color según nivel
-            if (cantidad < minima) {
-                progressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Stock crítico - por debajo del mínimo';
-                document.getElementById('stockStatus').className = 'text-danger';
+            if (cantidad < 0) {
+                progressBar.style.background = 'linear-gradient(90deg, #6c757d, #495057)';
+                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-circle me-1 text-secondary"></i>Error: Stock negativo';
+                document.getElementById('stockStatus').className = 'text-secondary fw-bold';
             } else if (cantidad > maxima) {
                 progressBar.style.background = 'linear-gradient(90deg, #ffc107, #ffa726)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Stock excede capacidad máxima';
+                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-triangle me-1 text-warning"></i>Stock excede capacidad máxima';
                 document.getElementById('stockStatus').className = 'text-warning';
+            } else if (cantidad < minima) {
+                progressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
+                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-circle me-1 text-danger"></i>Stock crítico - por debajo del mínimo';
+                document.getElementById('stockStatus').className = 'text-danger';
             } else if (cantidad <= minima * 1.5 && minima > 0) {
                 progressBar.style.background = 'linear-gradient(90deg, #ffc107, #ffa726)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-info-circle me-1"></i>Stock cercano al mínimo';
+                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-info-circle me-1 text-warning"></i>Stock cercano al mínimo';
                 document.getElementById('stockStatus').className = 'text-warning';
             } else {
                 progressBar.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-check-circle me-1"></i>Stock en niveles óptimos';
+                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-check-circle me-1 text-success"></i>Stock en niveles óptimos';
                 document.getElementById('stockStatus').className = 'text-success';
             }
         } else {
@@ -1678,20 +1871,33 @@ class FormManager {
             document.getElementById('stockStatus').innerHTML = '<i class="fas fa-info-circle me-1"></i>Ingrese valores de inventario';
             document.getElementById('stockStatus').className = 'text-muted';
         }
+        
+        // Actualizar botón de submit
+        this.validateAllFields();
     }
 
-    actualizarEstadoStock(cantidad, minima) {
+    actualizarEstadoStock(cantidad, minima, maxima) {
         const estadoCard = document.getElementById('estadoStockCard');
         const estadoText = document.getElementById('estadoStockText');
         const icono = estadoCard.querySelector('i');
         
         let iconoClass, texto, color, borderColor;
         
-        if (cantidad === 0) {
+        if (cantidad < 0) {
+            iconoClass = 'fa-exclamation-circle';
+            texto = 'Stock Negativo';
+            color = 'secondary';
+            borderColor = '#6c757d';
+        } else if (cantidad === 0) {
             iconoClass = 'fa-times-circle';
             texto = 'Sin Stock';
             color = 'danger';
             borderColor = '#dc3545';
+        } else if (cantidad > maxima) {
+            iconoClass = 'fa-exclamation-triangle';
+            texto = 'Stock Excedido';
+            color = 'warning';
+            borderColor = '#ffc107';
         } else if (cantidad <= minima) {
             iconoClass = 'fa-exclamation-triangle';
             texto = 'Stock Bajo';
@@ -1752,7 +1958,7 @@ class FormManager {
             html: `
                 <div class="text-start">
                     <p><strong>Producto:</strong> ${document.getElementById('Nombre').value}</p>
-                    <p><strong>Categoría:</strong> ${document.getElementById('Categoria').options[document.getElementById('Categoria').selectedIndex].text}</p>
+                    <p><strong>Categoría:</strong> ${document.getElementById('Categoria').options[document.getElementById('Categoria').selectedIndex]?.text || 'Sin categoría'}</p>
                     <p><strong>Precio:</strong> $${precio.toFixed(2)} | <strong>Stock:</strong> ${cantidad}</p>
                     <p><strong>Límites:</strong> Mín: ${minima} | Máx: ${maxima}</p>
                     <p><strong>Valor Total:</strong> $${(precio * cantidad).toFixed(2)}</p>

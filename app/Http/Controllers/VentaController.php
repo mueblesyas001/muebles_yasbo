@@ -93,16 +93,16 @@ class VentaController extends Controller
     public function create()
     {
         $productos = Producto::where('Cantidad', '>', 0)
-                            ->orderBy('Nombre')
-                            ->get();
+                    ->where('estado', 1)
+                    ->orderBy('Nombre')
+                    ->get();
         
         $empleados = Empleado::orderBy('Nombre')->get();
 
         return view('ventas.create', compact('productos', 'empleados'));
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         // Validación completa
         $validated = $request->validate([
             'empleado_id' => 'required|exists:empleados,id',
@@ -176,10 +176,11 @@ class VentaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
-    {
+    public function edit($id){
         $venta = Venta::with('detalleVentas.producto')->findOrFail($id);
-        $productos = Producto::where('Cantidad', '>', 0)->get();
+        $productos = Producto::where('Cantidad', '>', 0)
+                    ->where('estado', 1)
+                    ->get();
         $empleados = Empleado::all();
 
         return view('ventas.edit', compact('venta', 'productos', 'empleados'));

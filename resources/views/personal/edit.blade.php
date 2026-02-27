@@ -722,14 +722,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="resetForm()" style="
-                                            padding: 12px 24px;
-                                            border-radius: 12px;
-                                            font-weight: 600;
-                                        ">
-                                            <i class="fas fa-undo-alt me-2"></i>
-                                            Restablecer
-                                        </button>
                                         <button type="button" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                                             border: none;

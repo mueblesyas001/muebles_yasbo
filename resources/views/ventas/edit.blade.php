@@ -325,10 +325,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <a href="{{ route('ventas.index') }}" class="btn btn-outline-secondary btn-action">
-                                            <i class="fas fa-times me-2"></i>
-                                            Cancelar
-                                        </a>
                                         <button type="submit" class="btn btn-warning btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
                                             border: none;
