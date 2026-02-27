@@ -641,10 +641,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <button type="button" class="btn btn-action btn-outline-secondary" onclick="resetForm()">
-                                            <i class="fas fa-redo me-2"></i>
-                                            Restaurar
-                                        </button>
                                         
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);

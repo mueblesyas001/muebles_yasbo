@@ -91,7 +91,7 @@
                                 <div class="progress-bar" id="formProgress" role="progressbar" style="width: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 10px; transition: width 0.5s ease;"></div>
                             </div>
                             <div class="d-flex justify-content-between mt-2">
-                                <small class="text-muted" id="completedFields">7 de 7 campos completados</small>
+                                <small class="text-muted" id="completedFields">6 de 6 campos completados</small>
                                 <small class="text-muted">
                                     <i class="fas fa-info-circle me-1"></i>
                                     Todos los campos con * son obligatorios
@@ -211,10 +211,10 @@
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
                                                 <span class="label-text">Apellido Materno</span>
-                                                <span class="label-required">*</span>
+                                                <!-- Eliminado el asterisco de requerido -->
                                             </label>
                                             
-                                            <div class="input-wrapper" data-required="true">
+                                            <div class="input-wrapper" data-required="false">
                                                 <div class="input-icon">
                                                     <i class="fas fa-user"></i>
                                                 </div>
@@ -224,7 +224,6 @@
                                                        name="ApMaterno" 
                                                        value="{{ old('ApMaterno', $proveedor->ApMaterno) }}" 
                                                        placeholder="Ej: González" 
-                                                       required
                                                        maxlength="255"
                                                        data-char-counter="apMaternoCount">
                                                 <div class="input-decoration"></div>
@@ -501,16 +500,12 @@
                                             </div>
                                             <div class="stat-item">
                                                 <i class="fas fa-check-circle text-success"></i>
-                                                <span id="validFieldsCount">7/7</span> completados
+                                                <span id="validFieldsCount">6/6</span> completados
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="resetForm()">
-                                            <i class="fas fa-undo-alt"></i>
-                                            <span>Restaurar Original</span>
-                                        </button>
                                         
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1402,7 +1397,6 @@ class NotificationManager {
         const fieldNames = {
             'Nombre': 'Nombre',
             'ApPaterno': 'Apellido Paterno',
-            'ApMaterno': 'Apellido Materno',
             'Sexo': 'Género',
             'Empresa_asociada': 'Empresa Asociada',
             'Correo': 'Correo Electrónico',
@@ -1452,7 +1446,7 @@ const originalData = {
 class FormManager {
     constructor() {
         this.requiredFields = [
-            'Nombre', 'ApPaterno', 'ApMaterno', 'Sexo', 'Empresa_asociada', 'Correo', 'Telefono'
+            'Nombre', 'ApPaterno', 'Sexo', 'Empresa_asociada', 'Correo', 'Telefono'
         ];
         this.init();
     }
@@ -1545,7 +1539,7 @@ class FormManager {
                     this.validateField(fieldId);
                     this.updateProgress();
                     this.checkForChanges();
-                    if (['Nombre', 'ApPaterno', 'ApMaterno'].includes(fieldId)) {
+                    if (['Nombre', 'ApPaterno'].includes(fieldId)) {
                         this.updateNombreCompleto();
                     }
                 });
@@ -1559,6 +1553,15 @@ class FormManager {
                 });
             }
         });
+
+        // También validar ApMaterno pero no afecta el progreso requerido
+        const apMaterno = document.getElementById('ApMaterno');
+        if (apMaterno) {
+            apMaterno.addEventListener('input', () => {
+                this.updateNombreCompleto();
+                this.checkForChanges();
+            });
+        }
 
         document.querySelectorAll('input[name="Sexo"]').forEach(radio => {
             radio.addEventListener('change', () => {
@@ -1650,7 +1653,6 @@ class FormManager {
         
         if (!this.validateField('Nombre')) errors.push('Nombre');
         if (!this.validateField('ApPaterno')) errors.push('ApPaterno');
-        if (!this.validateField('ApMaterno')) errors.push('ApMaterno');
         if (!this.validateGender()) errors.push('Sexo');
         if (!this.validateField('Empresa_asociada')) errors.push('Empresa_asociada');
         if (!this.validateField('Correo')) errors.push('Correo');

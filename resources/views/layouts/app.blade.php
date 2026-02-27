@@ -73,6 +73,7 @@ body{
     font-weight:500;
     cursor:pointer;
     transition:.2s;
+    text-decoration: none;
 }
 
 .nav-link-app i{
@@ -885,7 +886,7 @@ class SessionManager {
         // Eventos que indican actividad del usuario
         const events = [
             'mousedown', 'mousemove', 'keypress', 'keydown',
-            'scroll', 'touchstart', 'click', 'focus', 'load'
+            'scroll', 'touchstart', 'click', 'focus'
         ];
         
         events.forEach(event => {
@@ -1104,30 +1105,39 @@ class SessionManager {
     }
 }
 
+// Variable global para el estado del menú
+let navbarState = {
+    isMobile: window.innerWidth <= 992,
+    isMenuOpen: false
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     @auth
     const sessionManager = new SessionManager(16, 1); 
     @endauth
 
+    // Elementos del DOM
     const toggle = document.getElementById('mobileToggle');
     const menu = document.getElementById('navMenu');
     const items = document.querySelectorAll('.nav-item-app');
     const userMenu = document.querySelector('.user-menu');
     
-    let isMobile = window.innerWidth <= 992;
-
     // Función para verificar si estamos en móvil
     function checkMobile() {
-        isMobile = window.innerWidth <= 992;
-        if (!isMobile) {
-            // Si estamos en desktop, aseguramos que el menú sea visible y sin estilos móviles
+        navbarState.isMobile = window.innerWidth <= 992;
+        
+        if (!navbarState.isMobile) {
+            // Modo desktop - menú siempre visible
             menu.style.display = 'flex';
             menu.classList.remove('active');
             closeAllDropdowns();
+            navbarState.isMenuOpen = false;
         } else {
-            // Si estamos en móvil, ocultamos el menú inicialmente
-            menu.style.display = '';
-            menu.classList.remove('active');
+            // Modo móvil - menú oculto por defecto
+            if (!navbarState.isMenuOpen) {
+                menu.style.display = '';
+                menu.classList.remove('active');
+            }
         }
     }
 
@@ -1139,17 +1149,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para cerrar el menú hamburguesa
     function closeHamburgerMenu() {
-        if (isMobile) {
+        if (navbarState.isMobile) {
             menu.classList.remove('active');
             closeAllDropdowns();
+            navbarState.isMenuOpen = false;
         }
     }
 
     // Función para abrir/cerrar el menú hamburguesa
     function toggleHamburgerMenu() {
-        if (isMobile) {
+        if (navbarState.isMobile) {
+            const isActive = menu.classList.contains('active');
             menu.classList.toggle('active');
-            if (!menu.classList.contains('active')) {
+            navbarState.isMenuOpen = !isActive;
+            
+            if (isActive) {
                 closeAllDropdowns();
             }
         }
@@ -1170,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!btn) return;
 
         btn.addEventListener('click', function(e) {
-            if (isMobile) {
+            if (navbarState.isMobile) {
                 e.preventDefault();
                 e.stopPropagation();
                 
@@ -1191,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const userBtn = userMenu.querySelector('.dropdown-btn');
         if (userBtn) {
             userBtn.addEventListener('click', function(e) {
-                if (isMobile) {
+                if (navbarState.isMobile) {
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -1207,10 +1221,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cerrar al hacer clic fuera
     document.addEventListener('click', function(e) {
-        if (isMobile) {
+        if (navbarState.isMobile) {
             const isClickInside = menu.contains(e.target) || toggle.contains(e.target);
             
-            if (!isClickInside) {
+            if (!isClickInside && navbarState.isMenuOpen) {
                 closeHamburgerMenu();
             }
         }
@@ -1223,12 +1237,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Cerrar al hacer clic en enlaces
+    // Cerrar al hacer clic en enlaces - CORREGIDO: mantener estado del navbar
     const allLinks = document.querySelectorAll('.nav-link-app:not(.dropdown-btn), .dropdown-menu-app a');
     allLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (isMobile) {
-                setTimeout(closeHamburgerMenu, 100);
+        link.addEventListener('click', function(e) {
+            if (navbarState.isMobile) {
+                // No cerrar inmediatamente para permitir la navegación
+                setTimeout(() => {
+                    // Solo cerrar si no es un dropdown y estamos en móvil
+                    if (!this.classList.contains('dropdown-btn')) {
+                        closeHamburgerMenu();
+                    }
+                }, 100);
             }
         });
     });
@@ -1240,14 +1260,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cerrar con tecla ESC
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isMobile) {
+        if (e.key === 'Escape' && navbarState.isMobile && navbarState.isMenuOpen) {
             closeHamburgerMenu();
         }
     });
 
     // Eventos hover solo para desktop
     function setupHoverEvents() {
-        if (!isMobile) {
+        if (!navbarState.isMobile) {
             items.forEach(item => {
                 item.addEventListener('mouseenter', () => item.classList.add('active'));
                 item.addEventListener('mouseleave', () => item.classList.remove('active'));
@@ -1257,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 userMenu.addEventListener('mouseleave', () => userMenu.classList.remove('active'));
             }
         } else {
+            // Limpiar eventos hover en móvil
             items.forEach(item => {
                 item.removeEventListener('mouseenter', () => {});
                 item.removeEventListener('mouseleave', () => {});
@@ -1278,6 +1299,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar estado móvil
     checkMobile();
+
+    // CORRECCIÓN ADICIONAL: Mantener el navbar activo después de la navegación
+    // Esto asegura que el menú hamburguesa permanezca visible si estaba abierto
+    if (navbarState.isMobile && navbarState.isMenuOpen) {
+        menu.classList.add('active');
+    }
 });
 
 // Funciones para reportes

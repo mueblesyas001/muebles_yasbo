@@ -12,13 +12,16 @@ class ProductoController extends Controller
 {
     public function index(Request $request){
         $categorias = Categoria::all();
-        $query = Producto::with('categoria')->where('estado', 1);
         
+        // IMPORTANTE: No filtramos por estado, traemos TODOS los productos
+        $query = Producto::with('categoria');
+        
+        // Aplicar filtros de búsqueda
         if ($request->filled('nombre')) {
             $search = $request->nombre;
             $query->where(function($q) use ($search) {
                 $q->where('Nombre', 'LIKE', "%{$search}%")
-                  ->orWhere('Descripcion', 'LIKE', "%{$search}%");
+                ->orWhere('Descripcion', 'LIKE', "%{$search}%");
             });
         }
         
@@ -58,14 +61,17 @@ class ProductoController extends Controller
             }
         }
         
+        // FILTRO POR ESTADO (activos/inactivos) - AHORA SÍ LO INCLUIMOS
         if ($request->filled('estado')) {
             if ($request->estado === 'activos') {
                 $query->where('estado', 1);
             } elseif ($request->estado === 'inactivos') {
                 $query->where('estado', 0);
             }
+            // Si no se especifica, NO FILTRAMOS, mostramos TODOS
         }
         
+        // Ordenamiento
         $sortBy = $request->get('sort_by', 'Nombre');
         $sortOrder = $request->get('sort_order', 'asc');
         
@@ -76,21 +82,24 @@ class ProductoController extends Controller
         
         $query->orderBy($sortBy, $sortOrder);
         
+        // CLONAMOS EL QUERY PARA ESTADÍSTICAS (TAMBIÉN SIN FILTRO DE ESTADO)
         $queryForStats = clone $query;
         $productosFiltrados = $queryForStats->get();
         
+        // Calcular estadísticas
         $stats = [
             'total' => $productosFiltrados->count(),
+            'activos' => $productosFiltrados->where('estado', 1)->count(),
+            'inactivos' => $productosFiltrados->where('estado', 0)->count(),
             'en_stock' => $productosFiltrados->where('Cantidad', '>', 0)->count(),
             'agotados' => $productosFiltrados->where('Cantidad', '=', 0)->count(),
             'bajo_stock' => $productosFiltrados->filter(function($producto) {
                 return $producto->Cantidad > 0 && $producto->Cantidad <= $producto->Cantidad_minima;
             })->count(),
-            'total_unidades' => $productosFiltrados->sum('Cantidad'),
-            'activos' => $productosFiltrados->where('estado', 1)->count(),
-            'inactivos' => $productosFiltrados->where('estado', 0)->count()
+            'total_unidades' => $productosFiltrados->sum('Cantidad')
         ];
         
+        // PAGINACIÓN - SIN FILTRO DE ESTADO (TODOS LOS PRODUCTOS)
         $productosPaginated = $query->paginate(10)->appends($request->except('page'));
         
         return view('productos.index', compact(

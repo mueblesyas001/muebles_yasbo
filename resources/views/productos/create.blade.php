@@ -674,6 +674,12 @@
     }
 }
 
+@keyframes errorPulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
 /* Toast Notifications */
 .toast-notification {
     position: fixed;
@@ -912,12 +918,12 @@
 }
 
 .input-wrapper.error {
-    border-color: var(--danger-color);
-    animation: shake 0.5s;
+    border-color: var(--danger-color) !important;
+    animation: errorPulse 2s infinite;
 }
 
 .input-wrapper.valid {
-    border-color: var(--success-color);
+    border-color: var(--success-color) !important;
 }
 
 .input-icon {
@@ -1048,6 +1054,17 @@
     min-width: 200px;
 }
 
+.btn-submit.btn-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.btn-submit.btn-disabled::before {
+    content: "⛔";
+    margin-right: 8px;
+}
+
 .submit-content,
 .submit-loader {
     display: flex;
@@ -1071,12 +1088,12 @@
     opacity: 1;
 }
 
-.btn-submit:hover:not(.loading) {
+.btn-submit:hover:not(.loading):not(.btn-disabled) {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
 }
 
-.btn-submit:active:not(.loading) {
+.btn-submit:active:not(.loading):not(.btn-disabled) {
     transform: translateY(1px);
 }
 
@@ -1155,6 +1172,25 @@
 .preview-card:hover {
     transform: translateX(5px);
     box-shadow: var(--shadow-sm);
+}
+
+/* Tooltip personalizado para el error */
+.input-wrapper.error-tooltip {
+    position: relative;
+}
+
+.input-wrapper.error-tooltip:hover::after {
+    content: attr(data-error);
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
 }
 
 /* Responsive */
@@ -1427,6 +1463,33 @@ class FormManager {
         const minima = parseInt(document.getElementById('Cantidad_minima').value) || 0;
         const maxima = parseInt(document.getElementById('Cantidad_maxima').value) || 0;
 
+        // Validación: cantidad actual NO puede ser mayor a la máxima
+        if (cantidad > maxima && maxima > 0) {
+            errors.push('cantidad_excede_maxima');
+            
+            // Resaltar el campo de cantidad
+            const cantidadWrapper = document.getElementById('Cantidad').closest('.input-wrapper');
+            cantidadWrapper.classList.add('error');
+            
+            // Mostrar mensaje específico
+            notifier.showError(
+                `La cantidad actual (${cantidad}) no puede ser mayor a la cantidad máxima (${maxima})`,
+                'Error de Validación'
+            );
+            
+            // Animar el campo
+            cantidadWrapper.classList.add('shake-enhanced');
+            setTimeout(() => cantidadWrapper.classList.remove('shake-enhanced'), 800);
+            
+            // Deshabilitar botón de submit visualmente
+            document.getElementById('submitBtn').classList.add('btn-disabled');
+            
+            // Hacer scroll al campo de cantidad
+            document.getElementById('Cantidad').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            return false; // Detener validación inmediatamente
+        }
+
         if (minima > maxima && minima > 0 && maxima > 0) {
             errors.push('minima_maxima');
             notifier.showWarning('La cantidad mínima no puede ser mayor que la máxima');
@@ -1437,13 +1500,8 @@ class FormManager {
             notifier.showWarning('La cantidad actual está por debajo del mínimo establecido');
         }
 
-        if (cantidad > maxima && cantidad > 0 && maxima > 0) {
-            errors.push('cantidad_maxima');
-            notifier.showWarning('La cantidad actual supera el máximo establecido');
-        }
-
         if (errors.length > 0 && !errors.includes('minima_maxima') && 
-            !errors.includes('cantidad_minima') && !errors.includes('cantidad_maxima')) {
+            !errors.includes('cantidad_minima') && !errors.includes('cantidad_excede_maxima')) {
             notifier.showValidationError(errors);
             
             const firstErrorId = errors[0];
@@ -1458,6 +1516,9 @@ class FormManager {
                 }
             }
         }
+
+        // Habilitar botón de submit si no hay errores
+        document.getElementById('submitBtn').classList.remove('btn-disabled');
 
         return errors.length === 0;
     }
@@ -1552,28 +1613,47 @@ class FormManager {
             const progressBar = document.getElementById('stockProgress');
             progressBar.style.width = `${porcentaje}%`;
             
-            // Cambiar color según nivel
-            if (cantidad < minima) {
+            // Si cantidad > maxima, mostrar error y bloquear visualmente
+            if (cantidad > maxima) {
                 progressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Stock crítico - por debajo del mínimo';
+                document.getElementById('stockStatus').innerHTML = 
+                    '<i class="fas fa-exclamation-circle me-1"></i>' +
+                    `<strong class="text-danger">ERROR: La cantidad actual (${cantidad}) excede el máximo permitido (${maxima})</strong>`;
+                document.getElementById('stockStatus').className = 'text-danger fw-bold';
+                
+                // Resaltar el campo de cantidad
+                const cantidadWrapper = document.getElementById('Cantidad').closest('.input-wrapper');
+                cantidadWrapper.classList.add('error');
+                
+                // Deshabilitar botón de submit visualmente
+                document.getElementById('submitBtn').classList.add('btn-disabled');
+            } else if (cantidad < minima && minima > 0) {
+                progressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
+                document.getElementById('stockStatus').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle me-1"></i>' +
+                    `Stock crítico: ${cantidad} unidades (mínimo: ${minima})`;
                 document.getElementById('stockStatus').className = 'text-danger';
-            } else if (cantidad > maxima) {
-                progressBar.style.background = 'linear-gradient(90deg, #ffc107, #ffa726)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Stock excede capacidad máxima';
-                document.getElementById('stockStatus').className = 'text-warning';
+                document.getElementById('submitBtn').classList.remove('btn-disabled');
             } else if (cantidad <= minima * 1.5 && minima > 0) {
                 progressBar.style.background = 'linear-gradient(90deg, #ffc107, #ffa726)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-info-circle me-1"></i>Stock cercano al mínimo';
+                document.getElementById('stockStatus').innerHTML = 
+                    '<i class="fas fa-info-circle me-1"></i>' +
+                    `Stock cercano al mínimo: ${cantidad} unidades (mínimo: ${minima})`;
                 document.getElementById('stockStatus').className = 'text-warning';
+                document.getElementById('submitBtn').classList.remove('btn-disabled');
             } else {
                 progressBar.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
-                document.getElementById('stockStatus').innerHTML = '<i class="fas fa-check-circle me-1"></i>Stock en niveles óptimos';
+                document.getElementById('stockStatus').innerHTML = 
+                    '<i class="fas fa-check-circle me-1"></i>' +
+                    `Stock en niveles óptimos: ${cantidad} unidades`;
                 document.getElementById('stockStatus').className = 'text-success';
+                document.getElementById('submitBtn').classList.remove('btn-disabled');
             }
         } else {
             document.getElementById('stockProgress').style.width = '0%';
             document.getElementById('stockStatus').innerHTML = '<i class="fas fa-info-circle me-1"></i>Ingrese valores de inventario';
             document.getElementById('stockStatus').className = 'text-muted';
+            document.getElementById('submitBtn').classList.remove('btn-disabled');
         }
     }
 
@@ -1612,6 +1692,7 @@ class FormManager {
         });
 
         document.getElementById('categoriaPreview').style.display = 'none';
+        document.getElementById('submitBtn').classList.remove('btn-disabled');
         this.calcularInventario();
         this.updateProgress();
     }
