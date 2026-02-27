@@ -16,8 +16,7 @@ use Carbon\Carbon;
 
 class PedidoController extends Controller
 {
-    public function index(Request $request)
-    {
+    public function index(Request $request){
         // Consulta base con relaciones
         $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto']);
         
@@ -104,11 +103,19 @@ class PedidoController extends Controller
         return view('pedidos.index', compact('pedidosFiltrados', 'pedidosPaginated', 'clientes', 'empleados'));
     }
 
-    public function create()
-    {
-        $clientes = Cliente::orderBy('Nombre')->get();
-        $empleados = Empleado::orderBy('Nombre')->get();
-        $productos = Producto::where('Cantidad', '>', 0)->orderBy('Nombre')->get();
+    public function create(){
+        $clientes = Cliente::where('estado', 1)  // Solo clientes activos
+                    ->orderBy('Nombre')
+                    ->get();
+        
+        $empleados = Empleado::orderBy('Nombre')  // Si también quieres empleados activos
+                    ->where('estado', 1)          // Agrega esta línea si aplica
+                    ->get();
+        
+        $productos = Producto::where('Cantidad', '>', 0)  // Stock disponible
+                    ->where('estado', 1)                  // Solo productos activos
+                    ->orderBy('Nombre')
+                    ->get();
         
         return view('pedidos.create', compact('clientes', 'empleados', 'productos'));
     }
@@ -180,18 +187,29 @@ class PedidoController extends Controller
 
     public function edit($id){
         $pedido = Pedido::with('detallePedidos.producto')->findOrFail($id);
-        $clientes = Cliente::orderBy('Nombre')->get();
-        $empleados = Empleado::orderBy('Nombre')->get();
-        $productos = Producto::where('Cantidad', '>', 0)
-                        ->orWhereHas('detallePedidos', function($query) use ($pedido) {
-                            $query->where('Pedido', $pedido->id);
-                        })
-                        ->orderBy('Nombre')
-                        ->get();
+        // Solo clientes activos
+        $clientes = Cliente::where('estado', 1)
+                    ->orderBy('Nombre')
+                    ->get();
+        
+        // Empleados activos (si aplica)
+        $empleados = Empleado::where('estado', 1)
+                    ->orderBy('Nombre')
+                    ->get();
+        
+        // Productos activos con la condición especial para el pedido actual
+        $productos = Producto::where('estado', 1)  // Primero filtramos productos activos
+                    ->where(function($query) use ($pedido) {
+                        $query->where('Cantidad', '>', 0)  // Con stock disponible
+                            ->orWhereHas('detallePedidos', function($subquery) use ($pedido) {
+                                $subquery->where('Pedido', $pedido->id);  // O que están en el pedido actual
+                            });
+                    })
+                    ->orderBy('Nombre')
+                    ->get();
 
         return view('pedidos.edit', compact('pedido', 'clientes', 'empleados', 'productos'));
     }
-
     public function update(Request $request, $id)
     {
         $validated = $request->validate([

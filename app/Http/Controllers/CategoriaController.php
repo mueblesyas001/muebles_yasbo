@@ -56,14 +56,12 @@ class CategoriaController extends Controller{
         return view('categorias.index', compact('categorias', 'proveedores'));
     }
 
-    public function create()
-    {
-        $proveedores = Proveedor::all();
+    public function create(){
+        $proveedores = Proveedor::where('estado', 1)->get(); // Solo proveedores activos
         return view('categorias.create', compact('proveedores'));
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'Nombre' => 'required|string|max:100',
             'Descripcion' => 'required|string|max:200',
@@ -72,7 +70,6 @@ class CategoriaController extends Controller{
         ]);
 
         $data = $request->all();
-        // Si no se envía el estado, por defecto será 1 (activa)
         if (!isset($data['estado'])) {
             $data['estado'] = 1;
         }
@@ -83,9 +80,8 @@ class CategoriaController extends Controller{
             ->with('success', 'Categoría creada exitosamente.');
     }
 
-    public function edit($id)
-    {
-        $proveedores = Proveedor::all();
+    public function edit($id){
+        $proveedores = Proveedor::where('estado', 1)->get(); // Solo proveedores activos
         $categoria = Categoria::findOrFail($id);
         return view('categorias.edit', compact('categoria', 'proveedores'));
     }
@@ -117,7 +113,6 @@ class CategoriaController extends Controller{
         try {
             $categoria = Categoria::findOrFail($id);
             
-            // Cambiar el estado a 0 (inactivo) en lugar de eliminar
             $categoria->estado = 0;
             $categoria->save();
             
@@ -130,9 +125,7 @@ class CategoriaController extends Controller{
         }
     }
 
-    /**
-     * Cambiar el estado de una categoría (Activar/Desactivar)
-     */
+
     public function toggleEstado($id)
     {
         try {

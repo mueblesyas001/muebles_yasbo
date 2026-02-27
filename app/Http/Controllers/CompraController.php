@@ -15,9 +15,7 @@ use Carbon\Carbon;
 
 class CompraController extends Controller
 {
-    public function index(Request $request)
-    {
-        // Consulta base con relaciones
+    public function index(Request $request){
         $query = Compra::with(['proveedor', 'detalleCompras.producto']);
         
         // ========== APLICAR FILTROS ==========
@@ -41,22 +39,18 @@ class CompraController extends Controller
             $query->whereDate('Fecha_compra', '<=', $request->input('fecha_hasta'));
         }
         
-        // 4. Filtro por proveedor
         if ($request->filled('proveedor_id')) {
             $query->where('Proveedor_idProveedor', $request->input('proveedor_id'));
         }
         
-        // 5. Filtro por monto mínimo
         if ($request->filled('monto_min')) {
             $query->where('Total', '>=', $request->input('monto_min'));
         }
         
-        // 6. Filtro por monto máximo
         if ($request->filled('monto_max')) {
             $query->where('Total', '<=', $request->input('monto_max'));
         }
         
-        // 7. Filtro por producto (búsqueda en nombre del producto)
         if ($request->filled('producto')) {
             $productoNombre = $request->input('producto');
             $query->whereHas('detalleCompras.producto', function($q) use ($productoNombre) {
@@ -90,8 +84,7 @@ class CompraController extends Controller
         return view('compras.index', compact('comprasFiltradas', 'comprasPaginated', 'proveedores'));
     }
     
-    public function getDetalles($id)
-    {
+    public function getDetalles($id){
         try {
             Log::info("🎯 Iniciando getDetalles para compra ID: {$id}");
             
@@ -133,12 +126,14 @@ class CompraController extends Controller
         }
     }
 
-    public function create()
-    {
+    public function create(){
         try {
-            $proveedores = Proveedor::all();
-            $productos = Producto::with('categoria')->get();
-            $categorias = Categoria::all(); 
+            $proveedores = Proveedor::where('estado', 1)->get(); // Asumiendo que también quieres solo proveedores activos, modifica igual
+            $productos = Producto::with(['categoria' => function($query) {
+                $query->where('estado', 1); // Solo categorías activas en la relación
+            }])->where('estado', 1)->get(); // Solo productos activos
+            
+            $categorias = Categoria::where('estado', 1)->get(); // Solo categorías activas
 
             return view('compras.create', compact('proveedores', 'productos', 'categorias'));
         } catch (\Exception $e) {
@@ -147,8 +142,7 @@ class CompraController extends Controller
         }
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         try {
             // Validar entrada
             $validated = $request->validate([
@@ -234,8 +228,7 @@ class CompraController extends Controller
         }
     }
 
-    public function show($id)
-    {
+    public function show($id){
         try {
             $compra = Compra::with(['proveedor', 'detalleCompras.producto'])->findOrFail($id);
             return view('compras.show', compact('compra'));
@@ -249,7 +242,7 @@ class CompraController extends Controller
         $compra = Compra::with('detalleCompras.producto.categoria')->findOrFail($id);
         $proveedores = Proveedor::all();
         $productos = Producto::with('categoria')->get();
-        $categorias = Categoria::all(); // <-- AÑADE ESTA LÍNEA
+        $categorias = Categoria::where('estado', 1)->get(); 
         
         return view('compras.edit', compact('compra', 'proveedores', 'productos', 'categorias'));
     }
@@ -257,7 +250,6 @@ class CompraController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Validar entrada
             $validated = $request->validate([
                 'Proveedor_idProveedor' => 'required|exists:proveedores,id',
                 'productos' => 'required|array|min:1',

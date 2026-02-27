@@ -10,15 +10,10 @@ use Illuminate\Validation\Rule;
 
 class ProductoController extends Controller
 {
-    public function index(Request $request)
-    {
-        // Obtener todas las categorías para el select
+    public function index(Request $request){
         $categorias = Categoria::all();
+        $query = Producto::with('categoria')->where('estado', 1);
         
-        // Iniciar query con eager loading
-        $query = Producto::with('categoria');
-        
-        // FILTRO POR NOMBRE/DESCRIPCIÓN
         if ($request->filled('nombre')) {
             $search = $request->nombre;
             $query->where(function($q) use ($search) {
@@ -27,17 +22,14 @@ class ProductoController extends Controller
             });
         }
         
-        // FILTRO POR ID
         if ($request->filled('id')) {
             $query->where('id', $request->id);
         }
         
-        // FILTRO POR CATEGORÍA
         if ($request->filled('categoria_id')) {
             $query->where('Categoria', $request->categoria_id);
         }
         
-        // FILTRO POR RANGO DE PRECIO
         if ($request->filled('precio_min')) {
             $query->where('Precio', '>=', $request->precio_min);
         }
@@ -45,7 +37,6 @@ class ProductoController extends Controller
             $query->where('Precio', '<=', $request->precio_max);
         }
         
-        // FILTRO POR RANGO DE STOCK
         if ($request->filled('stock_min')) {
             $query->where('Cantidad', '>=', $request->stock_min);
         }
@@ -53,7 +44,6 @@ class ProductoController extends Controller
             $query->where('Cantidad', '<=', $request->stock_max);
         }
         
-        // FILTRO POR ESTADO DE STOCK
         if ($request->filled('estado_stock')) {
             switch ($request->estado_stock) {
                 case 'en_stock':
@@ -68,7 +58,6 @@ class ProductoController extends Controller
             }
         }
         
-        // FILTRO POR ESTADO (activo/inactivo)
         if ($request->filled('estado')) {
             if ($request->estado === 'activos') {
                 $query->where('estado', 1);
@@ -77,11 +66,9 @@ class ProductoController extends Controller
             }
         }
         
-        // Ordenamiento
         $sortBy = $request->get('sort_by', 'Nombre');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        // Validar que el campo de ordenamiento existe
         $allowedSorts = ['Nombre', 'Precio', 'Cantidad', 'id', 'Categoria', 'estado'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'Nombre';
@@ -89,7 +76,6 @@ class ProductoController extends Controller
         
         $query->orderBy($sortBy, $sortOrder);
         
-        // Calcular estadísticas para la vista
         $queryForStats = clone $query;
         $productosFiltrados = $queryForStats->get();
         
@@ -105,7 +91,6 @@ class ProductoController extends Controller
             'inactivos' => $productosFiltrados->where('estado', 0)->count()
         ];
         
-        // Paginación
         $productosPaginated = $query->paginate(10)->appends($request->except('page'));
         
         return view('productos.index', compact(
@@ -116,9 +101,8 @@ class ProductoController extends Controller
         ));
     }
 
-    public function create()
-    {
-        $categorias = Categoria::all();
+    public function create(){
+        $categorias = Categoria::where('estado', 1)->get();
         return view('productos.create', compact('categorias'));
     }
 
@@ -151,7 +135,7 @@ class ProductoController extends Controller
     public function edit($id)
     {
         $producto = Producto::findOrFail($id);
-        $categorias = Categoria::all();
+        $categorias = Categoria::where('estado', 1)->get();
         return view('productos.edit', compact('producto', 'categorias'));
     }
 
