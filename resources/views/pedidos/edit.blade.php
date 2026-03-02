@@ -277,7 +277,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Prioridad -->
+                                    <!-- Prioridad - CON EL MISMO DISEÑO QUE SOLICITASTE -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -290,12 +290,26 @@
                                                     <i class="fas fa-flag"></i>
                                                 </div>
                                                 <select class="input-field @error('Prioridad') is-invalid @enderror" 
-                                                        id="prioridad" name="Prioridad" required>
+                                                        id="prioridad" 
+                                                        name="Prioridad" 
+                                                        required>
                                                     <option value="">Seleccionar prioridad</option>
-                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}>Baja</option>
-                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}>Media</option>
-                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }}>Alta</option>
-                                                    <option value="Urgente" {{ old('Prioridad', $pedido->Prioridad) == 'Urgente' ? 'selected' : '' }}>Urgente</option>
+                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }} 
+                                                            data-badge="danger" data-icon="fa-exclamation-triangle">
+                                                        Alta Prioridad 
+                                                    </option>
+                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}
+                                                            data-badge="warning" data-icon="fa-clock">
+                                                        Media Prioridad 
+                                                    </option>
+                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}
+                                                            data-badge="success" data-icon="fa-calendar-check">
+                                                        Baja Prioridad 
+                                                    </option>
+                                                    <option value="Normal" {{ old('Prioridad', $pedido->Prioridad) == 'Normal' ? 'selected' : '' }}
+                                                            data-badge="info" data-icon="fa-check-circle">
+                                                        Prioridad Normal 
+                                                    </option>
                                                 </select>
                                                 <div class="input-decoration"></div>
                                             </div>
@@ -303,7 +317,25 @@
                                             <div class="input-meta">
                                                 <div class="input-hint">
                                                     <i class="fas fa-lightbulb"></i>
-                                                    Nivel de prioridad del pedido
+                                                    Nivel de urgencia del pedido
+                                                </div>
+                                                <div class="prioridad-badge" id="prioridadBadge">
+                                                    @if(old('Prioridad', $pedido->Prioridad))
+                                                        @switch(old('Prioridad', $pedido->Prioridad))
+                                                            @case('Alta')
+                                                                <span class="badge bg-danger">Alta Prioridad</span>
+                                                                @break
+                                                            @case('Media')
+                                                                <span class="badge bg-warning text-dark">Media Prioridad</span>
+                                                                @break
+                                                            @case('Baja')
+                                                                <span class="badge bg-success">Baja Prioridad</span>
+                                                                @break
+                                                            @case('Normal')
+                                                                <span class="badge bg-info">Prioridad Normal</span>
+                                                                @break
+                                                        @endswitch
+                                                    @endif
                                                 </div>
                                             </div>
                                             
@@ -579,7 +611,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
                                             border: none;
@@ -1088,6 +1119,50 @@
     color: #4cc9f0;
 }
 
+/* Estilos para el badge de prioridad */
+.prioridad-badge {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.prioridad-badge .badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    white-space: nowrap;
+}
+
+/* Estilos para las opciones del select */
+#prioridad option[value="Alta"] {
+    background-color: #fee2e2;
+    color: #dc2626;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Media"] {
+    background-color: #fef3c7;
+    color: #d97706;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Baja"] {
+    background-color: #d1fae5;
+    color: #059669;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Normal"] {
+    background-color: #dbeafe;
+    color: #2563eb;
+    font-weight: 600;
+    padding: 8px;
+}
+
 /* Select específico */
 select.input-field {
     appearance: none;
@@ -1490,6 +1565,7 @@ class FormManager {
         this.setupEventListeners();
         this.initDateValidation();
         this.initRealTimeValidation();
+        this.initPrioridadField(); // AGREGADO: Inicializar campo prioridad
         this.updateProgress();
         this.initFormReset();
         this.cargarProductosExistentes();
@@ -1497,6 +1573,56 @@ class FormManager {
         
         // Mostrar errores de validación del servidor si existen
         this.showServerErrors();
+    }
+
+    // AGREGADO: Método para inicializar campo prioridad
+    initPrioridadField() {
+        const prioridadSelect = document.getElementById('prioridad');
+        const prioridadBadge = document.getElementById('prioridadBadge');
+        
+        if (prioridadSelect) {
+            prioridadSelect.addEventListener('change', () => {
+                this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
+                this.updateProgress();
+            });
+            
+            // Actualizar badge inicial si hay valor
+            if (prioridadSelect.value) {
+                this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
+            }
+        }
+    }
+
+    // AGREGADO: Método para actualizar badge de prioridad
+    actualizarBadgePrioridad(select, badgeContainer) {
+        const valor = select.value;
+        
+        if (!badgeContainer) return;
+        
+        switch(valor) {
+            case 'Alta':
+                badgeContainer.innerHTML = '<span class="badge bg-danger">Alta Prioridad</span>';
+                break;
+            case 'Media':
+                badgeContainer.innerHTML = '<span class="badge bg-warning text-dark">Media Prioridad</span>';
+                break;
+            case 'Baja':
+                badgeContainer.innerHTML = '<span class="badge bg-success">Baja Prioridad</span>';
+                break;
+            case 'Normal':
+                badgeContainer.innerHTML = '<span class="badge bg-info">Prioridad Normal</span>';
+                break;
+            default:
+                badgeContainer.innerHTML = '';
+        }
+        
+        // Animar el badge
+        if (badgeContainer.innerHTML) {
+            badgeContainer.style.animation = 'pulse 0.5s ease';
+            setTimeout(() => {
+                badgeContainer.style.animation = '';
+            }, 500);
+        }
     }
 
     mostrarFechaHoy() {
@@ -1547,6 +1673,13 @@ class FormManager {
         document.getElementById('prioridad').value = originalData.prioridad;
         document.getElementById('lugar_entrega').value = originalData.lugar_entrega;
         document.getElementById('comentario').value = originalData.comentario || '';
+
+        // Actualizar badge de prioridad
+        const prioridadSelect = document.getElementById('prioridad');
+        const prioridadBadge = document.getElementById('prioridadBadge');
+        if (prioridadSelect && prioridadBadge) {
+            this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
+        }
 
         // Limpiar y recargar productos
         this.productosSeleccionados.clear();
@@ -2034,12 +2167,15 @@ class FormManager {
             day: 'numeric'
         });
         
+        const prioridadSelect = document.getElementById('prioridad');
+        const prioridadText = prioridadSelect.options[prioridadSelect.selectedIndex]?.text || 'No seleccionada';
+        
         const datosPedido = {
             total: document.getElementById('montoTotal').textContent,
             totalProductos: document.getElementById('totalProductos').textContent,
             totalUnidades: document.getElementById('totalUnidades').textContent,
             fechaEntrega: fechaFormateada,
-            prioridad: document.getElementById('prioridad').options[document.getElementById('prioridad').selectedIndex].text,
+            prioridad: prioridadText,
             tieneComentario: comentario.trim() !== '',
             comentario: comentario.trim() ? comentario.substring(0, 150) + (comentario.length > 150 ? '...' : '') : ''
         };

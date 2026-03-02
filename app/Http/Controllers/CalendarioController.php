@@ -50,7 +50,7 @@ class CalendarioController extends Controller
                     'total' => number_format($pedido->Total, 2),
                     'cliente_nombre' => $clienteNombre,
                     'cliente_id' => $pedido->Cliente_idCliente,
-                    'comentario' => $pedido->comentario, // NUEVO CAMPO
+                    'comentario' => $pedido->comentario,
                     'detalles' => $pedido->detallePedidos->map(function($detalle) {
                         return [
                             'producto_nombre' => $detalle->producto->Nombre ?? 'Producto no encontrado',
@@ -81,6 +81,8 @@ class CalendarioController extends Controller
             'total_pedidos' => $pedidos->count(),
             'alta_prioridad' => $pedidos->where('prioridad', 'alta')->count(),
             'media_prioridad' => $pedidos->where('prioridad', 'media')->count(),
+            'baja_prioridad' => $pedidos->where('prioridad', 'baja')->count(),
+            'normal_prioridad' => $pedidos->where('prioridad', 'normal')->count(),
             'pendientes' => $pedidos->where('estado', 'pendiente')->count(),
         ];
 
@@ -198,7 +200,7 @@ class CalendarioController extends Controller
                 $clienteDireccion = $pedido->cliente->Direccion ?? 'N/A';
             }
 
-            // Colores para badges
+            // Colores para badges (CORREGIDO - AHORA SOPORTA 'normal')
             $prioridadColor = $this->getPrioridadColor($pedido->Prioridad);
             $estadoColor = $this->getEstadoColor($pedido->Estado);
 
@@ -206,7 +208,7 @@ class CalendarioController extends Controller
             $comentarioHtml = '';
             if (!empty($pedido->comentario)) {
                 $comentarioHtml = '
-                <!-- Sección 4: Comentarios del Pedido (NUEVO) -->
+                <!-- Sección 4: Comentarios del Pedido -->
                 <div class="seccion-notas">
                     <h5 class="titulo-seccion">
                         <i class="fas fa-comment-dots me-2"></i>Comentarios del Pedido
@@ -344,6 +346,7 @@ class CalendarioController extends Controller
                 .badge.bg-success { background: linear-gradient(135deg, #6bcf7f 0%, #4ea752 100%) !important; }
                 .badge.bg-primary { background: linear-gradient(135deg, #6c8eff 0%, #4d73fe 100%) !important; }
                 .badge.bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important; }
+                .badge.bg-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important; }
                 
                 @media (max-width: 768px) {
                     .detalle-completo {
@@ -486,38 +489,46 @@ class CalendarioController extends Controller
         }
     }
 
-    // Método auxiliar para color de prioridad
+    // Método auxiliar para color de prioridad (CORREGIDO - AHORA SOPORTA 'normal')
     private function getPrioridadColor($prioridad)
     {
-        $prioridad = strtolower($prioridad);
+        $prioridad = strtolower(trim($prioridad));
         
-        if ($prioridad == 'alta') {
-            return 'danger';
-        } elseif ($prioridad == 'media') {
-            return 'warning';
-        } elseif ($prioridad == 'baja') {
-            return 'success';
+        switch ($prioridad) {
+            case 'alta':
+                return 'danger';
+            case 'media':
+                return 'warning';
+            case 'baja':
+                return 'success';
+            case 'normal':
+                return 'info';
+            default:
+                return 'secondary';
         }
-        return 'primary';
     }
 
     // Método auxiliar para color de estado
     private function getEstadoColor($estado)
     {
-        $estado = strtolower($estado);
+        $estado = strtolower(trim($estado));
         
-        if ($estado == 'pendiente') {
-            return 'warning';
-        } elseif ($estado == 'confirmado') {
-            return 'info';
-        } elseif (in_array($estado, ['en proceso', 'en_proceso'])) {
-            return 'primary';
-        } elseif (in_array($estado, ['completado', 'entregado'])) {
-            return 'success';
-        } elseif ($estado == 'cancelado') {
-            return 'danger';
+        switch ($estado) {
+            case 'pendiente':
+                return 'warning';
+            case 'confirmado':
+                return 'info';
+            case 'en proceso':
+            case 'en_proceso':
+                return 'primary';
+            case 'completado':
+            case 'entregado':
+                return 'success';
+            case 'cancelado':
+                return 'danger';
+            default:
+                return 'secondary';
         }
-        return 'secondary';
     }
 
     public function eventosJson(Request $request)
@@ -539,14 +550,18 @@ class CalendarioController extends Controller
                     );
                 }
 
-                // Color según prioridad
-                $color = '#007bff'; // default
-                if (strtolower($pedido->Prioridad) == 'alta') {
-                    $color = '#dc3545';
-                } elseif (strtolower($pedido->Prioridad) == 'media') {
-                    $color = '#ffc107';
-                } elseif (strtolower($pedido->Prioridad) == 'baja') {
-                    $color = '#28a745';
+                // Color según prioridad (CORREGIDO)
+                $color = '#007bff'; // default (azul)
+                $prioridad = strtolower(trim($pedido->Prioridad));
+                
+                if ($prioridad == 'alta') {
+                    $color = '#dc3545'; // rojo
+                } elseif ($prioridad == 'media') {
+                    $color = '#ffc107'; // amarillo
+                } elseif ($prioridad == 'baja') {
+                    $color = '#28a745'; // verde
+                } elseif ($prioridad == 'normal') {
+                    $color = '#17a2b8'; // cyan
                 }
 
                 // Crear fecha y hora completa
@@ -564,7 +579,7 @@ class CalendarioController extends Controller
                         'total' => number_format($pedido->Total, 2),
                         'lugar_entrega' => $pedido->Lugar_entrega,
                         'hora_entrega' => $pedido->Hora_entrega,
-                        'comentario' => $pedido->comentario // NUEVO CAMPO
+                        'comentario' => $pedido->comentario
                     ]
                 ];
             });

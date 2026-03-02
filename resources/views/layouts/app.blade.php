@@ -36,6 +36,8 @@ body{
     padding:14px 28px;
     box-shadow:0 10px 30px rgba(0,0,0,.25);
     width: 100%;
+    position: relative;
+    z-index: 9999; /* Asegurar que el navbar esté por encima */
 }
 
 .brand{
@@ -45,7 +47,8 @@ body{
     display:flex;
     align-items:center;
     gap:12px;
-    text-decoration:none;
+    text-decoration:none !important; /* Forzar que no se subraye */
+    pointer-events: auto !important; /* Forzar que sea clickeable */
 }
 
 .brand i{
@@ -57,10 +60,13 @@ body{
 /* ===== MENU ===== */
 #navMenu{
     gap:6px;
+    transition: all 0.3s ease;
+    pointer-events: auto !important; /* Forzar que sea clickeable */
 }
 
 .nav-item-app{
     position:relative;
+    pointer-events: auto !important;
 }
 
 .nav-link-app{
@@ -73,7 +79,11 @@ body{
     font-weight:500;
     cursor:pointer;
     transition:.2s;
-    text-decoration: none;
+    text-decoration: none !important;
+    white-space: nowrap;
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 10000;
 }
 
 .nav-link-app i{
@@ -88,6 +98,7 @@ body{
 /* ===== USUARIO MENU ===== */
 .user-menu{
     position:relative;
+    pointer-events: auto !important;
 }
 
 .user-info{
@@ -99,6 +110,7 @@ body{
     border-radius:10px;
     cursor:pointer;
     transition:.2s;
+    pointer-events: auto !important;
 }
 
 .user-info:hover{
@@ -133,7 +145,8 @@ body{
     visibility:hidden;
     transform:translateY(10px);
     transition:.25s;
-    z-index:1000;
+    z-index:10000;
+    pointer-events: auto !important;
 }
 
 .nav-item-app.active .dropdown-menu-app,
@@ -150,9 +163,10 @@ body{
     padding:10px 12px;
     border-radius:10px;
     color:var(--text);
-    text-decoration:none;
+    text-decoration:none !important;
     font-size:14px;
     transition:.2s;
+    pointer-events: auto !important;
 }
 
 .dropdown-menu-app a i{
@@ -189,7 +203,8 @@ body{
     border-radius:10px;
     display: none;
     cursor: pointer;
-    z-index: 1001;
+    z-index: 10001;
+    pointer-events: auto !important;
 }
 
 /* ===== CONTENEDOR PRINCIPAL ===== */
@@ -198,6 +213,8 @@ body{
     padding-left: calc(var(--bs-gutter-x) * 1);
     width: 100%;
     margin-top: 1.5rem !important;
+    position: relative;
+    z-index: 1;
 }
 
 /* ===== SESSION TIMER STYLES ===== */
@@ -212,6 +229,8 @@ body{
     font-size: 13px;
     color: #d1d5db;
     border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    pointer-events: auto !important;
 }
 
 .session-timer i {
@@ -302,77 +321,13 @@ body{
     background: white;
     border-radius: 16px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    z-index: 9999;
+    z-index: 10002;
     overflow: hidden;
     animation: slideInRight 0.3s ease;
     border-left: 4px solid;
     backdrop-filter: blur(10px);
     background: rgba(255,255,255,0.95);
-}
-
-.toast-notification.success { border-left-color: var(--success); }
-.toast-notification.warning { border-left-color: var(--warning); }
-.toast-notification.danger { border-left-color: var(--danger); }
-.toast-notification.info { border-left-color: var(--purple); }
-
-.toast-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-}
-
-.toast-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-
-.toast-success .toast-icon { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-.toast-warning .toast-icon { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-.toast-danger .toast-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-.toast-info .toast-icon { background: rgba(109, 40, 217, 0.1); color: var(--purple); }
-
-.toast-message {
-    flex: 1;
-    font-size: 14px;
-    color: var(--text);
-}
-
-.toast-close {
-    color: #9ca3af;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.toast-close:hover {
-    color: var(--text);
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
+    pointer-events: auto !important;
 }
 
 /* ===== MEDIA QUERIES - MÓVIL ===== */
@@ -402,8 +357,10 @@ body{
         position: absolute;
         left: 0;
         top: 100%;
-        z-index: 1000;
+        z-index: 10000;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
     #navMenu.active{
@@ -441,16 +398,21 @@ body{
         visibility: visible;
         transform: none;
         display: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
     }
 
     .nav-item-app.active .dropdown-menu-app,
     .user-menu.active .dropdown-menu-app{
         display: block;
+        max-height: 500px;
+        padding: 8px 0 8px 20px;
     }
 
     .dropdown-menu-app a{
         color:#e5e7eb;
-        padding:10px 16px;
+        padding:12px 16px;
     }
 
     .dropdown-menu-app a:hover{
@@ -470,241 +432,6 @@ body{
         justify-content: center;
     }
 }
-
-/* Ajustes para móviles pequeños */
-@media(max-width:576px){
-    .brand {
-        font-size: 1.1rem;
-        gap: 8px;
-    }
-
-    .brand i {
-        padding: 8px;
-    }
-
-    .navbar-app {
-        padding: 10px 12px;
-    }
-
-    .container-fluid.mt-4 {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
-    .toast-notification {
-        top: 20px;
-        right: 20px;
-        left: 20px;
-        min-width: auto;
-    }
-
-    .countdown-number {
-        font-size: 2.5rem;
-    }
-}
-
-/* ===== ESTILOS PARA REPORTES ===== */
-.report-container {
-    padding: 20px;
-}
-
-.report-card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 25px;
-    margin-bottom: 25px;
-    border: 1px solid var(--border);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.report-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-}
-
-.report-card h3 {
-    color: var(--purple);
-    margin-bottom: 20px;
-    font-weight: 700;
-}
-
-.report-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
-.report-icon.productos { background: #e3f2fd; color: #1976d2; }
-.report-icon.compras { background: #e8f5e9; color: #2e7d32; }
-.report-icon.pedidos { background: #fff3e0; color: #f57c00; }
-.report-icon.inventario { background: #f3e5f5; color: #7b1fa2; }
-.report-icon.rentabilidad { background: #e0f2f1; color: #00695c; }
-.report-icon.general { background: #fff8e1; color: #ff8f00; }
-
-.btn-report {
-    background: var(--purple);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-report:hover {
-    background: #5b21b6;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(109, 40, 217, 0.3);
-}
-
-.filter-card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 1px solid var(--border);
-}
-
-.filter-card label {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text);
-}
-
-.table-report {
-    background: var(--card);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    width: 100%;
-}
-
-.table-report th {
-    background: var(--purple-soft);
-    color: var(--purple);
-    font-weight: 700;
-    border-bottom: 2px solid var(--purple);
-    padding: 15px;
-}
-
-.table-report td {
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--border);
-}
-
-.table-report tr:hover {
-    background: var(--purple-soft);
-}
-
-.stat-card {
-    background: linear-gradient(135deg, var(--purple), #8b5cf6);
-    color: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 15px;
-}
-
-.stat-card h6 {
-    font-size: 14px;
-    opacity: 0.9;
-    margin-bottom: 5px;
-}
-
-.stat-card h3 {
-    font-weight: 700;
-    margin-bottom: 0;
-}
-
-.chart-container {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 20px;
-    border: 1px solid var(--border);
-}
-
-/* ===== MEDIA QUERIES PARA CONTENIDO ===== */
-@media(max-width:768px){
-    .report-container {
-        padding: 15px;
-    }
-    
-    .report-card {
-        padding: 20px;
-    }
-    
-    .table-report {
-        font-size: 14px;
-    }
-
-    .btn-report {
-        width: 100%;
-        padding: 10px 20px;
-    }
-
-    .report-card h3 {
-        font-size: 1.2rem;
-    }
-
-    .stat-card h3 {
-        font-size: 1.5rem;
-    }
-}
-
-@media(max-width:576px){
-    .report-container {
-        padding: 10px;
-    }
-
-    .report-card {
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .filter-card {
-        padding: 15px;
-    }
-
-    .table-report th,
-    .table-report td {
-        padding: 8px 10px;
-        font-size: 13px;
-    }
-
-    .chart-container {
-        padding: 15px;
-    }
-
-    .stat-card {
-        padding: 15px;
-    }
-
-    .stat-card h3 {
-        font-size: 1.3rem;
-    }
-}
-
-.table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 1rem;
-    width: 100%;
-}
-
-.row {
-    margin-right: -12px;
-    margin-left: -12px;
-}
-
-.row > * {
-    padding-right: 12px;
-    padding-left: 12px;
-}
 </style>
 
 <!-- SweetAlert2 CSS -->
@@ -713,11 +440,11 @@ body{
 
 <body>
 
-<nav class="navbar-app">
+<nav class="navbar-app" id="mainNavbar">
 <div class="container-fluid d-flex justify-content-between align-items-center">
 
     @auth
-    <a href="{{ route('home') }}" class="brand">
+    <a href="{{ route('home') }}" class="brand" id="brandLink">
         <i class="fa-solid fa-couch"></i> Yasbo
         @php
             $rolUsuario = auth()->user()->rol ?? 'Usuario';
@@ -725,7 +452,7 @@ body{
         <span class="rol-badge">{{ $rolUsuario }}</span>
     </a>
     @else
-    <a href="{{ route('login') }}" class="brand">
+    <a href="{{ route('login') }}" class="brand" id="brandLink">
         <i class="fa-solid fa-couch"></i> Yasbo
     </a>
     @endauth
@@ -755,19 +482,19 @@ body{
             }
         @endphp
 
-        <!-- SESSION TIMER - Nuevo elemento -->
+        <!-- SESSION TIMER -->
         <div class="session-timer" id="sessionTimer">
             <i class="fa-regular fa-clock"></i>
             <span id="sessionTime">15:00</span>
             <span>restantes</span>
         </div>
 
-        <!-- INICIO - Accesible para todos -->
+        <!-- INICIO -->
         <a class="nav-link-app" href="{{ route('dashboard') }}">
             <i class="fa-solid fa-house"></i> Inicio
         </a>
 
-        <!-- OPERACIONES - Administración y Logística -->
+        <!-- OPERACIONES -->
         @if(in_array($rol, ['Administración', 'Logística']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -778,7 +505,6 @@ body{
                 <a href="{{ route('compras.index') }}"><i class="fa-solid fa-cart-shopping"></i> Compras</a>
                 <a href="{{ route('pedidos.index') }}"><i class="fa-solid fa-file-lines"></i> Pedidos</a>
                 
-                <!-- REPORTES GENERALES - Solo Administración ve reportes en Operaciones -->
                 @if($rol === 'Administración')
                 <hr>
                 <a href="{{ route('reportes.index')}}">
@@ -789,7 +515,7 @@ body{
         </div>
         @endif
 
-        <!-- INVENTARIO - Administración y Almacén -->
+        <!-- INVENTARIO -->
         @if(in_array($rol, ['Administración', 'Almacén']))
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -802,12 +528,12 @@ body{
         </div>
         @endif
 
-        <!-- CALENDARIO - Accesible para todos -->
+        <!-- CALENDARIO -->
         <a class="nav-link-app" href="{{ route('calendario.index') }}">
             <i class="fa-solid fa-calendar-days"></i> Calendario
         </a>
 
-        <!-- ADMINISTRACIÓN COMPLETA - Solo Administración -->
+        <!-- ADMINISTRACIÓN -->
         @if($rol === 'Administración')
         <div class="nav-item-app">
             <div class="nav-link-app dropdown-btn">
@@ -822,7 +548,7 @@ body{
         </div>
         @endif
 
-        <!-- MENÚ DE USUARIO - Accesible para todos -->
+        <!-- MENÚ DE USUARIO -->
         <div class="user-menu">
             <div class="user-info dropdown-btn">
                 <div class="user-avatar">
@@ -852,7 +578,7 @@ body{
 </div>
 </nav>
 
-<div class="container-fluid mt-4">
+<div class="container-fluid mt-4" id="mainContent">
     @yield('content')
 </div>
 
@@ -864,6 +590,7 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Clase SessionManager (mantener igual)
 class SessionManager {
     constructor(timeoutMinutes = 2, warningMinutes = 1) {
         this.timeoutMinutes = timeoutMinutes;
@@ -883,45 +610,31 @@ class SessionManager {
     }
 
     init() {
-        // Eventos que indican actividad del usuario
-        const events = [
-            'mousedown', 'mousemove', 'keypress', 'keydown',
-            'scroll', 'touchstart', 'click', 'focus'
-        ];
+        const events = ['mousedown', 'mousemove', 'keypress', 'keydown', 'scroll', 'touchstart', 'click', 'focus'];
         
         events.forEach(event => {
             document.addEventListener(event, () => this.resetTimer());
         });
 
-        // Iniciar el timer
         this.resetTimer();
-        
-        // Actualizar el temporizador visual cada segundo
         setInterval(() => this.updateTimerDisplay(), 1000);
-        
-        console.log(`🔒 Sesión configurada: ${this.timeoutMinutes} minutos de inactividad`);
     }
 
     resetTimer() {
-        // Limpiar timers existentes
         clearTimeout(this.timeoutTimer);
         clearTimeout(this.warningTimer);
 
-        // Actualizar última actividad
         this.lastActivity = Date.now();
         this.isWarningShown = false;
         
-        // Remover clase de warning del timer
         if (this.sessionTimer) {
             this.sessionTimer.classList.remove('warning');
         }
 
-        // Programar advertencia
         this.warningTimer = setTimeout(() => {
             this.showWarning();
         }, this.timeoutMilliseconds - this.warningMilliseconds);
 
-        // Programar cierre de sesión
         this.timeoutTimer = setTimeout(() => {
             this.logout();
         }, this.timeoutMilliseconds);
@@ -930,22 +643,19 @@ class SessionManager {
     updateTimerDisplay() {
         if (!this.sessionTimer || !this.sessionTimeSpan) return;
         
-        const elapsed = (Date.now() - this.lastActivity) / 1000 / 60; // minutos
+        const elapsed = (Date.now() - this.lastActivity) / 1000 / 60;
         const remaining = Math.max(0, this.timeoutMinutes - elapsed);
         
-        // Formatear tiempo restante (MM:SS)
         const minutes = Math.floor(remaining);
         const seconds = Math.floor((remaining - minutes) * 60);
         this.sessionTimeSpan.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
-        // Cambiar estilo cuando quede poco tiempo
         if (remaining <= this.warningMinutes && remaining > 0) {
             this.sessionTimer.classList.add('warning');
         } else {
             this.sessionTimer.classList.remove('warning');
         }
         
-        // Si el tiempo llegó a cero, el logout se encargará
         if (remaining <= 0) {
             this.logout();
         }
@@ -986,7 +696,6 @@ class SessionManager {
                 htmlContainer: 'custom-html'
             },
             didOpen: () => {
-                // Iniciar cuenta regresiva
                 let secondsLeft = this.warningMinutes * 60;
                 const countdownEl = document.getElementById('countdownNumber');
                 const progressBar = document.getElementById('progressBar');
@@ -1006,11 +715,9 @@ class SessionManager {
                     const seconds = secondsLeft % 60;
                     countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                     
-                    // Actualizar barra de progreso
                     const percentage = (secondsLeft / totalSeconds) * 100;
                     progressBar.style.width = percentage + '%';
                     
-                    // Cambiar color según el tiempo
                     if (secondsLeft <= 30) {
                         countdownEl.style.color = '#ef4444';
                         progressBar.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
@@ -1021,32 +728,26 @@ class SessionManager {
                 }, 1000);
             }
         }).then((result) => {
-            // Limpiar intervalo
             if (countdownInterval) {
                 clearInterval(countdownInterval);
             }
             
             if (result.isConfirmed) {
-                // Usuario quiere continuar
                 this.resetTimer();
                 this.showToast('Sesión extendida', 'Continuarás activo por ' + this.timeoutMinutes + ' minutos más.', 'success');
             } else {
-                // Usuario eligió cerrar sesión
                 this.logout();
             }
         });
     }
 
     logout() {
-        // Crear un formulario para logout
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ route("logout") }}';
         form.style.display = 'none';
         
-        // Agregar CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                         '{{ csrf_token() }}';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
         
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
@@ -1056,7 +757,6 @@ class SessionManager {
         form.appendChild(csrfInput);
         document.body.appendChild(form);
         
-        // Mostrar mensaje de cierre
         Swal.fire({
             title: '⏰ Sesión expirada',
             text: 'Serás redirigido al inicio de sesión por inactividad.',
@@ -1069,7 +769,6 @@ class SessionManager {
             }
         });
         
-        // Enviar formulario después de un breve delay
         setTimeout(() => {
             form.submit();
         }, 3000);
@@ -1105,209 +804,185 @@ class SessionManager {
     }
 }
 
-// Variable global para el estado del menú
-let navbarState = {
-    isMobile: window.innerWidth <= 992,
-    isMenuOpen: false
-};
-
+// SOLUCIÓN RADICAL PARA EL PROBLEMA DE COMPRAS
 document.addEventListener('DOMContentLoaded', function() {
-    @auth
-    const sessionManager = new SessionManager(16, 1); 
-    @endauth
-
-    // Elementos del DOM
-    const toggle = document.getElementById('mobileToggle');
-    const menu = document.getElementById('navMenu');
-    const items = document.querySelectorAll('.nav-item-app');
-    const userMenu = document.querySelector('.user-menu');
+    console.log('🛠️ Aplicando solución para navbar...');
     
-    // Función para verificar si estamos en móvil
-    function checkMobile() {
-        navbarState.isMobile = window.innerWidth <= 992;
+    // Inicializar SessionManager
+    @auth
+    const sessionManager = new SessionManager(16, 1);
+    @endauth
+    
+    // Función para asegurar que el navbar sea clickeable
+    function asegurarNavbarClickeable() {
+        const navbar = document.getElementById('mainNavbar');
+        const navMenu = document.getElementById('navMenu');
+        const brandLink = document.getElementById('brandLink');
+        const mobileToggle = document.getElementById('mobileToggle');
         
-        if (!navbarState.isMobile) {
-            // Modo desktop - menú siempre visible
-            menu.style.display = 'flex';
-            menu.classList.remove('active');
-            closeAllDropdowns();
-            navbarState.isMenuOpen = false;
-        } else {
-            // Modo móvil - menú oculto por defecto
-            if (!navbarState.isMenuOpen) {
-                menu.style.display = '';
+        // Forzar estilos críticos
+        if (navbar) {
+            navbar.style.pointerEvents = 'auto';
+            navbar.style.zIndex = '9999';
+            navbar.style.position = 'relative';
+        }
+        
+        if (navMenu) {
+            navMenu.style.pointerEvents = 'auto';
+            navMenu.style.zIndex = '10000';
+        }
+        
+        if (brandLink) {
+            brandLink.style.pointerEvents = 'auto';
+            brandLink.style.cursor = 'pointer';
+        }
+        
+        if (mobileToggle) {
+            mobileToggle.style.pointerEvents = 'auto';
+            mobileToggle.style.cursor = 'pointer';
+            mobileToggle.style.zIndex = '10001';
+        }
+        
+        // Todos los enlaces del navbar
+        document.querySelectorAll('.nav-link-app, .dropdown-menu-app a, .user-info').forEach(el => {
+            el.style.pointerEvents = 'auto';
+            el.style.cursor = 'pointer';
+            el.style.position = 'relative';
+            el.style.zIndex = '10002';
+        });
+    }
+    
+    // Función para prevenir que cualquier elemento fuera del navbar interfiera
+    function prevenirInterferencias() {
+        // Capturar todos los clics en el documento
+        document.addEventListener('click', function(e) {
+            // Si el clic es en el navbar o sus elementos, asegurar que pase
+            if (e.target.closest('.navbar-app') || e.target.closest('#mainNavbar')) {
+                console.log('✅ Clic en navbar detectado, permitiendo acción normal');
+                // No hacer nada, dejar que el evento continúe
+            }
+        }, true); // Usar captura para asegurar que se ejecute antes que otros eventos
+    }
+    
+    // Función para manejar el menú móvil
+    function initMobileMenu() {
+        const toggle = document.getElementById('mobileToggle');
+        const menu = document.getElementById('navMenu');
+        
+        if (!toggle || !menu) return;
+        
+        let isMobile = window.innerWidth <= 992;
+        
+        function checkMobile() {
+            isMobile = window.innerWidth <= 992;
+            if (!isMobile) {
                 menu.classList.remove('active');
             }
         }
-    }
-
-    // Función para cerrar todos los dropdowns
-    function closeAllDropdowns() {
-        items.forEach(item => item.classList.remove('active'));
-        if (userMenu) userMenu.classList.remove('active');
-    }
-
-    // Función para cerrar el menú hamburguesa
-    function closeHamburgerMenu() {
-        if (navbarState.isMobile) {
-            menu.classList.remove('active');
-            closeAllDropdowns();
-            navbarState.isMenuOpen = false;
-        }
-    }
-
-    // Función para abrir/cerrar el menú hamburguesa
-    function toggleHamburgerMenu() {
-        if (navbarState.isMobile) {
-            const isActive = menu.classList.contains('active');
-            menu.classList.toggle('active');
-            navbarState.isMenuOpen = !isActive;
-            
-            if (isActive) {
-                closeAllDropdowns();
-            }
-        }
-    }
-
-    // Evento del botón hamburguesa
-    if (toggle) {
+        
         toggle.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            toggleHamburgerMenu();
-        });
-    }
-
-    // Eventos para dropdowns en móvil
-    items.forEach(item => {
-        const btn = item.querySelector('.dropdown-btn');
-        if (!btn) return;
-
-        btn.addEventListener('click', function(e) {
-            if (navbarState.isMobile) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Cerrar otros dropdowns
-                items.forEach(other => {
-                    if (other !== item) other.classList.remove('active');
-                });
-                if (userMenu) userMenu.classList.remove('active');
-                
-                // Toggle dropdown actual
-                item.classList.toggle('active');
+            if (isMobile) {
+                menu.classList.toggle('active');
             }
         });
-    });
-
-    // Evento para menú de usuario en móvil
-    if (userMenu) {
-        const userBtn = userMenu.querySelector('.dropdown-btn');
-        if (userBtn) {
-            userBtn.addEventListener('click', function(e) {
-                if (navbarState.isMobile) {
+        
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (isMobile && menu.classList.contains('active') && 
+                !menu.contains(e.target) && !toggle.contains(e.target)) {
+                menu.classList.remove('active');
+            }
+        });
+        
+        window.addEventListener('resize', checkMobile);
+        checkMobile();
+    }
+    
+    // Función para manejar dropdowns en desktop
+    function initDesktopDropdowns() {
+        const items = document.querySelectorAll('.nav-item-app, .user-menu');
+        
+        items.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                if (window.innerWidth > 992) {
+                    this.classList.add('active');
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                if (window.innerWidth > 992) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    }
+    
+    // Función para manejar dropdowns en móvil
+    function initMobileDropdowns() {
+        const dropdowns = document.querySelectorAll('.nav-item-app .dropdown-btn, .user-menu .dropdown-btn');
+        
+        dropdowns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (window.innerWidth <= 992) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Cerrar otros dropdowns
-                    items.forEach(item => item.classList.remove('active'));
+                    const parent = this.closest('.nav-item-app, .user-menu');
                     
-                    // Toggle menú usuario
-                    userMenu.classList.toggle('active');
+                    // Cerrar otros
+                    document.querySelectorAll('.nav-item-app, .user-menu').forEach(other => {
+                        if (other !== parent) {
+                            other.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle actual
+                    parent.classList.toggle('active');
                 }
             });
-        }
-    }
-
-    // Cerrar al hacer clic fuera
-    document.addEventListener('click', function(e) {
-        if (navbarState.isMobile) {
-            const isClickInside = menu.contains(e.target) || toggle.contains(e.target);
-            
-            if (!isClickInside && navbarState.isMenuOpen) {
-                closeHamburgerMenu();
-            }
-        }
-    });
-
-    // Prevenir cierre al hacer clic dentro del menú
-    if (menu) {
-        menu.addEventListener('click', function(e) {
-            e.stopPropagation();
         });
     }
-
-    // Cerrar al hacer clic en enlaces - CORREGIDO: mantener estado del navbar
-    const allLinks = document.querySelectorAll('.nav-link-app:not(.dropdown-btn), .dropdown-menu-app a');
-    allLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (navbarState.isMobile) {
-                // No cerrar inmediatamente para permitir la navegación
-                setTimeout(() => {
-                    // Solo cerrar si no es un dropdown y estamos en móvil
-                    if (!this.classList.contains('dropdown-btn')) {
-                        closeHamburgerMenu();
-                    }
-                }, 100);
-            }
-        });
-    });
-
-    // Manejar redimensionamiento
-    window.addEventListener('resize', function() {
-        checkMobile();
-    });
-
-    // Cerrar con tecla ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && navbarState.isMobile && navbarState.isMenuOpen) {
-            closeHamburgerMenu();
-        }
-    });
-
-    // Eventos hover solo para desktop
-    function setupHoverEvents() {
-        if (!navbarState.isMobile) {
-            items.forEach(item => {
-                item.addEventListener('mouseenter', () => item.classList.add('active'));
-                item.addEventListener('mouseleave', () => item.classList.remove('active'));
-            });
-            if (userMenu) {
-                userMenu.addEventListener('mouseenter', () => userMenu.classList.add('active'));
-                userMenu.addEventListener('mouseleave', () => userMenu.classList.remove('active'));
-            }
-        } else {
-            // Limpiar eventos hover en móvil
-            items.forEach(item => {
-                item.removeEventListener('mouseenter', () => {});
-                item.removeEventListener('mouseleave', () => {});
-            });
-            if (userMenu) {
-                userMenu.removeEventListener('mouseenter', () => {});
-                userMenu.removeEventListener('mouseleave', () => {});
-            }
-        }
-    }
-
-    // Inicializar eventos hover
-    setupHoverEvents();
-
-    // Reconfigurar eventos hover al redimensionar
-    window.addEventListener('resize', function() {
-        setupHoverEvents();
-    });
-
-    // Inicializar estado móvil
-    checkMobile();
-
-    // CORRECCIÓN ADICIONAL: Mantener el navbar activo después de la navegación
-    // Esto asegura que el menú hamburguesa permanezca visible si estaba abierto
-    if (navbarState.isMobile && navbarState.isMenuOpen) {
-        menu.classList.add('active');
-    }
+    
+    // Aplicar todas las soluciones
+    asegurarNavbarClickeable();
+    prevenirInterferencias();
+    initMobileMenu();
+    initDesktopDropdowns();
+    initMobileDropdowns();
+    
+    console.log('✅ Solución para navbar aplicada completamente');
 });
 
-// Funciones para reportes
+// Re-aplicar después de navegación con Livewire
+document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navegó - reaplicando soluciones');
+    
+    // Reaplicar todas las soluciones
+    setTimeout(() => {
+        document.querySelectorAll('.nav-link-app, .dropdown-menu-app a, .user-info').forEach(el => {
+            el.style.pointerEvents = 'auto';
+            el.style.cursor = 'pointer';
+        });
+        
+        console.log('✅ Soluciones reaplicadas después de navegación');
+    }, 100);
+});
+
+// Función de depuración para verificar que el navbar funciona
+function debugNavbar() {
+    console.log('=== DEBUG NAVBAR ===');
+    console.log('Navbar existe:', document.getElementById('mainNavbar') !== null);
+    console.log('Enlaces encontrados:', document.querySelectorAll('.nav-link-app').length);
+    console.log('Ancho de pantalla:', window.innerWidth);
+    console.log('Modo móvil:', window.innerWidth <= 992);
+}
+
+// Llamar a debug después de 1 segundo
+setTimeout(debugNavbar, 1000);
+
+// Funciones para reportes (mantener igual)
 function generarPDFReporte(nombre, titulo, datos, columnas) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();

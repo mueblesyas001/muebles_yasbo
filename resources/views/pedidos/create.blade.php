@@ -114,7 +114,7 @@
                                             <p class="section-subtitle mb-0">Datos básicos del pedido</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #007bff, transparent);"></div>
                                 </div>
 
                                 <div class="row g-4">
@@ -206,7 +206,7 @@
                                                 <span class="label-required">*</span>
                                             </label>
                                             
-                                            <div class="input-wrapper" data-required="true">
+                                            <div class="input-wrapper" data-required="true" id="fecha-wrapper">
                                                 <div class="input-icon">
                                                     <i class="fas fa-calendar-alt"></i>
                                                 </div>
@@ -221,9 +221,12 @@
                                             </div>
                                             
                                             <div class="input-meta">
-                                                <div class="input-hint">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    Fecha estimada de entrega
+                                                <div class="fecha-validation-message" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+                                                    <i class="fas fa-info-circle" style="color: #007bff;"></i>
+                                                    <span id="fecha-validation-text">Debe ser mayor o igual a hoy</span>
+                                                </div>
+                                                <div class="fecha-actual" style="font-size: 0.7rem; color: #6b7280;">
+                                                    <i class="far fa-calendar-check"></i> Hoy: <span id="fecha-hoy"></span>
                                                 </div>
                                             </div>
                                             
@@ -273,7 +276,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Prioridad -->
+                                    <!-- Prioridad - CON EL MISMO DISEÑO -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -286,20 +289,52 @@
                                                     <i class="fas fa-flag"></i>
                                                 </div>
                                                 <select class="input-field @error('Prioridad') is-invalid @enderror" 
-                                                        id="prioridad" name="Prioridad" required>
+                                                        id="prioridad" 
+                                                        name="Prioridad" 
+                                                        required>
                                                     <option value="">Seleccionar prioridad</option>
-                                                    <option value="Baja" {{ old('Prioridad') == 'Baja' ? 'selected' : '' }}>Baja</option>
-                                                    <option value="Media" {{ old('Prioridad') == 'Media' ? 'selected' : '' }}>Media</option>
-                                                    <option value="Alta" {{ old('Prioridad') == 'Alta' ? 'selected' : '' }}>Alta</option>
-                                                    <option value="Urgente" {{ old('Prioridad') == 'Urgente' ? 'selected' : '' }}>Urgente</option>
+                                                    <option value="Alta" {{ old('Prioridad') == 'Alta' ? 'selected' : '' }} 
+                                                            data-badge="danger" data-icon="fa-exclamation-triangle">
+                                                        Alta Prioridad 
+                                                    </option>
+                                                    <option value="Media" {{ old('Prioridad') == 'Media' ? 'selected' : '' }}
+                                                            data-badge="warning" data-icon="fa-clock">
+                                                        Media Prioridad 
+                                                    </option>
+                                                    <option value="Baja" {{ old('Prioridad') == 'Baja' ? 'selected' : '' }}
+                                                            data-badge="success" data-icon="fa-calendar-check">
+                                                        Baja Prioridad 
+                                                    </option>
+                                                    <option value="Normal" {{ old('Prioridad') == 'Normal' ? 'selected' : '' }}
+                                                            data-badge="info" data-icon="fa-check-circle">
+                                                        Prioridad Normal 
+                                                    </option>
                                                 </select>
-                                                <div class="input-decoration"></div>
+                                                <div class="input-decoration" style="background: linear-gradient(135deg, #28a745, #20c997);"></div>
                                             </div>
                                             
                                             <div class="input-meta">
                                                 <div class="input-hint">
                                                     <i class="fas fa-lightbulb"></i>
-                                                    Nivel de prioridad del pedido
+                                                    Nivel de urgencia del pedido
+                                                </div>
+                                                <div class="prioridad-badge" id="prioridadBadge">
+                                                    @if(old('Prioridad'))
+                                                        @switch(old('Prioridad'))
+                                                            @case('Alta')
+                                                                <span class="badge bg-danger">Alta Prioridad</span>
+                                                                @break
+                                                            @case('Media')
+                                                                <span class="badge bg-warning text-dark">Media Prioridad</span>
+                                                                @break
+                                                            @case('Baja')
+                                                                <span class="badge bg-success">Baja Prioridad</span>
+                                                                @break
+                                                            @case('Normal')
+                                                                <span class="badge bg-info">Prioridad Normal</span>
+                                                                @break
+                                                        @endswitch
+                                                    @endif
                                                 </div>
                                             </div>
                                             
@@ -363,7 +398,7 @@
                                             <p class="section-subtitle mb-0">Notas especiales y observaciones</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #ffc107, transparent);"></div>
                                 </div>
 
                                 <div class="row">
@@ -398,7 +433,7 @@
                                                           rows="4" 
                                                           placeholder="Ej: El cliente quiere el mueble en color caoba en lugar de negro. Las dimensiones son 2m de alto en lugar de 1.80m. El respaldo debe ser acolchado en tela gris."
                                                           style="padding-top: 20px; min-height: 120px; resize: vertical; background-color: #fff9e6;">{{ old('comentario') }}</textarea>
-                                                <div class="input-decoration"></div>
+                                                <div class="input-decoration" style="background: linear-gradient(135deg, #ffc107, #ff9800);"></div>
                                             </div>
                                             
                                             <div class="input-meta">
@@ -431,7 +466,7 @@
                                             <p class="section-subtitle mb-0">Seleccione los productos a incluir</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #dc3545, transparent);"></div>
                                 </div>
 
                                 <div class="row">
@@ -452,7 +487,7 @@
                                     <div class="col-12">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="fw-bold mb-0">
-                                                <i class="fas fa-box me-2 text-primary"></i>
+                                                <i class="fas fa-box me-2" style="color: #dc3545;"></i>
                                                 Lista de Productos
                                             </h5>
                                             <button type="button" class="btn btn-primary d-flex align-items-center gap-2" id="agregarProducto" style="
@@ -509,7 +544,7 @@
                                             <p class="section-subtitle mb-0">Visualización rápida de los datos</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #6f42c1, transparent);"></div>
                                 </div>
 
                                 <div class="row g-4">
@@ -522,7 +557,7 @@
                                         ">
                                             <i class="fas fa-box-open fa-3x text-primary mb-3"></i>
                                             <h5 class="text-muted mb-2">Total de Productos</h5>
-                                            <span class="fw-bold fs-2" id="totalProductos">0</span>
+                                            <span class="fw-bold fs-2" style="color: #007bff;" id="totalProductos">0</span>
                                         </div>
                                     </div>
 
@@ -535,7 +570,7 @@
                                         ">
                                             <i class="fas fa-cubes fa-3x text-success mb-3"></i>
                                             <h5 class="text-muted mb-2">Unidades Totales</h5>
-                                            <span class="fw-bold fs-2" id="totalUnidades">0</span>
+                                            <span class="fw-bold fs-2" style="color: #28a745;" id="totalUnidades">0</span>
                                         </div>
                                     </div>
 
@@ -575,7 +610,10 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        
+                                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                            <i class="fas fa-undo me-2"></i>
+                                            Limpiar
+                                        </button>
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                             border: none;
@@ -643,17 +681,18 @@
                         </option>
                     @endforeach
                 </select>
-                <div class="input-decoration"></div>
+                <div class="input-decoration" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <span class="input-group-text" style="
-                    background: #fff3cd;
+                    background: #f8d7da;
                     border: 2px solid #e5e7eb;
                     border-right: none;
                     border-radius: 12px 0 0 12px;
                     font-weight: 600;
+                    color: #dc3545;
                 ">$</span>
                 <input type="number" 
                        class="input-field precio-unitario" 
@@ -674,7 +713,7 @@
                        min="1" 
                        value="1" 
                        required>
-                <div class="input-decoration"></div>
+                <div class="input-decoration" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
             </div>
         </td>
         <td>
@@ -694,6 +733,8 @@
                 border-radius: 10px;
                 padding: 8px 12px;
                 transition: all 0.3s ease;
+                border: 2px solid #e5e7eb;
+                color: #6b7280;
             ">
                 <i class="fas fa-trash"></i>
             </button>
@@ -903,14 +944,6 @@
     to { width: 0%; }
 }
 
-/* Shake animation enhanced */
-.shake-enhanced {
-    animation: shake 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    perspective: 1000px;
-}
-
 /* Form Sections */
 .form-section {
     animation: slideIn 0.6s ease-out;
@@ -947,7 +980,6 @@
 
 .section-divider {
     height: 2px;
-    background: linear-gradient(to right, #28a745, transparent);
     border-radius: 2px;
     margin-top: 1rem;
 }
@@ -983,9 +1015,7 @@
 }
 
 /* Input Wrapper */
-.input-wrapper,
-.phone-input-wrapper,
-.email-input-wrapper {
+.input-wrapper {
     position: relative;
     background: white;
     border-radius: 12px;
@@ -1019,8 +1049,7 @@
     z-index: 2;
 }
 
-.input-field,
-.phone-input {
+.input-field {
     width: 100%;
     padding: 14px 20px 14px 48px;
     border: none;
@@ -1031,8 +1060,7 @@
     transition: var(--transition);
 }
 
-.input-field::placeholder,
-.phone-input::placeholder {
+.input-field::placeholder {
     color: #9ca3af;
 }
 
@@ -1059,21 +1087,93 @@
     padding: 0 4px;
 }
 
-.char-counter {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
-    color: #9ca3af;
-    font-weight: 500;
-}
-
 .input-hint {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
     color: #6b7280;
+}
+
+/* Estilos específicos para la validación de fecha */
+.fecha-validation-message {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #007bff;
+}
+
+.fecha-validation-message.warning {
+    color: #dc3545;
+}
+
+.fecha-validation-message.warning i {
+    color: #dc3545;
+}
+
+.fecha-validation-message.success {
+    color: #28a745;
+}
+
+.fecha-validation-message.success i {
+    color: #28a745;
+}
+
+.fecha-actual {
+    font-size: 0.7rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.fecha-actual i {
+    color: #ffc107;
+}
+
+/* Estilos para el badge de prioridad */
+.prioridad-badge {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.prioridad-badge .badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    white-space: nowrap;
+}
+
+/* Estilos para las opciones del select */
+#prioridad option[value="Alta"] {
+    background-color: #fee2e2;
+    color: #dc2626;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Media"] {
+    background-color: #fef3c7;
+    color: #d97706;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Baja"] {
+    background-color: #d1fae5;
+    color: #059669;
+    font-weight: 600;
+    padding: 8px;
+}
+
+#prioridad option[value="Normal"] {
+    background-color: #dbeafe;
+    color: #2563eb;
+    font-weight: 600;
+    padding: 8px;
 }
 
 /* Select específico */
@@ -1127,7 +1227,6 @@ textarea.input-field {
     display: flex;
     align-items: center;
     padding: 0 12px;
-    background: #fff3cd;
     border: 2px solid #e5e7eb;
     border-right: none;
     border-radius: 12px 0 0 12px;
@@ -1217,14 +1316,6 @@ textarea.input-field {
 }
 
 /* Botón eliminar */
-.btn-eliminar {
-    border-radius: 10px;
-    padding: 8px 12px;
-    transition: all 0.3s ease;
-    border: 2px solid #e5e7eb;
-    color: #6b7280;
-}
-
 .btn-eliminar:hover {
     background-color: #dc3545;
     border-color: #dc3545;
@@ -1428,7 +1519,9 @@ class NotificationManager {
             'fecha_entrega': 'Fecha de entrega',
             'hora_entrega': 'Hora de entrega',
             'prioridad': 'Prioridad',
-            'lugar_entrega': 'Lugar de entrega'
+            'lugar_entrega': 'Lugar de entrega',
+            'productos': 'Productos',
+            'productos_validos': 'Productos válidos'
         };
 
         const fieldList = fields.map(f => `<span style="display: inline-block; background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 0.8rem;">${fieldNames[f] || f}</span>`).join(' ');
@@ -1474,12 +1567,23 @@ class FormManager {
         this.setupEventListeners();
         this.initDateValidation();
         this.initRealTimeValidation();
+        this.initPrioridadField();
         this.updateProgress();
         this.initFormReset();
         this.agregarPrimeraFila();
+        this.mostrarFechaHoy();
         
         // Mostrar errores de validación del servidor si existen
         this.showServerErrors();
+    }
+
+    mostrarFechaHoy() {
+        const hoy = new Date();
+        const dia = hoy.getDate().toString().padStart(2, '0');
+        const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
+        const año = hoy.getFullYear();
+        const fechaHoy = `${dia}/${mes}/${año}`;
+        document.getElementById('fecha-hoy').textContent = fechaHoy;
     }
 
     showServerErrors() {
@@ -1490,6 +1594,48 @@ class FormManager {
             @endforeach
             notifier.showError(errorMessages.join('<br>'));
         @endif
+    }
+
+    initPrioridadField() {
+        const prioridadSelect = document.getElementById('prioridad');
+        const prioridadBadge = document.getElementById('prioridadBadge');
+        
+        if (prioridadSelect) {
+            prioridadSelect.addEventListener('change', () => {
+                this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
+                this.updateProgress();
+            });
+        }
+    }
+
+    actualizarBadgePrioridad(select, badgeContainer) {
+        const valor = select.value;
+        
+        if (!badgeContainer) return;
+        
+        switch(valor) {
+            case 'Alta':
+                badgeContainer.innerHTML = '<span class="badge bg-danger">Alta Prioridad</span>';
+                break;
+            case 'Media':
+                badgeContainer.innerHTML = '<span class="badge bg-warning text-dark">Media Prioridad</span>';
+                break;
+            case 'Baja':
+                badgeContainer.innerHTML = '<span class="badge bg-success">Baja Prioridad</span>';
+                break;
+            case 'Normal':
+                badgeContainer.innerHTML = '<span class="badge bg-info">Prioridad Normal</span>';
+                break;
+            default:
+                badgeContainer.innerHTML = '';
+        }
+        
+        if (badgeContainer.innerHTML) {
+            badgeContainer.style.animation = 'pulse 0.5s ease';
+            setTimeout(() => {
+                badgeContainer.style.animation = '';
+            }, 500);
+        }
     }
 
     initFormReset() {
@@ -1513,7 +1659,6 @@ class FormManager {
     }
 
     resetAllFields() {
-        // Limpiar inputs normales
         this.requiredFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
@@ -1522,20 +1667,21 @@ class FormManager {
             }
         });
 
-        // Restaurar valores por defecto
         document.getElementById('hora_entrega').value = '12:00';
-
-        // Limpiar comentario
         document.getElementById('comentario').value = '';
 
-        // Limpiar productos
+        // Actualizar badge de prioridad
+        const prioridadBadge = document.getElementById('prioridadBadge');
+        if (prioridadBadge) {
+            prioridadBadge.innerHTML = '';
+        }
+
         this.productosSeleccionados.clear();
         const cuerpoTabla = document.getElementById('cuerpoTablaProductos');
         cuerpoTabla.innerHTML = '';
         this.contadorProductos = 0;
         this.agregarPrimeraFila();
 
-        // Actualizar resumen y progreso
         this.actualizarResumen();
         this.updateProgress();
     }
@@ -1565,13 +1711,57 @@ class FormManager {
             }
         });
 
-        // Validación especial para lugar_entrega (textarea)
         const lugarEntrega = document.getElementById('lugar_entrega');
         if (lugarEntrega) {
             lugarEntrega.addEventListener('input', () => {
                 this.validateField('lugar_entrega');
                 this.updateProgress();
             });
+        }
+
+        const fechaInput = document.getElementById('fecha_entrega');
+        if (fechaInput) {
+            fechaInput.addEventListener('input', () => {
+                this.validarFechaEnTiempoReal();
+                this.validateField('fecha_entrega');
+            });
+            fechaInput.addEventListener('change', () => {
+                this.validarFechaEnTiempoReal();
+                this.validateField('fecha_entrega');
+            });
+        }
+    }
+
+    validarFechaEnTiempoReal() {
+        const fechaInput = document.getElementById('fecha_entrega');
+        const fechaValidationText = document.getElementById('fecha-validation-text');
+        const fechaValidationMessage = document.querySelector('.fecha-validation-message');
+        
+        if (!fechaInput.value) {
+            fechaValidationMessage.classList.remove('success', 'warning');
+            fechaValidationText.textContent = 'Debe seleccionar una fecha de entrega';
+            return;
+        }
+
+        const selectedDate = new Date(fechaInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            fechaValidationMessage.classList.add('warning');
+            fechaValidationMessage.classList.remove('success');
+            fechaValidationText.textContent = '❌ La fecha debe ser mayor o igual a hoy';
+        } else {
+            fechaValidationMessage.classList.add('success');
+            fechaValidationMessage.classList.remove('warning');
+            
+            if (selectedDate.getTime() === today.getTime()) {
+                fechaValidationText.textContent = '✓ Fecha válida (hoy)';
+            } else {
+                const diffTime = selectedDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                fechaValidationText.textContent = `✓ Fecha válida (en ${diffDays} días)`;
+            }
         }
     }
 
@@ -1583,12 +1773,13 @@ class FormManager {
 
     validateField(fieldId) {
         const field = document.getElementById(fieldId);
-        if (!field) return;
+        if (!field) return true;
 
         const wrapper = field.closest('.input-wrapper');
-        if (!wrapper) return;
+        if (!wrapper) return true;
 
         wrapper.classList.remove('error', 'valid');
+        field.classList.remove('is-invalid', 'is-valid');
 
         if (field.hasAttribute('required') && !field.value) {
             wrapper.classList.add('error');
@@ -1610,7 +1801,6 @@ class FormManager {
 
         if (field.value) {
             wrapper.classList.add('valid');
-            field.classList.remove('is-invalid');
             field.classList.add('is-valid');
         }
         
@@ -1626,7 +1816,6 @@ class FormManager {
             }
         });
 
-        // Validar productos
         const filasProductos = document.querySelectorAll('.fila-producto');
         if (filasProductos.length === 0) {
             errors.push('productos');
@@ -1680,7 +1869,6 @@ class FormManager {
         const nuevaFila = template.content.cloneNode(true);
         const fila = nuevaFila.querySelector('.fila-producto');
         
-        // Reemplazar INDEX por el contador actual
         const elementosConName = fila.querySelectorAll('[name]');
         elementosConName.forEach(elemento => {
             elemento.name = elemento.name.replace(/\[INDEX\]/g, `[${this.contadorProductos}]`);
@@ -1688,7 +1876,6 @@ class FormManager {
 
         cuerpoTabla.appendChild(nuevaFila);
         
-        // Inicializar eventos para la nueva fila
         this.inicializarEventosFila(fila);
         
         this.contadorProductos++;
@@ -1707,10 +1894,8 @@ class FormManager {
             const selectedOption = selectProducto.options[selectProducto.selectedIndex];
             const productoId = selectProducto.value;
             const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
-            const nombre = selectedOption ? selectedOption.getAttribute('data-nombre') : '';
 
             if (productoId && productoId !== '') {
-                // Verificar si el producto ya fue seleccionado
                 if (this.productosSeleccionados.has(productoId)) {
                     Swal.fire({
                         icon: 'warning',
@@ -1727,11 +1912,9 @@ class FormManager {
                 this.productosSeleccionados.add(productoId);
                 inputPrecio.value = precioBase.toFixed(2);
                 precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
-                inputPrecio.classList.add('is-valid');
             } else {
                 inputPrecio.value = '0';
                 precioBaseIndicator.textContent = '';
-                inputPrecio.classList.remove('is-valid');
             }
             
             this.calcularSubtotal(fila);
@@ -1821,7 +2004,6 @@ class FormManager {
             }
         });
         
-        // Actualizar displays
         document.getElementById('totalPedido').textContent = '$' + totalPedido.toFixed(2);
         document.getElementById('totalInput').value = totalPedido.toFixed(2);
         document.getElementById('totalProductos').textContent = totalProductos;
@@ -1838,12 +2020,15 @@ class FormManager {
 
     mostrarConfirmacion() {
         const comentario = document.getElementById('comentario').value;
+        const prioridadSelect = document.getElementById('prioridad');
+        const prioridadText = prioridadSelect.options[prioridadSelect.selectedIndex]?.text || 'No seleccionada';
+        
         const datosPedido = {
             total: document.getElementById('montoTotal').textContent,
             totalProductos: document.getElementById('totalProductos').textContent,
             totalUnidades: document.getElementById('totalUnidades').textContent,
             fechaEntrega: document.getElementById('fecha_entrega').value,
-            prioridad: document.getElementById('prioridad').options[document.getElementById('prioridad').selectedIndex].text,
+            prioridad: prioridadText,
             tieneComentario: comentario.trim() !== '',
             comentario: comentario.trim() ? comentario.substring(0, 150) + (comentario.length > 150 ? '...' : '') : ''
         };
