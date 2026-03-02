@@ -101,8 +101,7 @@ class ProveedorController extends Controller
         return view('proveedores.create');
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'Nombre' => 'required|string|max:255',
             'ApPaterno' => 'required|string|max:255',
@@ -136,7 +135,6 @@ class ProveedorController extends Controller
         $request->validate([
             'Nombre' => 'required|string|max:255',
             'ApPaterno' => 'required|string|max:255',
-            'ApMaterno' => 'required|string|max:255',
             'Telefono' => 'required|string|max:10',
             'Empresa_asociada' => 'required|string|max:255',
             'Correo' => 'required|email|max:255|unique:proveedores,Correo,' . $id,

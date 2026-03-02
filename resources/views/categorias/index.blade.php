@@ -653,7 +653,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-danger" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')"
+                                            onclick="abrirModalEliminar({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')"
                                             title="Desactivar categoría">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -661,7 +661,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-success" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="activarCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')"
+                                            onclick="abrirModalActivar({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')"
                                             title="Activar categoría">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -833,14 +833,14 @@
                                                         <button type="button" 
                                                                 class="btn btn-outline-danger btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="setDeleteCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')">
+                                                                onclick="abrirModalEliminar({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')">
                                                             <i class="fas fa-trash me-1"></i> Desactivar categoría
                                                         </button>
                                                     @else
                                                         <button type="button" 
                                                                 class="btn btn-outline-success btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="activarCategoria({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')">
+                                                                onclick="abrirModalActivar({{ $categoria->id }}, '{{ addslashes($categoria->Nombre) }}')">
                                                             <i class="fas fa-check-circle me-1"></i> Activar categoría
                                                         </button>
                                                         
@@ -916,23 +916,20 @@
     </div>
 </div>
 
-<!-- MODAL DE DESACTIVACIÓN -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Desactivación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ELIMINAR - MÁS ALTO -->
+<div id="modalEliminar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalEliminar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalEliminar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="delete-icon-wrapper mb-4">
                     <div class="delete-icon-circle" style="
                         width: 80px;
@@ -948,35 +945,30 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="deleteCategoriaNombreDisplay"></h5>
-                <p class="text-muted mb-4" id="deleteCategoriaId" style="font-size: 0.9rem;"></p>
+                <h5 class="fw-bold mb-3" id="eliminarCategoriaNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="eliminarCategoriaId" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Categoría a desactivar:</span>
-                            <span class="fw-bold" id="deleteCategoriaNombre"></span>
+                            <span class="fw-bold" id="eliminarCategoriaNombre"></span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
                     <div class="text-start">
                         <strong class="text-danger">¡Atención!</strong>
                         <p class="mb-0 text-muted small">Esta acción desactivará la categoría, pero podrás activarla nuevamente en cualquier momento.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
+                
+                <form id="eliminarForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" id="confirmDeleteBtn" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-trash me-2"></i>Sí, desactivar
                     </button>
                 </form>
@@ -985,23 +977,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ACTIVACIÓN -->
-<div class="modal fade" id="activarModal" tabindex="-1" aria-labelledby="activarModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-success text-white" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="activarModalLabel">
-                    <i class="fas fa-check-circle me-2 fa-lg"></i>
-                    Confirmar Activación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ACTIVAR - MÁS ALTO -->
+<div id="modalActivar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalActivar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-check-circle me-2"></i>Confirmar Activación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalActivar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="activate-icon-wrapper mb-4">
                     <div class="activate-icon-circle" style="
                         width: 80px;
@@ -1029,23 +1018,18 @@
                     </div>
                 </div>
                 
-                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-info-circle fs-4 me-3 text-success"></i>
                     <div class="text-start">
                         <strong class="text-success">¡Información!</strong>
                         <p class="mb-0 text-muted small">Al activar esta categoría, estará disponible para ser utilizada nuevamente en productos.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
+                
                 <form id="activarForm" method="POST" class="d-inline">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-success px-4" id="confirmActivarBtn" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-check-circle me-2"></i>Sí, activar
                     </button>
                 </form>
@@ -1054,235 +1038,122 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips
-    initTooltips();
-    
-    // Configurar eventos de expansión
-    setupExpandButtons();
-    
-    // Configurar auto-submit de filtros
-    setupFilterAutoSubmit();
-    
-    // Configurar botón de refrescar
-    setupRefreshButton();
-    
-    // Configurar limpieza de modales
-    setupModalCleanup();
-    
-    // Actualizar textos del modal de eliminación
-    updateDeleteModalTexts();
-});
-
-function initTooltips() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-function setupExpandButtons() {
-    document.querySelectorAll('.btn-expand-categoria').forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            if (icon) {
-                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                icon.style.transition = 'transform 0.3s ease';
-            }
-            
-            if (isExpanded) {
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-outline-secondary');
-            } else {
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-primary');
-            }
-        });
-    });
-}
-
-function setupFilterAutoSubmit() {
-    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="estado"]').forEach(select => {
-        select.addEventListener('change', function() {
-            document.getElementById('filtrosForm').submit();
-        });
-    });
-}
-
-function setupRefreshButton() {
-    const refreshBtn = document.getElementById('refreshData');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            this.classList.add('spin');
-            setTimeout(() => location.reload(), 500);
-        });
-    }
-}
-
-function setupModalCleanup() {
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-    
-    const activarModal = document.getElementById('activarModal');
-    if (activarModal) {
-        activarModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-}
-
-function forceCleanupModals() {
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    document.documentElement.style.overflow = '';
-}
-
-function updateDeleteModalTexts() {
-    const deleteModalLabel = document.getElementById('deleteModalLabel');
-    if (deleteModalLabel) {
-        deleteModalLabel.innerHTML = '<i class="fas fa-exclamation-triangle me-2 fa-lg"></i> Confirmar Desactivación';
-    }
-    
-    const deleteBtnText = document.getElementById('confirmDeleteBtn');
-    if (deleteBtnText) {
-        deleteBtnText.innerHTML = '<i class="fas fa-trash me-2"></i>Sí, desactivar';
-    }
-    
-    const deleteAlertText = document.querySelector('#deleteModal .alert-danger strong');
-    if (deleteAlertText) {
-        deleteAlertText.textContent = '¡Atención!';
-        const deleteAlertP = document.querySelector('#deleteModal .alert-danger p');
-        if (deleteAlertP) {
-            deleteAlertP.textContent = 'Esta acción desactivará la categoría, pero podrás activarla nuevamente en cualquier momento.';
-        }
-    }
-}
-
-function setDeleteCategoria(categoriaId, nombreCategoria) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('deleteCategoriaNombre').textContent = nombreCategoria;
-        document.getElementById('deleteCategoriaNombreDisplay').textContent = `¿Desactivar "${nombreCategoria}"?`;
-        document.getElementById('deleteCategoriaId').innerHTML = `<small class="text-muted">ID: #${categoriaId}</small>`;
-        
-        const deleteForm = document.getElementById('deleteForm');
-        if (deleteForm) {
-            deleteForm.action = `/categorias/${categoriaId}`;
-        }
-        
-        setTimeout(() => {
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la desactivación. Por favor, recarga la página.');
-    }
-}
-
-function activarCategoria(categoriaId, nombreCategoria) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('activarCategoriaNombre').textContent = nombreCategoria;
-        document.getElementById('activarCategoriaNombreDisplay').textContent = `¿Activar "${nombreCategoria}"?`;
-        document.getElementById('activarCategoriaId').innerHTML = `<small class="text-muted">ID: #${categoriaId}</small>`;
-        
-        const activarForm = document.getElementById('activarForm');
-        if (activarForm) {
-            activarForm.action = `/categorias/${categoriaId}/activar`;
-        }
-        
-        setTimeout(() => {
-            const activarModal = new bootstrap.Modal(document.getElementById('activarModal'));
-            activarModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la activación. Por favor, recarga la página.');
-    }
-}
-
-function clearFilter(filterName) {
-    const url = new URL(window.location.href);
-    url.searchParams.delete(filterName);
-    window.location.href = url.toString();
-}
-
-const spinStyle = document.createElement('style');
-spinStyle.textContent = `
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .spin {
-        animation: spin 0.5s linear infinite;
-    }
-    
-    .table-secondary {
-        background-color: rgba(156, 163, 175, 0.05) !important;
-    }
-    
-    .table-secondary:hover {
-        background-color: rgba(156, 163, 175, 0.1) !important;
-    }
-    
-    .stat-card:hover .stat-decoration {
-        transform: scale(1.2);
-    }
-    
-    .btn-expand-categoria:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-    }
-    
-    .detail-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .delete-icon-circle, .activate-icon-circle {
-        animation: pulseIcon 2s infinite;
-    }
-    
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-`;
-document.head.appendChild(spinStyle);
-</script>
-@endpush
-
 <style>
+/* ===== MODAL PERSONALIZADO MEJORADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+}
+
+/* Clases para diferentes anchos */
+.modal-personalizado-ancho-pequeno {
+    width: 95%;
+    max-width: 500px;
+}
+
+/* Clase para hacer el modal más alto */
+.modal-personalizado-alto {
+    max-height: 90vh;
+    height: auto;
+    min-height: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+    flex: 1;
+}
+
+/* Animación para los íconos */
+.delete-icon-circle, .activate-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* El resto de tus estilos existentes se mantienen */
 #categorias-page .categoria-avatar {
     width: 48px;
     height: 48px;
@@ -1384,6 +1255,10 @@ document.head.appendChild(spinStyle);
         padding: 0.25rem 0.5rem;
         font-size: 0.8rem;
     }
+    
+    .modal-personalizado-alto {
+        min-height: 400px;
+    }
 }
 
 #categorias-page .collapse.show {
@@ -1451,4 +1326,189 @@ document.head.appendChild(spinStyle);
     background: #f3f4f6;
 }
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips
+    initTooltips();
+    
+    // Configurar eventos de expansión
+    setupExpandButtons();
+    
+    // Configurar auto-submit de filtros
+    setupFilterAutoSubmit();
+    
+    // Configurar botón de refrescar
+    setupRefreshButton();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalEliminar();
+            cerrarModalActivar();
+        }
+    });
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+function setupExpandButtons() {
+    document.querySelectorAll('.btn-expand-categoria').forEach(button => {
+        button.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            if (icon) {
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+            
+            if (isExpanded) {
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-secondary');
+            } else {
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-primary');
+            }
+        });
+    });
+}
+
+function setupFilterAutoSubmit() {
+    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="estado"]').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filtrosForm').submit();
+        });
+    });
+}
+
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spin');
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+}
+
+function clearFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    window.location.href = url.toString();
+}
+
+// FUNCIONES PARA EL MODAL DE ELIMINAR
+function abrirModalEliminar(categoriaId, nombreCategoria) {
+    // Actualizar el contenido del modal
+    document.getElementById('eliminarCategoriaNombre').textContent = nombreCategoria;
+    document.getElementById('eliminarCategoriaNombreDisplay').textContent = `¿Desactivar "${nombreCategoria}"?`;
+    document.getElementById('eliminarCategoriaId').innerHTML = `<small class="text-muted">ID: #${categoriaId}</small>`;
+    
+    // Actualizar la acción del formulario
+    const eliminarForm = document.getElementById('eliminarForm');
+    if (eliminarForm) {
+        eliminarForm.action = `/categorias/${categoriaId}`;
+    }
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalEliminar() {
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE ACTIVAR
+function abrirModalActivar(categoriaId, nombreCategoria) {
+    // Actualizar el contenido del modal
+    document.getElementById('activarCategoriaNombre').textContent = nombreCategoria;
+    document.getElementById('activarCategoriaNombreDisplay').textContent = `¿Activar "${nombreCategoria}"?`;
+    document.getElementById('activarCategoriaId').innerHTML = `<small class="text-muted">ID: #${categoriaId}</small>`;
+    
+    // Actualizar la acción del formulario
+    const activarForm = document.getElementById('activarForm');
+    if (activarForm) {
+        activarForm.action = `/categorias/${categoriaId}/activar`;
+    }
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalActivar() {
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+const spinStyle = document.createElement('style');
+spinStyle.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 0.5s linear infinite;
+    }
+    
+    .table-secondary {
+        background-color: rgba(156, 163, 175, 0.05) !important;
+    }
+    
+    .table-secondary:hover {
+        background-color: rgba(156, 163, 175, 0.1) !important;
+    }
+    
+    .stat-card:hover .stat-decoration {
+        transform: scale(1.2);
+    }
+    
+    .btn-expand-categoria:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+    
+    .detail-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .empty-state {
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+`;
+document.head.appendChild(spinStyle);
+</script>
+@endpush
 @endsection

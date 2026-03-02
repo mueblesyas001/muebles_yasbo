@@ -745,7 +745,7 @@
                                             <button type="button" 
                                                     class="btn btn-sm btn-outline-danger" 
                                                     style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                    onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')"
+                                                    onclick="abrirModalEliminarPersonalizado({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}', '{{ addslashes($proveedorNombreCompleto) }}')"
                                                     title="Eliminar compra">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -922,7 +922,7 @@
                                                                 <button type="button" 
                                                                         class="btn btn-outline-danger btn-sm"
                                                                         style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                        onclick="setDeleteCompra({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}')">
+                                                                        onclick="abrirModalEliminarPersonalizado({{ $compra->id }}, '{{ number_format($compra->Total, 2) }}', '{{ addslashes($proveedorNombreCompleto) }}')">
                                                                     <i class="fas fa-trash me-1"></i> Eliminar compra
                                                                 </button>
                                                             </div>
@@ -981,78 +981,80 @@
     </div>
 </div>
 
-<!-- MODAL DE ELIMINACIÓN MEJORADO -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Eliminación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- MODAL PERSONALIZADO DE ELIMINACIÓN (SIN BLOQUEO DE SCROLL) -->
+<div id="modalEliminarPersonalizado" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalEliminarPersonalizado()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalEliminarPersonalizado()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-personalizado-body text-center">
+            <div class="delete-icon-wrapper mb-4">
+                <div class="delete-icon-circle" style="
+                    width: 80px;
+                    height: 80px;
+                    background: rgba(220, 53, 69, 0.1);
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                ">
+                    <i class="fas fa-trash-alt fa-3x text-danger"></i>
+                </div>
             </div>
             
-            <div class="modal-body text-center p-4">
-                <div class="delete-icon-wrapper mb-4">
-                    <div class="delete-icon-circle" style="
-                        width: 80px;
-                        height: 80px;
-                        background: rgba(220, 53, 69, 0.1);
-                        border-radius: 50%;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        margin: 0 auto;
-                    ">
-                        <i class="fas fa-trash-alt fa-3x text-danger"></i>
+            <h5 class="fw-bold mb-3" id="deleteCompraDisplay"></h5>
+            <p class="text-muted mb-4" id="deleteCompraInfo" style="font-size: 0.9rem;"></p>
+            
+            <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted">Compra a eliminar:</span>
+                        <span class="fw-bold" id="deleteCompraId"></span>
                     </div>
-                </div>
-                
-                <h5 class="fw-bold mb-3" id="deleteCompraDisplay"></h5>
-                <p class="text-muted mb-4" id="deleteCompraInfo" style="font-size: 0.9rem;"></p>
-                
-                <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
-                    <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Compra a eliminar:</span>
-                            <span class="fw-bold" id="deleteCompraId"></span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between mt-2">
-                            <span class="text-muted">Valor total:</span>
-                            <span class="fw-bold text-danger" id="deleteCompraTotal"></span>
-                        </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                        <span class="text-muted">Proveedor:</span>
+                        <span class="fw-medium" id="deleteCompraProveedor"></span>
                     </div>
-                </div>
-                
-                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
-                    <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
-                    <div class="text-start">
-                        <strong class="text-danger">¡Atención!</strong>
-                        <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente la compra del sistema.</p>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                        <span class="text-muted">Valor total:</span>
+                        <span class="fw-bold text-danger" id="deleteCompraTotal"></span>
                     </div>
                 </div>
             </div>
             
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" id="confirmDeleteBtn" style="border-radius: 50px;">
-                        <i class="fas fa-trash me-2"></i>Sí, eliminar
-                    </button>
-                </form>
+            <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
+                <div class="text-start">
+                    <strong class="text-danger">¡Atención!</strong>
+                    <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente la compra del sistema.</p>
+                </div>
             </div>
+        </div>
+        
+        <div class="modal-personalizado-footer">
+            <button class="btn btn-light border me-2" onclick="cerrarModalEliminarPersonalizado()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button class="btn btn-danger" id="confirmDeleteBtnPersonalizado" onclick="ejecutarEliminacion()">
+                <i class="fas fa-trash me-1"></i>Sí, eliminar
+            </button>
         </div>
     </div>
 </div>
+
+<!-- Formulario oculto para eliminación -->
+<form id="deleteFormPersonalizado" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 <!-- Toast Notifications Container -->
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
@@ -1156,6 +1158,83 @@ class NotificationManager {
 // Instancia global del notification manager
 const notifier = new NotificationManager();
 
+// Variables para el modal de eliminación
+let compraIdAEliminar = null;
+let compraTotalAEliminar = null;
+let compraProveedorAEliminar = null;
+
+// Función para abrir el modal personalizado de eliminación
+function abrirModalEliminarPersonalizado(compraId, total, proveedor = '') {
+    compraIdAEliminar = compraId;
+    compraTotalAEliminar = total;
+    compraProveedorAEliminar = proveedor;
+    
+    const modal = document.getElementById('modalEliminarPersonalizado');
+    
+    // Actualizar elementos del modal
+    document.getElementById('deleteCompraDisplay').textContent = `¿Eliminar Compra #${String(compraId).padStart(5, '0')}?`;
+    document.getElementById('deleteCompraInfo').innerHTML = `<small class="text-muted">Esta acción no se puede deshacer</small>`;
+    document.getElementById('deleteCompraId').textContent = `#${String(compraId).padStart(5, '0')}`;
+    document.getElementById('deleteCompraProveedor').textContent = proveedor || 'Sin proveedor';
+    document.getElementById('deleteCompraTotal').textContent = `$${total}`;
+    
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+// Función para cerrar el modal personalizado de eliminación
+function cerrarModalEliminarPersonalizado() {
+    const modal = document.getElementById('modalEliminarPersonalizado');
+    modal.style.display = 'none';
+    
+    // Limpiar variables
+    compraIdAEliminar = null;
+    compraTotalAEliminar = null;
+    compraProveedorAEliminar = null;
+}
+
+// Función para ejecutar la eliminación
+function ejecutarEliminacion() {
+    if (!compraIdAEliminar) {
+        notifier.showError('Error: No se ha seleccionado una compra para eliminar');
+        cerrarModalEliminarPersonalizado();
+        return;
+    }
+    
+    // Mostrar loading
+    notifier.showInfo('Eliminando compra...', 'info', 'Procesando');
+    
+    const form = document.getElementById('deleteFormPersonalizado');
+    form.action = `/compras/${compraIdAEliminar}`;
+    
+    // Enviar formulario
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        cerrarModalEliminarPersonalizado();
+        
+        if (data.success) {
+            notifier.showSuccess(data.message || 'Compra eliminada exitosamente');
+            // Recargar la página después de un pequeño delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(data.message || 'Error al eliminar la compra');
+        }
+    })
+    .catch(error => {
+        cerrarModalEliminarPersonalizado();
+        notifier.showError(error.message);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar tooltips
     initTooltips();
@@ -1189,6 +1268,13 @@ document.addEventListener('DOMContentLoaded', function() {
     @if(session('info'))
         notifier.showInfo("{{ session('info') }}");
     @endif
+    
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalEliminarPersonalizado();
+        }
+    });
 });
 
 function initTooltips() {
@@ -1277,30 +1363,6 @@ function clearFilters(filterNames) {
         url.searchParams.delete(filter);
     });
     window.location.href = url.toString();
-}
-
-function setDeleteCompra(compraId, total) {
-    try {
-        // Actualizar elementos del modal
-        document.getElementById('deleteCompraDisplay').textContent = `¿Eliminar Compra #${String(compraId).padStart(5, '0')}?`;
-        document.getElementById('deleteCompraInfo').innerHTML = `<small class="text-muted">Esta acción no se puede deshacer</small>`;
-        document.getElementById('deleteCompraId').textContent = `#${String(compraId).padStart(5, '0')}`;
-        document.getElementById('deleteCompraTotal').textContent = `$${total}`;
-        
-        // Actualizar acción del formulario
-        const deleteForm = document.getElementById('deleteForm');
-        if (deleteForm) {
-            deleteForm.action = `/compras/${compraId}`;
-        }
-        
-        // Mostrar modal
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        notifier.showError('Error al preparar la eliminación. Por favor, recarga la página.');
-    }
 }
 </script>
 @endpush
@@ -1462,6 +1524,120 @@ function setDeleteCompra(compraId, total) {
         transform: translateX(100%);
         opacity: 0;
     }
+}
+
+/* ===== ESTILOS DEL MODAL PERSONALIZADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* Permite que el scroll pase a través del overlay */
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    pointer-events: auto; /* El overlay captura clicks */
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+    pointer-events: auto; /* El contenido captura clicks */
+    max-height: 90vh;
+    overflow-y: auto; /* Scroll interno si es necesario */
+}
+
+.modal-personalizado-ancho-pequeno {
+    width: 90%;
+    max-width: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+}
+
+.modal-personalizado-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8fafc;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    text-align: right;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
 }
 
 #compras-page {
@@ -1646,13 +1822,14 @@ function setDeleteCompra(compraId, total) {
         font-size: 0.8rem;
     }
     
-    .modal-footer .btn {
-        width: 100%;
-        margin: 0.25rem 0 !important;
+    .modal-personalizado-footer {
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
-    .modal-footer {
-        flex-direction: column;
+    .modal-personalizado-footer .btn {
+        width: 100%;
+        margin: 0.25rem 0 !important;
     }
 }
 

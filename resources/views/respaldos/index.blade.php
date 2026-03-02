@@ -286,7 +286,7 @@
     </div>
     @endif
 
-    <!-- Botón para restaurar desde archivo SQL - MEJORADO -->
+    <!-- Botón para restaurar desde archivo SQL - CON MODAL PERSONALIZADO -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="restore-card" style="
@@ -318,7 +318,7 @@
                             </p>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#restaurarModal" style="
+                    <button type="button" class="btn btn-light btn-lg" onclick="abrirModalRestaurarPersonalizado()" style="
                         border-radius: 50px;
                         padding: 1rem 2rem;
                         font-weight: 600;
@@ -647,7 +647,7 @@
                                 </div>
                             </td>
 
-                            <!-- Fecha - MODIFICADO: Solo se muestra la fecha, sin hora -->
+                            <!-- Fecha -->
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="icon-badge me-2" style="
@@ -693,13 +693,6 @@
                             <td class="pe-4">
                                 <div class="d-flex gap-2 justify-content-end">
                                     @if($archivoExiste)
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-warning" 
-                                                style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                onclick="restaurarRespaldo({{ $respaldo->id }}, '{{ addslashes($respaldo->Nombre) }}')"
-                                                title="Restaurar base de datos">
-                                            <i class="fas fa-redo"></i>
-                                        </button>
                                         <a href="{{ route('respaldos.descargar', $respaldo->id) }}" 
                                            class="btn btn-sm btn-outline-primary" 
                                            style="border-radius: 10px; border: 1px solid #e5e7eb;"
@@ -718,7 +711,7 @@
                             </td>
                         </tr>
                         
-                        <!-- Fila expandible con detalles del respaldo - MODIFICADO: Fecha sin hora -->
+                        <!-- Fila expandible con detalles del respaldo -->
                         <tr class="detalle-respaldo-row">
                             <td colspan="9" class="p-0 border-0">
                                 <div class="collapse" id="detallesRespaldo{{ $respaldo->id }}">
@@ -753,7 +746,6 @@
                                                                 <span class="text-muted">Usuario:</span>
                                                                 <div class="d-flex align-items-center gap-1">
                                                                     <span class="fw-medium">{{ $usuarioCorreo ?? 'N/A' }}</span>
-                                                                    <small class="text-muted">(ID: {{ $respaldo->Usuario }})</small>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -882,187 +874,153 @@
     </div>
 </div>
 
-<!-- MODAL DE RESTAURACIÓN DESDE ARCHIVO SQL MEJORADO -->
-<div class="modal fade" id="restaurarModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-warning text-white" style="
-                background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="header-icon" style="
-                        width: 50px;
-                        height: 50px;
-                        background: rgba(255, 255, 255, 0.2);
-                        border-radius: 12px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                    ">
-                        <i class="fas fa-redo-alt fa-lg"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-1">Restaurar Base de Datos</h5>
-                        <p class="text-white-50 mb-0 small">Importar archivo SQL para restaurar datos</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                
-                <!-- Elementos decorativos -->
-                <div class="position-absolute" style="top: -20px; right: -20px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-                <div class="position-absolute" style="bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); border-radius: 50%;"></div>
-            </div>
-            
-            <form id="restaurarForm" action="{{ route('respaldos.restaurar-archivo') }}" method="POST" enctype="multipart/form-data">
+<!-- MODAL PERSONALIZADO PARA RESTAURAR BD (SIN BOOTSTRAP) -->
+<div id="modalRestaurarPersonalizado" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalRestaurarPersonalizado()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-medio">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-redo-alt me-2"></i>Restaurar Base de Datos
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalRestaurarPersonalizado()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body" id="modalRestaurarPersonalizadoBody">
+            <!-- Contenido del formulario -->
+            <form id="restaurarFormPersonalizado" action="{{ route('respaldos.restaurar-archivo') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-body p-4">
-                    <!-- Advertencia crítica -->
-                    <div class="alert alert-danger mb-4" style="
-                        border-radius: 16px;
-                        border-left: 5px solid #dc3545;
-                    ">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-exclamation-triangle fa-2x me-3" style="color: #dc3545;"></i>
-                            <div>
-                                <h5 class="alert-heading fw-bold mb-2" style="color: #721c24;">¡ADVERTENCIA CRÍTICA!</h5>
-                                <p class="mb-0" style="color: #721c24;">
-                                    Esta acción <strong>ELIMINARÁ</strong> toda la base de datos actual y <strong>CREARÁ UNA NUEVA</strong> con los datos del archivo SQL seleccionado.
-                                </p>
-                            </div>
+                
+                <!-- Advertencia crítica -->
+                <div class="alert alert-danger mb-4" style="
+                    border-radius: 16px;
+                    border-left: 5px solid #dc3545;
+                ">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3" style="color: #dc3545;"></i>
+                        <div>
+                            <h5 class="alert-heading fw-bold mb-2" style="color: #721c24;">¡ADVERTENCIA CRÍTICA!</h5>
+                            <p class="mb-0" style="color: #721c24;">
+                                Esta acción <strong>ELIMINARÁ</strong> toda la base de datos actual y <strong>CREARÁ UNA NUEVA</strong> con los datos del archivo SQL seleccionado.
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Selección de archivo -->
-                    <div class="file-upload-area mb-4 p-4" style="
-                        background: #f8fafc;
-                        border-radius: 16px;
-                        border: 2px dashed #667eea;
-                        text-align: center;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    " onclick="document.getElementById('sqlFile').click()">
-                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #667eea;"></i>
-                        <h6 class="fw-bold mb-1">Seleccionar Archivo SQL</h6>
-                        <p class="small text-muted mb-2">Haz clic para elegir un archivo o arrastra aquí</p>
-                        <span class="badge px-3 py-2" style="background: #e5e7eb; color: #4b5563;">
-                            Formatos: .sql, .gz, .zip
-                        </span>
-                        <input type="file" 
-                               class="d-none" 
-                               id="sqlFile" 
-                               name="sql_file" 
-                               accept=".sql,.gz,.zip"
-                               required>
-                    </div>
+                <!-- Selección de archivo personalizada -->
+                <div class="file-upload-area mb-4 p-4" style="
+                    background: #f8fafc;
+                    border-radius: 16px;
+                    border: 2px dashed #667eea;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onclick="document.getElementById('sqlFilePersonalizado').click()">
+                    <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #667eea;"></i>
+                    <h6 class="fw-bold mb-1">Seleccionar Archivo SQL</h6>
+                    <p class="small text-muted mb-2">Haz clic para elegir un archivo</p>
+                    <span class="badge px-3 py-2" style="background: #e5e7eb; color: #4b5563;">
+                        Formatos: .sql, .gz, .zip
+                    </span>
+                    <input type="file" 
+                           class="d-none" 
+                           id="sqlFilePersonalizado" 
+                           name="sql_file" 
+                           accept=".sql,.gz,.zip"
+                           onchange="mostrarInfoArchivoPersonalizado(this)"
+                           required>
+                </div>
 
-                    <!-- Información del archivo (dinámica) -->
-                    <div id="fileInfo" class="d-none mb-4">
-                        <div class="card border-0" style="background: #f8fafc; border-radius: 16px;">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
-                                    <i class="fas fa-file-code me-2 text-primary"></i>
-                                    Información del Archivo
-                                </h6>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="detail-item d-flex justify-content-between">
-                                            <span class="text-muted">Nombre:</span>
-                                            <span class="fw-medium" id="fileName"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="detail-item d-flex justify-content-between">
-                                            <span class="text-muted">Tamaño:</span>
-                                            <span class="fw-medium" id="fileSize"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="detail-item d-flex justify-content-between">
-                                            <span class="text-muted">Ruta:</span>
-                                            <span class="text-muted small font-monospace" id="filePath"></span>
-                                        </div>
+                <!-- Información del archivo (dinámica) -->
+                <div id="fileInfoPersonalizado" class="d-none mb-4">
+                    <div class="card border-0" style="background: #f8fafc; border-radius: 16px;">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                <i class="fas fa-file-code me-2 text-primary"></i>
+                                Información del Archivo
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="detail-item d-flex justify-content-between">
+                                        <span class="text-muted">Nombre:</span>
+                                        <span class="fw-medium" id="fileNamePersonalizado"></span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Opciones de restauración -->
-                    <div class="options-card mb-4 p-3" style="
-                        background: #f8fafc;
-                        border-radius: 16px;
-                    ">
-                        <h6 class="fw-bold mb-3" style="color: #1f2937;">
-                            <i class="fas fa-cogs me-2 text-primary"></i>
-                            Opciones de Restauración
-                        </h6>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="dropDatabase" name="drop_database" checked>
-                            <label class="form-check-label fw-medium" for="dropDatabase">
-                                Eliminar base de datos actual antes de restaurar
-                            </label>
-                            <div class="form-text small text-muted ms-4">
-                                Esta opción es necesaria para una restauración completa
-                            </div>
-                        </div>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="createDatabase" name="create_database" checked>
-                            <label class="form-check-label fw-medium" for="createDatabase">
-                                Crear nueva base de datos si no existe
-                            </label>
-                        </div>
-                        
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="backupCurrent" name="backup_current" checked>
-                            <label class="form-check-label fw-medium" for="backupCurrent">
-                                Crear respaldo de la base de datos actual antes de restaurar
-                            </label>
-                            <div class="form-text small text-muted ms-4">
-                                Recomendado: Crea un respaldo de seguridad de los datos actuales
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Confirmación final -->
-                    <div class="confirm-card p-3" style="
-                        background: #f8fafc;
-                        border-radius: 16px;
-                        border-left: 5px solid #ffc107;
-                    ">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-shield-alt fa-2x me-3" style="color: #ffc107;"></i>
-                            <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-2">Confirmación Final</h6>
-                                <p class="small text-muted mb-2">Para proceder con la restauración, escriba <code>CONFIRMAR</code> en el campo de abajo:</p>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="confirmText" 
-                                       name="confirmacion"
-                                       placeholder="Escriba CONFIRMAR aquí"
-                                       oninput="validarConfirmacionRestaurar()"
-                                       required>
-                                <div id="confirmError" class="text-danger small mt-1 d-none">
-                                    Debe escribir exactamente "CONFIRMAR"
+                                <div class="col-md-6">
+                                    <div class="detail-item d-flex justify-content-between">
+                                        <span class="text-muted">Tamaño:</span>
+                                        <span class="fw-medium" id="fileSizePersonalizado"></span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="detail-item d-flex justify-content-between">
+                                        <span class="text-muted">Tipo:</span>
+                                        <span class="text-muted small font-monospace" id="fileTypePersonalizado"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="modal-footer justify-content-center border-0 pb-4">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                        <i class="fas fa-times me-2"></i> Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-warning px-4" id="submitRestaurar" disabled style="border-radius: 50px;">
-                        <i class="fas fa-redo me-2"></i> Restaurar Base de Datos
-                    </button>
+
+                <!-- Opciones de restauración -->
+                <div class="options-card mb-4 p-3" style="
+                    background: #f8fafc;
+                    border-radius: 16px;
+                ">
+                    <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                        <i class="fas fa-cogs me-2 text-primary"></i>
+                        Opciones de Restauración
+                    </h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="dropDatabasePersonalizado" name="drop_database" checked>
+                        <label class="form-check-label fw-medium" for="dropDatabasePersonalizado">
+                            Eliminar base de datos actual antes de restaurar
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="backupCurrentPersonalizado" name="backup_current" checked>
+                        <label class="form-check-label fw-medium" for="backupCurrentPersonalizado">
+                            Crear respaldo de seguridad antes de restaurar
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Confirmación final -->
+                <div class="confirm-card p-3" style="
+                    background: #f8fafc;
+                    border-radius: 16px;
+                    border-left: 5px solid #ffc107;
+                ">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-shield-alt fa-2x me-3" style="color: #ffc107;"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-2">Confirmación Final</h6>
+                            <p class="small text-muted mb-2">Escriba <strong>CONFIRMAR</strong> para proceder:</p>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="confirmTextPersonalizado" 
+                                   name="confirmacion"
+                                   placeholder="Escriba CONFIRMAR aquí"
+                                   oninput="validarConfirmacionRestaurarPersonalizado()"
+                                   required>
+                            <div id="confirmErrorPersonalizado" class="text-danger small mt-1 d-none">
+                                Debe escribir exactamente "CONFIRMAR"
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
+        </div>
+        <div class="modal-personalizado-footer">
+            <button class="btn btn-light border me-2" onclick="cerrarModalRestaurarPersonalizado()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button class="btn btn-warning" id="submitRestaurarPersonalizado" onclick="enviarFormularioRestaurarPersonalizado()" disabled>
+                <i class="fas fa-redo-alt me-1"></i>Restaurar Base de Datos
+            </button>
         </div>
     </div>
 </div>
@@ -1079,125 +1037,208 @@
 // Token CSRF global
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
+// Variables globales para el modal personalizado
+let archivoSeleccionadoPersonalizado = null;
+
+// Función para abrir el modal personalizado de restauración
+function abrirModalRestaurarPersonalizado() {
+    const modal = document.getElementById('modalRestaurarPersonalizado');
+    modal.style.display = 'flex';
+    
+    // Resetear el formulario
+    document.getElementById('restaurarFormPersonalizado').reset();
+    document.getElementById('fileInfoPersonalizado').classList.add('d-none');
+    document.getElementById('submitRestaurarPersonalizado').disabled = true;
+    document.getElementById('confirmErrorPersonalizado').classList.add('d-none');
+    document.getElementById('confirmTextPersonalizado').classList.remove('is-invalid', 'is-valid');
+    archivoSeleccionadoPersonalizado = null;
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+// Función para cerrar el modal personalizado de restauración
+function cerrarModalRestaurarPersonalizado() {
+    const modal = document.getElementById('modalRestaurarPersonalizado');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = 'auto';
+}
+
+// Función para mostrar información del archivo seleccionado
+function mostrarInfoArchivoPersonalizado(input) {
+    const file = input.files[0];
+    const fileInfo = document.getElementById('fileInfoPersonalizado');
+    const fileName = document.getElementById('fileNamePersonalizado');
+    const fileSize = document.getElementById('fileSizePersonalizado');
+    const fileType = document.getElementById('fileTypePersonalizado');
+    
+    if (file) {
+        // Validar extensiones
+        const validExtensions = ['.sql', '.gz', '.zip'];
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        
+        if (!validExtensions.includes(fileExtension)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Formato inválido',
+                text: 'Solo se permiten archivos .sql, .gz o .zip',
+                confirmButtonColor: '#dc3545'
+            });
+            input.value = '';
+            fileInfo.classList.add('d-none');
+            archivoSeleccionadoPersonalizado = null;
+            document.getElementById('submitRestaurarPersonalizado').disabled = true;
+            return;
+        }
+        
+        archivoSeleccionadoPersonalizado = file;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileType.textContent = file.type || 'application/octet-stream';
+        fileInfo.classList.remove('d-none');
+        
+        // Validar confirmación
+        validarConfirmacionRestaurarPersonalizado();
+    } else {
+        fileInfo.classList.add('d-none');
+        archivoSeleccionadoPersonalizado = null;
+        document.getElementById('submitRestaurarPersonalizado').disabled = true;
+    }
+}
+
+// Función para validar la confirmación
+function validarConfirmacionRestaurarPersonalizado() {
+    const confirmText = document.getElementById('confirmTextPersonalizado').value;
+    const submitBtn = document.getElementById('submitRestaurarPersonalizado');
+    const confirmError = document.getElementById('confirmErrorPersonalizado');
+    
+    if (confirmText === 'CONFIRMAR' && archivoSeleccionadoPersonalizado) {
+        submitBtn.disabled = false;
+        document.getElementById('confirmTextPersonalizado').classList.remove('is-invalid');
+        document.getElementById('confirmTextPersonalizado').classList.add('is-valid');
+        confirmError.classList.add('d-none');
+    } else {
+        submitBtn.disabled = true;
+        if (confirmText !== '') {
+            document.getElementById('confirmTextPersonalizado').classList.remove('is-valid');
+            document.getElementById('confirmTextPersonalizado').classList.add('is-invalid');
+            confirmError.classList.remove('d-none');
+        } else {
+            document.getElementById('confirmTextPersonalizado').classList.remove('is-invalid', 'is-valid');
+            confirmError.classList.add('d-none');
+        }
+    }
+}
+
+// Función para enviar el formulario
+function enviarFormularioRestaurarPersonalizado() {
+    const form = document.getElementById('restaurarFormPersonalizado');
+    const formData = new FormData(form);
+    
+    // Mostrar confirmación con SweetAlert
+    Swal.fire({
+        title: '¿Restaurar Base de Datos?',
+        html: `
+            <div class="text-start">
+                <div class="alert alert-danger border-danger border-opacity-50 mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>¡ADVERTENCIA FINAL!</strong>
+                    <div class="mt-2">
+                        Esta acción:
+                        <ul class="mb-2 mt-2">
+                            <li>Eliminará la base de datos actual</li>
+                            <li>Importará el archivo: <strong>${archivoSeleccionadoPersonalizado.name}</strong></li>
+                            <li>Podría tomar varios minutos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-redo me-2"></i> Sí, Restaurar',
+        cancelButtonText: '<i class="fas fa-times me-2"></i> Cancelar',
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        customClass: { popup: 'shadow-lg' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Restaurando Base de Datos',
+                html: `
+                    <div class="text-center">
+                        <div class="spinner-border text-warning mb-3" style="width: 3rem; height: 3rem;"></div>
+                        <h5 class="text-warning mb-2">Restauración en progreso</h5>
+                        <p class="mb-2">Esto puede tomar varios minutos...</p>
+                        <small class="text-muted">No cierre esta ventana</small>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                backdrop: 'rgba(0,0,0,0.7)'
+            });
+            
+            // Cerrar el modal personalizado
+            cerrarModalRestaurarPersonalizado();
+            
+            // Enviar formulario
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Restauración Exitosa!',
+                        text: data.message || 'Base de datos restaurada correctamente',
+                        confirmButtonColor: '#28a745'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error(data.message || 'Error en la restauración');
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+    });
+}
+
+// Función auxiliar para formatear tamaño de archivo
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initTooltips();
     setupExpandButtons();
     
-    // Mostrar información del archivo cuando se selecciona
-    const sqlFileInput = document.getElementById('sqlFile');
-    if (sqlFileInput) {
-        sqlFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const fileInfo = document.getElementById('fileInfo');
-            const fileName = document.getElementById('fileName');
-            const fileSize = document.getElementById('fileSize');
-            const filePath = document.getElementById('filePath');
-            
-            if (file) {
-                // Validar extensiones
-                const validExtensions = ['.sql', '.gz', '.zip'];
-                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-                
-                if (!validExtensions.includes(fileExtension)) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Formato inválido',
-                        text: 'Solo se permiten archivos .sql, .gz o .zip',
-                        confirmButtonColor: '#dc3545'
-                    });
-                    e.target.value = '';
-                    fileInfo.classList.add('d-none');
-                    return;
-                }
-                
-                fileName.textContent = file.name;
-                fileSize.textContent = formatFileSize(file.size);
-                filePath.textContent = file.name;
-                fileInfo.classList.remove('d-none');
-            } else {
-                fileInfo.classList.add('d-none');
-            }
-        });
-    }
-    
-    // Validar formulario de restauración
-    const restaurarForm = document.getElementById('restaurarForm');
-    if (restaurarForm) {
-        restaurarForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const fileInput = document.getElementById('sqlFile');
-            const confirmText = document.getElementById('confirmText').value;
-            
-            if (!fileInput.files.length) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Debe seleccionar un archivo SQL',
-                    confirmButtonColor: '#dc3545'
-                });
-                return;
-            }
-            
-            if (confirmText !== 'CONFIRMAR') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Debe escribir "CONFIRMAR" para confirmar',
-                    confirmButtonColor: '#dc3545'
-                });
-                return;
-            }
-            
-            Swal.fire({
-                title: '¿Restaurar Base de Datos?',
-                html: `
-                    <div class="text-start">
-                        <div class="alert alert-danger border-danger border-opacity-50 mb-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>¡ADVERTENCIA FINAL!</strong>
-                            <div class="mt-2">
-                                Esta acción realizará lo siguiente:
-                                <ul class="mb-2 mt-2">
-                                    <li>Eliminará la base de datos actual</li>
-                                    <li>Creará una nueva base de datos</li>
-                                    <li>Importará datos desde el archivo SQL</li>
-                                    <li>Podría tomar varios minutos</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <p class="mb-0"><strong>¿Está completamente seguro de continuar?</strong></p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-redo me-2"></i> Sí, Restaurar',
-                cancelButtonText: '<i class="fas fa-times me-2"></i> Cancelar',
-                confirmButtonColor: '#ffc107',
-                cancelButtonColor: '#6c757d',
-                reverseButtons: true,
-                customClass: { popup: 'shadow-lg' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Restaurando Base de Datos',
-                        html: `
-                            <div class="text-center">
-                                <div class="spinner-border text-warning mb-3" style="width: 3rem; height: 3rem;"></div>
-                                <h5 class="text-warning mb-2">Restauración en progreso</h5>
-                                <p class="mb-2">Esto puede tomar varios minutos...</p>
-                                <small class="text-muted">No cierre esta ventana</small>
-                            </div>
-                        `,
-                        allowOutsideClick: false,
-                        showConfirmButton: false,
-                        backdrop: 'rgba(0,0,0,0.7)'
-                    });
-                    this.submit();
-                }
-            });
-        });
-    }
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalRestaurarPersonalizado();
+        }
+    });
 });
 
 function initTooltips() {
@@ -1242,37 +1283,8 @@ function setupExpandButtons() {
     });
 }
 
-function validarConfirmacionRestaurar() {
-    const input = document.getElementById('confirmText');
-    const error = document.getElementById('confirmError');
-    const submitBtn = document.getElementById('submitRestaurar');
-    
-    if (input && error && submitBtn) {
-        if (input.value === 'CONFIRMAR') {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            error.classList.add('d-none');
-            submitBtn.disabled = false;
-        } else {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            error.classList.remove('d-none');
-            submitBtn.disabled = true;
-        }
-    }
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
 function filtrarTabla() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const estadoFilter = document.getElementById('estadoFilter').value;
     const ordenFilter = document.getElementById('ordenFilter').value;
     
     const rows = Array.from(document.querySelectorAll('#tablaRespaldos tbody tr.respaldo-row'));
@@ -1280,20 +1292,16 @@ function filtrarTabla() {
     // Filtrar
     rows.forEach(row => {
         const texto = row.textContent.toLowerCase();
-        const estado = row.getAttribute('data-estado');
-        
         const matchSearch = searchInput === '' || texto.includes(searchInput);
-        const matchEstado = estadoFilter === '' || estado === estadoFilter;
-        
-        row.style.display = (matchSearch && matchEstado) ? '' : 'none';
+        row.style.display = matchSearch ? '' : 'none';
         
         const detallesRow = row.nextElementSibling;
         if (detallesRow && detallesRow.classList.contains('detalle-respaldo-row')) {
-            detallesRow.style.display = (matchSearch && matchEstado) ? '' : 'none';
+            detallesRow.style.display = matchSearch ? '' : 'none';
         }
     });
     
-    // Ordenar (simplificado - recargar página con parámetros)
+    // Ordenar
     if (ordenFilter !== 'fecha_desc' && ordenFilter !== 'fecha_asc' && 
         ordenFilter !== 'nombre_asc' && ordenFilter !== 'nombre_desc') {
         return;
@@ -1510,6 +1518,125 @@ style.textContent = `
     
     .delete-icon-circle {
         animation: pulseIcon 2s infinite;
+    }
+    
+    /* ===== ESTILOS DEL MODAL PERSONALIZADO ===== */
+    .modal-personalizado {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-personalizado-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+    }
+    
+    .modal-personalizado-contenido {
+        position: relative;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        z-index: 10000;
+        animation: modalAbrir 0.3s ease-out;
+    }
+    
+    .modal-personalizado-ancho-medio {
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+    }
+    
+    @keyframes modalAbrir {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-personalizado-header {
+        padding: 1.25rem 1.5rem;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .modal-personalizado-titulo {
+        margin: 0;
+        color: white;
+        font-weight: 700;
+        font-size: 1.35rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .modal-personalizado-cerrar {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .modal-personalizado-cerrar:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+    
+    .modal-personalizado-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        max-height: calc(70vh - 130px);
+        background-color: white;
+    }
+    
+    .modal-personalizado-footer {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+        background-color: #f8fafc;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+        text-align: right;
+    }
+    
+    /* Estilos para formulario dentro del modal */
+    .form-check-input:checked {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    
+    .is-valid {
+        border-color: #28a745 !important;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545 !important;
     }
 `;
 document.head.appendChild(style);

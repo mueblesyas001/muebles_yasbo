@@ -693,7 +693,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-danger" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="setDeleteProveedor({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')"
+                                            onclick="abrirModalDesactivar({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')"
                                             title="Desactivar proveedor">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -701,7 +701,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-success" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="activarProveedor({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')"
+                                            onclick="abrirModalActivar({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')"
                                             title="Activar proveedor">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -980,14 +980,14 @@
                                                         <button type="button" 
                                                                 class="btn btn-outline-danger btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="setDeleteProveedor({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')">
+                                                                onclick="abrirModalDesactivar({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')">
                                                             <i class="fas fa-trash me-1"></i> Desactivar proveedor
                                                         </button>
                                                     @else
                                                         <button type="button" 
                                                                 class="btn btn-outline-success btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="activarProveedor({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')">
+                                                                onclick="abrirModalActivar({{ $proveedor->id }}, '{{ addslashes($nombreCompleto) }}')">
                                                             <i class="fas fa-check-circle me-1"></i> Activar proveedor
                                                         </button>
                                                         
@@ -1065,23 +1065,20 @@
     </div>
 </div>
 
-<!-- MODAL DE DESACTIVACIÓN -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Desactivación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA DESACTIVAR - MÁS ALTO -->
+<div id="modalDesactivar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalDesactivar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalDesactivar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="delete-icon-wrapper mb-4">
                     <div class="delete-icon-circle" style="
                         width: 80px;
@@ -1097,35 +1094,30 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="deleteProveedorNombreDisplay"></h5>
-                <p class="text-muted mb-4" id="deleteProveedorId" style="font-size: 0.9rem;"></p>
+                <h5 class="fw-bold mb-3" id="desactivarProveedorNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="desactivarProveedorId" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Proveedor a desactivar:</span>
-                            <span class="fw-bold" id="deleteProveedorNombre"></span>
+                            <span class="fw-bold" id="desactivarProveedorNombre"></span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
                     <div class="text-start">
                         <strong class="text-danger">¡Atención!</strong>
                         <p class="mb-0 text-muted small">Esta acción desactivará el proveedor, pero podrás activarlo nuevamente en cualquier momento.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
+                
+                <form id="desactivarForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" id="confirmDeleteBtn" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-trash me-2"></i>Sí, desactivar
                     </button>
                 </form>
@@ -1134,23 +1126,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ACTIVACIÓN -->
-<div class="modal fade" id="activarModal" tabindex="-1" aria-labelledby="activarModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-success text-white" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="activarModalLabel">
-                    <i class="fas fa-check-circle me-2 fa-lg"></i>
-                    Confirmar Activación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ACTIVAR - MÁS ALTO -->
+<div id="modalActivar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalActivar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-check-circle me-2"></i>Confirmar Activación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalActivar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="activate-icon-wrapper mb-4">
                     <div class="activate-icon-circle" style="
                         width: 80px;
@@ -1178,23 +1167,18 @@
                     </div>
                 </div>
                 
-                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-info-circle fs-4 me-3 text-success"></i>
                     <div class="text-start">
                         <strong class="text-success">¡Información!</strong>
                         <p class="mb-0 text-muted small">Al activar este proveedor, estará disponible para realizar compras nuevamente.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
+                
                 <form id="activarForm" method="POST" class="d-inline">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-success px-4" id="confirmActivarBtn" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-check-circle me-2"></i>Sí, activar
                     </button>
                 </form>
@@ -1203,324 +1187,136 @@
     </div>
 </div>
 
-<!-- Modal de Carga -->
-<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-body text-center py-4">
-                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Verificando...</span>
-                </div>
-                <h6 class="fw-bold mb-2">Procesando solicitud</h6>
-                <p class="text-muted small mb-0">Por favor espera un momento...</p>
+<!-- MODAL PERSONALIZADO DE CARGA -->
+<div id="modalCarga" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno">
+        <div class="modal-personalizado-body text-center py-4">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Verificando...</span>
             </div>
+            <h6 class="fw-bold mb-2">Procesando solicitud</h6>
+            <p class="text-muted small mb-0">Por favor espera un momento...</p>
         </div>
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips
-    initTooltips();
-    
-    // Configurar eventos de expansión
-    setupExpandButtons();
-    
-    // Configurar auto-submit de filtros
-    setupFilterAutoSubmit();
-    
-    // Configurar botón de refrescar
-    setupRefreshButton();
-    
-    // Configurar limpieza de modales
-    setupModalCleanup();
-    
-    // Actualizar textos del modal de eliminación
-    updateDeleteModalTexts();
-});
-
-function initTooltips() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-function setupExpandButtons() {
-    document.querySelectorAll('.btn-expand-proveedor').forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            if (icon) {
-                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                icon.style.transition = 'transform 0.3s ease';
-            }
-            
-            if (isExpanded) {
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-outline-secondary');
-            } else {
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-primary');
-            }
-            
-            // Cerrar otros acordeones
-            if (!isExpanded) {
-                const targetId = this.getAttribute('data-bs-target');
-                document.querySelectorAll('.collapse.show').forEach(collapse => {
-                    if (collapse.id !== targetId.replace('#', '')) {
-                        const collapseButton = document.querySelector(`[data-bs-target="#${collapse.id}"]`);
-                        if (collapseButton) {
-                            collapseButton.click();
-                        }
-                    }
-                });
-            }
-        });
-    });
-}
-
-function setupFilterAutoSubmit() {
-    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="estado"], select[name="empresa"], select[name="sexo"]').forEach(select => {
-        select.addEventListener('change', function() {
-            document.getElementById('filtrosForm').submit();
-        });
-    });
-}
-
-function setupRefreshButton() {
-    const refreshBtn = document.getElementById('refreshData');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            this.classList.add('spin');
-            setTimeout(() => location.reload(), 500);
-        });
-    }
-}
-
-function setupModalCleanup() {
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-    
-    const activarModal = document.getElementById('activarModal');
-    if (activarModal) {
-        activarModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-    
-    const loadingModal = document.getElementById('loadingModal');
-    if (loadingModal) {
-        loadingModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-}
-
-function forceCleanupModals() {
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    document.documentElement.style.overflow = '';
-}
-
-function updateDeleteModalTexts() {
-    const deleteModalLabel = document.getElementById('deleteModalLabel');
-    if (deleteModalLabel) {
-        deleteModalLabel.innerHTML = '<i class="fas fa-exclamation-triangle me-2 fa-lg"></i> Confirmar Desactivación';
-    }
-    
-    const deleteBtnText = document.getElementById('confirmDeleteBtn');
-    if (deleteBtnText) {
-        deleteBtnText.innerHTML = '<i class="fas fa-trash me-2"></i>Sí, desactivar';
-    }
-    
-    const deleteAlertText = document.querySelector('#deleteModal .alert-danger strong');
-    if (deleteAlertText) {
-        deleteAlertText.textContent = '¡Atención!';
-        const deleteAlertP = document.querySelector('#deleteModal .alert-danger p');
-        if (deleteAlertP) {
-            deleteAlertP.textContent = 'Esta acción desactivará el proveedor, pero podrás activarlo nuevamente en cualquier momento.';
-        }
-    }
-}
-
-let loadingModalInstance = null;
-
-function showLoadingModal() {
-    const modalElement = document.getElementById('loadingModal');
-    if (!modalElement) return;
-    
-    if (loadingModalInstance) {
-        loadingModalInstance.hide();
-        loadingModalInstance.dispose();
-    }
-    
-    forceCleanupModals();
-    
-    loadingModalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-    });
-    
-    setTimeout(() => {
-        if (loadingModalInstance) {
-            loadingModalInstance.show();
-        }
-    }, 10);
-}
-
-function hideLoadingModal() {
-    return new Promise((resolve) => {
-        if (loadingModalInstance) {
-            const modalElement = document.getElementById('loadingModal');
-            const handler = function() {
-                modalElement.removeEventListener('hidden.bs.modal', handler);
-                loadingModalInstance = null;
-                forceCleanupModals();
-                resolve();
-            };
-            
-            modalElement.addEventListener('hidden.bs.modal', handler);
-            loadingModalInstance.hide();
-        } else {
-            forceCleanupModals();
-            resolve();
-        }
-    });
-}
-
-function setDeleteProveedor(proveedorId, nombreCompleto) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('deleteProveedorNombre').textContent = nombreCompleto;
-        document.getElementById('deleteProveedorNombreDisplay').textContent = `¿Desactivar "${nombreCompleto}"?`;
-        document.getElementById('deleteProveedorId').innerHTML = `<small class="text-muted">ID: #${proveedorId}</small>`;
-        
-        const deleteForm = document.getElementById('deleteForm');
-        if (deleteForm) {
-            deleteForm.action = `/proveedores/${proveedorId}`;
-        }
-        
-        setTimeout(() => {
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la desactivación. Por favor, recarga la página.');
-    }
-}
-
-function activarProveedor(proveedorId, nombreCompleto) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('activarProveedorNombre').textContent = nombreCompleto;
-        document.getElementById('activarProveedorNombreDisplay').textContent = `¿Activar "${nombreCompleto}"?`;
-        document.getElementById('activarProveedorId').innerHTML = `<small class="text-muted">ID: #${proveedorId}</small>`;
-        
-        const activarForm = document.getElementById('activarForm');
-        if (activarForm) {
-            activarForm.action = `/proveedores/${proveedorId}/activar`;
-        }
-        
-        setTimeout(() => {
-            const activarModal = new bootstrap.Modal(document.getElementById('activarModal'));
-            activarModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la activación. Por favor, recarga la página.');
-    }
-}
-
-function clearFilter(filterName) {
-    const url = new URL(window.location.href);
-    url.searchParams.delete(filterName);
-    window.location.href = url.toString();
-}
-
-const spinStyle = document.createElement('style');
-spinStyle.textContent = `
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .spin {
-        animation: spin 0.5s linear infinite;
-    }
-    
-    .table-secondary {
-        background-color: rgba(156, 163, 175, 0.05) !important;
-    }
-    
-    .table-secondary:hover {
-        background-color: rgba(156, 163, 175, 0.1) !important;
-    }
-    
-    .stat-card:hover .stat-decoration {
-        transform: scale(1.2);
-    }
-    
-    .btn-expand-proveedor:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-    }
-    
-    .detail-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .delete-icon-circle, .activate-icon-circle {
-        animation: pulseIcon 2s infinite;
-    }
-    
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    #loadingModal .modal-content {
-        border-radius: 20px !important;
-    }
-    
-    #loadingModal .spinner-border {
-        width: 3.5rem;
-        height: 3.5rem;
-    }
-`;
-document.head.appendChild(spinStyle);
-</script>
-@endpush
-
 <style>
+/* ===== MODAL PERSONALIZADO MEJORADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+}
+
+/* Clases para diferentes anchos */
+.modal-personalizado-ancho-pequeno {
+    width: 95%;
+    max-width: 500px;
+}
+
+/* Clase para hacer el modal más alto */
+.modal-personalizado-alto {
+    max-height: 90vh;
+    height: auto;
+    min-height: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+    flex: 1;
+}
+
+/* Animación para los íconos */
+.delete-icon-circle, .activate-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* El resto de tus estilos existentes se mantienen */
 #proveedores-page {
     padding-top: 20px;
 }
@@ -1612,13 +1408,8 @@ document.head.appendChild(spinStyle);
         font-size: 0.8rem;
     }
     
-    .modal-footer .btn {
-        width: 100%;
-        margin: 0.25rem 0 !important;
-    }
-    
-    .modal-footer {
-        flex-direction: column;
+    .modal-personalizado-alto {
+        min-height: 400px;
     }
 }
 
@@ -1678,5 +1469,222 @@ document.head.appendChild(spinStyle);
     pointer-events: none;
     background: #f3f4f6;
 }
+
+.table-secondary {
+    background-color: rgba(156, 163, 175, 0.05) !important;
+}
+
+.table-secondary:hover {
+    background-color: rgba(156, 163, 175, 0.1) !important;
+}
+
+.stat-card:hover .stat-decoration {
+    transform: scale(1.2);
+}
+
+.btn-expand-proveedor:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.empty-state {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#modalCarga .spinner-border {
+    width: 3.5rem;
+    height: 3.5rem;
+}
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips
+    initTooltips();
+    
+    // Configurar eventos de expansión
+    setupExpandButtons();
+    
+    // Configurar auto-submit de filtros
+    setupFilterAutoSubmit();
+    
+    // Configurar botón de refrescar
+    setupRefreshButton();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalDesactivar();
+            cerrarModalActivar();
+            cerrarModalCarga();
+        }
+    });
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+function setupExpandButtons() {
+    document.querySelectorAll('.btn-expand-proveedor').forEach(button => {
+        button.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            if (icon) {
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+            
+            if (isExpanded) {
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-secondary');
+            } else {
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-primary');
+            }
+            
+            // Cerrar otros acordeones
+            if (!isExpanded) {
+                const targetId = this.getAttribute('data-bs-target');
+                document.querySelectorAll('.collapse.show').forEach(collapse => {
+                    if (collapse.id !== targetId.replace('#', '')) {
+                        const collapseButton = document.querySelector(`[data-bs-target="#${collapse.id}"]`);
+                        if (collapseButton) {
+                            collapseButton.click();
+                        }
+                    }
+                });
+            }
+        });
+    });
+}
+
+function setupFilterAutoSubmit() {
+    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="estado"], select[name="empresa"], select[name="sexo"]').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filtrosForm').submit();
+        });
+    });
+}
+
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spin');
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+}
+
+function clearFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    window.location.href = url.toString();
+}
+
+// FUNCIONES PARA EL MODAL DE DESACTIVAR
+function abrirModalDesactivar(proveedorId, nombreCompleto) {
+    // Actualizar el contenido del modal
+    document.getElementById('desactivarProveedorNombre').textContent = nombreCompleto;
+    document.getElementById('desactivarProveedorNombreDisplay').textContent = `¿Desactivar "${nombreCompleto}"?`;
+    document.getElementById('desactivarProveedorId').innerHTML = `<small class="text-muted">ID: #${String(proveedorId).padStart(5, '0')}</small>`;
+    
+    // Actualizar la acción del formulario
+    const desactivarForm = document.getElementById('desactivarForm');
+    if (desactivarForm) {
+        desactivarForm.action = `/proveedores/${proveedorId}`;
+    }
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalDesactivar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalDesactivar() {
+    const modal = document.getElementById('modalDesactivar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE ACTIVAR
+function abrirModalActivar(proveedorId, nombreCompleto) {
+    // Actualizar el contenido del modal
+    document.getElementById('activarProveedorNombre').textContent = nombreCompleto;
+    document.getElementById('activarProveedorNombreDisplay').textContent = `¿Activar "${nombreCompleto}"?`;
+    document.getElementById('activarProveedorId').innerHTML = `<small class="text-muted">ID: #${String(proveedorId).padStart(5, '0')}</small>`;
+    
+    // Actualizar la acción del formulario
+    const activarForm = document.getElementById('activarForm');
+    if (activarForm) {
+        activarForm.action = `/proveedores/${proveedorId}/activar`;
+    }
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalActivar() {
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE CARGA
+function abrirModalCarga() {
+    const modal = document.getElementById('modalCarga');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalCarga() {
+    const modal = document.getElementById('modalCarga');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+const spinStyle = document.createElement('style');
+spinStyle.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 0.5s linear infinite;
+    }
+`;
+document.head.appendChild(spinStyle);
+</script>
+@endpush
 @endsection

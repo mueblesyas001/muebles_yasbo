@@ -265,7 +265,7 @@
         <form id="filtrosForm" method="GET" action="{{ route('productos.index') }}">
             <div class="row g-3">
                 <!-- Buscar Producto -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label small text-muted fw-semibold">
                         <i class="fas fa-search me-1" style="color: #667eea;"></i>
                         Buscar Producto
@@ -290,8 +290,35 @@
                     </div>
                 </div>
 
+                <!-- Filtro por ID -->
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-hashtag me-1" style="color: #667eea;"></i>
+                        ID Producto
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light">
+                            <i class="fas fa-id-badge text-primary"></i>
+                        </span>
+                        <input type="number" 
+                               class="form-control border-0 bg-light" 
+                               name="id"
+                               placeholder="Ej: 123"
+                               value="{{ request('id') }}"
+                               min="1"
+                               style="box-shadow: none;">
+                        @if(request('id'))
+                        <button type="button" 
+                                class="btn btn-outline-danger border-0" 
+                                onclick="clearFilter('id')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Filtro por categoría -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small text-muted fw-semibold">
                         <i class="fas fa-folder me-1" style="color: #667eea;"></i>
                         Categoría
@@ -318,8 +345,33 @@
                     </div>
                 </div>
 
-                <!-- Filtro por estado de stock -->
+                <!-- Filtro por estado del producto -->
                 <div class="col-md-2">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-flag me-1" style="color: #667eea;"></i>
+                        Estado Producto
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light">
+                            <i class="fas fa-circle text-primary"></i>
+                        </span>
+                        <select name="estado" class="form-select border-0 bg-light">
+                            <option value="">Todos</option>
+                            <option value="activos" {{ request('estado') == 'activos' ? 'selected' : '' }}>Activos</option>
+                            <option value="inactivos" {{ request('estado') == 'inactivos' ? 'selected' : '' }}>Inactivos</option>
+                        </select>
+                        @if(request('estado'))
+                        <button type="button" 
+                                class="btn btn-outline-danger border-0" 
+                                onclick="clearFilter('estado')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Filtro por estado de stock -->
+                <div class="col-md-3">
                     <label class="form-label small text-muted fw-semibold">
                         <i class="fas fa-chart-bar me-1" style="color: #667eea;"></i>
                         Estado Stock
@@ -344,6 +396,90 @@
                     </div>
                 </div>
 
+                <!-- Rango de Precio -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-dollar-sign me-1" style="color: #667eea;"></i>
+                        Rango de Precio
+                    </label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light">$</span>
+                                <input type="number" 
+                                       class="form-control border-0 bg-light" 
+                                       name="precio_min" 
+                                       placeholder="Mínimo" 
+                                       value="{{ request('precio_min') }}"
+                                       step="0.01"
+                                       min="0">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light">$</span>
+                                <input type="number" 
+                                       class="form-control border-0 bg-light" 
+                                       name="precio_max" 
+                                       placeholder="Máximo" 
+                                       value="{{ request('precio_max') }}"
+                                       step="0.01"
+                                       min="0">
+                                @if(request('precio_min') || request('precio_max'))
+                                <button type="button" 
+                                        class="btn btn-outline-danger border-0" 
+                                        onclick="clearFilters(['precio_min', 'precio_max'])">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rango de Stock -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold">
+                        <i class="fas fa-boxes me-1" style="color: #667eea;"></i>
+                        Rango de Stock
+                    </label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light">
+                                    <i class="fas fa-minus text-primary"></i>
+                                </span>
+                                <input type="number" 
+                                       class="form-control border-0 bg-light" 
+                                       name="stock_min" 
+                                       placeholder="Mínimo" 
+                                       value="{{ request('stock_min') }}"
+                                       min="0">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light">
+                                    <i class="fas fa-plus text-primary"></i>
+                                </span>
+                                <input type="number" 
+                                       class="form-control border-0 bg-light" 
+                                       name="stock_max" 
+                                       placeholder="Máximo" 
+                                       value="{{ request('stock_max') }}"
+                                       min="0">
+                                @if(request('stock_min') || request('stock_max'))
+                                <button type="button" 
+                                        class="btn btn-outline-danger border-0" 
+                                        onclick="clearFilters(['stock_min', 'stock_max'])">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Ordenamiento -->
                 <div class="col-md-2">
                     <label class="form-label small text-muted fw-semibold">
@@ -355,6 +491,7 @@
                         <option value="Precio" {{ request('sort_by') == 'Precio' ? 'selected' : '' }}>Precio</option>
                         <option value="Cantidad" {{ request('sort_by') == 'Cantidad' ? 'selected' : '' }}>Stock</option>
                         <option value="id" {{ request('sort_by') == 'id' ? 'selected' : '' }}>ID</option>
+                        <option value="estado" {{ request('sort_by') == 'estado' ? 'selected' : '' }}>Estado</option>
                     </select>
                 </div>
 
@@ -376,7 +513,7 @@
                         @php
                             $filtrosActivos = collect(request()->all())
                                 ->filter(function($value, $key) {
-                                    return in_array($key, ['nombre', 'categoria_id', 'estado_stock']) 
+                                    return in_array($key, ['nombre', 'id', 'categoria_id', 'estado', 'estado_stock', 'precio_min', 'precio_max', 'stock_min', 'stock_max']) 
                                            && !empty($value);
                                 })
                                 ->count();
@@ -418,14 +555,31 @@
     <!-- Indicadores de Filtros Activos -->
     @php
         $filtrosActivosLista = [];
+        if(request('id')) $filtrosActivosLista[] = ['ID', request('id'), 'id'];
         if(request('nombre')) $filtrosActivosLista[] = ['Nombre', request('nombre'), 'nombre'];
         if(request('categoria_id')) {
             $categoria = $categorias->firstWhere('id', request('categoria_id'));
             $filtrosActivosLista[] = ['Categoría', $categoria ? $categoria->Nombre : 'No encontrada', 'categoria_id'];
         }
+        if(request('estado') == 'activos') $filtrosActivosLista[] = ['Estado', 'Activos', 'estado'];
+        if(request('estado') == 'inactivos') $filtrosActivosLista[] = ['Estado', 'Inactivos', 'estado'];
         if(request('estado_stock')) {
             $estado = request('estado_stock') == 'en_stock' ? 'En Stock' : (request('estado_stock') == 'agotado' ? 'Agotado' : 'Bajo Stock');
             $filtrosActivosLista[] = ['Estado Stock', $estado, 'estado_stock'];
+        }
+        if(request('precio_min') && request('precio_max')) {
+            $filtrosActivosLista[] = ['Precio', '$' . request('precio_min') . ' - $' . request('precio_max'), 'precio_min'];
+        } elseif(request('precio_min')) {
+            $filtrosActivosLista[] = ['Precio Mín', '$' . request('precio_min'), 'precio_min'];
+        } elseif(request('precio_max')) {
+            $filtrosActivosLista[] = ['Precio Máx', '$' . request('precio_max'), 'precio_max'];
+        }
+        if(request('stock_min') && request('stock_max')) {
+            $filtrosActivosLista[] = ['Stock', request('stock_min') . ' - ' . request('stock_max'), 'stock_min'];
+        } elseif(request('stock_min')) {
+            $filtrosActivosLista[] = ['Stock Mín', request('stock_min'), 'stock_min'];
+        } elseif(request('stock_max')) {
+            $filtrosActivosLista[] = ['Stock Máx', request('stock_max'), 'stock_max'];
         }
     @endphp
     
@@ -457,6 +611,9 @@
                 </button>
             </span>
             @endforeach
+            <a href="{{ route('productos.index') }}" class="btn btn-sm btn-outline-secondary ms-2" style="border-radius: 50px;">
+                <i class="fas fa-times me-1"></i> Limpiar todos
+            </a>
         </div>
     </div>
     @endif
@@ -684,7 +841,7 @@
                             @endif
                         </td>
 
-                        <!-- Acciones (SIN CANDADOS - IGUAL QUE CATEGORÍAS) -->
+                        <!-- Acciones -->
                         <td class="pe-4">
                             <div class="d-flex gap-2 justify-content-end">
                                 @if($producto->estado == 1) {{-- Activo --}}
@@ -698,7 +855,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-danger" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="setDesactivarProducto({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')"
+                                            onclick="abrirModalDesactivarPersonalizado({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')"
                                             title="Desactivar producto">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -706,7 +863,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-success" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="activarProducto({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')"
+                                            onclick="abrirModalActivarPersonalizado({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')"
                                             title="Activar producto">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -901,7 +1058,7 @@
                                                 
                                                 <hr style="margin: 1rem 0; border-color: #e5e7eb;">
                                                 
-                                                <!-- Botones de acción en detalles (SIN CANDADOS) -->
+                                                <!-- Botones de acción en detalles -->
                                                 <div class="d-grid gap-2">
                                                     @if($producto->estado == 1)
                                                         <a href="{{ route('productos.edit', $producto->id) }}" 
@@ -913,14 +1070,14 @@
                                                         <button type="button" 
                                                                 class="btn btn-outline-danger btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="setDesactivarProducto({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')">
+                                                                onclick="abrirModalDesactivarPersonalizado({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')">
                                                             <i class="fas fa-trash me-1"></i> Desactivar producto
                                                         </button>
                                                     @else
                                                         <button type="button" 
                                                                 class="btn btn-outline-success btn-sm"
                                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                onclick="activarProducto({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')">
+                                                                onclick="abrirModalActivarPersonalizado({{ $producto->id }}, '{{ addslashes($producto->Nombre) }}')">
                                                             <i class="fas fa-check-circle me-1"></i> Activar producto
                                                         </button>
                                                         
@@ -987,6 +1144,8 @@
                         Ordenados por: <strong>Stock</strong>
                     @elseif(request('sort_by') == 'id')
                         Ordenados por: <strong>ID</strong>
+                    @elseif(request('sort_by') == 'estado')
+                        Ordenados por: <strong>Estado</strong>
                     @else
                         Ordenados por: <strong>Nombre</strong>
                     @endif
@@ -996,167 +1155,279 @@
     </div>
 </div>
 
-<!-- MODAL DE DESACTIVACIÓN -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Desactivación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- MODAL PERSONALIZADO DE DESACTIVACIÓN (SIN BOOTSTRAP) -->
+<div id="modalDesactivarPersonalizado" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalDesactivarPersonalizado()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalDesactivarPersonalizado()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-personalizado-body text-center">
+            <div class="delete-icon-wrapper mb-4">
+                <div class="delete-icon-circle" style="
+                    width: 80px;
+                    height: 80px;
+                    background: rgba(220, 53, 69, 0.1);
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                ">
+                    <i class="fas fa-box fa-3x text-danger"></i>
+                </div>
             </div>
             
-            <div class="modal-body text-center p-4">
-                <div class="delete-icon-wrapper mb-4">
-                    <div class="delete-icon-circle" style="
-                        width: 80px;
-                        height: 80px;
-                        background: rgba(220, 53, 69, 0.1);
-                        border-radius: 50%;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        margin: 0 auto;
-                    ">
-                        <i class="fas fa-box fa-3x text-danger"></i>
-                    </div>
-                </div>
-                
-                <h5 class="fw-bold mb-3" id="deleteProductoNombreDisplay"></h5>
-                <p class="text-muted mb-4" id="deleteProductoId" style="font-size: 0.9rem;"></p>
-                
-                <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
-                    <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Producto a desactivar:</span>
-                            <span class="fw-bold" id="deleteProductoNombre"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
-                    <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
-                    <div class="text-start">
-                        <strong class="text-danger">¡Atención!</strong>
-                        <p class="mb-0 text-muted small">Esta acción desactivará el producto, pero podrás activarlo nuevamente en cualquier momento.</p>
+            <h5 class="fw-bold mb-3" id="desactivarProductoNombreDisplay"></h5>
+            <p class="text-muted mb-4" id="desactivarProductoId" style="font-size: 0.9rem;"></p>
+            
+            <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted">Producto a desactivar:</span>
+                        <span class="fw-bold" id="desactivarProductoNombre"></span>
                     </div>
                 </div>
             </div>
             
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 50px;">
-                        <i class="fas fa-trash me-2"></i>Sí, desactivar
-                    </button>
-                </form>
+            <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
+                <div class="text-start">
+                    <strong class="text-danger">¡Atención!</strong>
+                    <p class="mb-0 text-muted small">Esta acción desactivará el producto, pero podrás activarlo nuevamente en cualquier momento.</p>
+                </div>
             </div>
+        </div>
+        
+        <div class="modal-personalizado-footer">
+            <button class="btn btn-light border me-2" onclick="cerrarModalDesactivarPersonalizado()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button class="btn btn-danger" id="confirmDesactivarBtn" onclick="ejecutarDesactivacion()">
+                <i class="fas fa-trash me-1"></i>Sí, desactivar
+            </button>
         </div>
     </div>
 </div>
 
-<!-- MODAL DE ACTIVACIÓN -->
-<div class="modal fade" id="activarModal" tabindex="-1" aria-labelledby="activarModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-success text-white" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="activarModalLabel">
-                    <i class="fas fa-check-circle me-2 fa-lg"></i>
-                    Confirmar Activación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- MODAL PERSONALIZADO DE ACTIVACIÓN (SIN BOOTSTRAP) -->
+<div id="modalActivarPersonalizado" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalActivarPersonalizado()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-check-circle me-2"></i>Confirmar Activación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalActivarPersonalizado()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-personalizado-body text-center">
+            <div class="activate-icon-wrapper mb-4">
+                <div class="activate-icon-circle" style="
+                    width: 80px;
+                    height: 80px;
+                    background: rgba(16, 185, 129, 0.1);
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                ">
+                    <i class="fas fa-box fa-3x text-success"></i>
+                </div>
             </div>
             
-            <div class="modal-body text-center p-4">
-                <div class="activate-icon-wrapper mb-4">
-                    <div class="activate-icon-circle" style="
-                        width: 80px;
-                        height: 80px;
-                        background: rgba(16, 185, 129, 0.1);
-                        border-radius: 50%;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        margin: 0 auto;
-                    ">
-                        <i class="fas fa-box fa-3x text-success"></i>
-                    </div>
-                </div>
-                
-                <h5 class="fw-bold mb-3" id="activarProductoNombreDisplay"></h5>
-                <p class="text-muted mb-4" id="activarProductoId" style="font-size: 0.9rem;"></p>
-                
-                <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
-                    <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Producto a activar:</span>
-                            <span class="fw-bold" id="activarProductoNombre"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
-                    <i class="fas fa-info-circle fs-4 me-3 text-success"></i>
-                    <div class="text-start">
-                        <strong class="text-success">¡Información!</strong>
-                        <p class="mb-0 text-muted small">Al activar este producto, estará disponible nuevamente en el inventario.</p>
+            <h5 class="fw-bold mb-3" id="activarProductoNombreDisplay"></h5>
+            <p class="text-muted mb-4" id="activarProductoId" style="font-size: 0.9rem;"></p>
+            
+            <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted">Producto a activar:</span>
+                        <span class="fw-bold" id="activarProductoNombre"></span>
                     </div>
                 </div>
             </div>
             
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="activarForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit" class="btn btn-success px-4" style="border-radius: 50px;">
-                        <i class="fas fa-check-circle me-2"></i>Sí, activar
-                    </button>
-                </form>
+            <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <i class="fas fa-info-circle fs-4 me-3 text-success"></i>
+                <div class="text-start">
+                    <strong class="text-success">¡Información!</strong>
+                    <p class="mb-0 text-muted small">Al activar este producto, estará disponible nuevamente en el inventario.</p>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Modal de Carga -->
-<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-body text-center py-4">
-                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Procesando...</span>
-                </div>
-                <h6 class="fw-bold mb-2">Procesando solicitud</h6>
-                <p class="text-muted small mb-0">Por favor espera un momento...</p>
-            </div>
+        
+        <div class="modal-personalizado-footer">
+            <button class="btn btn-light border me-2" onclick="cerrarModalActivarPersonalizado()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button class="btn btn-success" id="confirmActivarBtn" onclick="ejecutarActivacion()">
+                <i class="fas fa-check-circle me-1"></i>Sí, activar
+            </button>
         </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
+// Variables para los modales personalizados
+let productoIdActual = null;
+let productoNombreActual = null;
+
+// Función para abrir el modal de desactivación
+function abrirModalDesactivarPersonalizado(productoId, nombreProducto) {
+    productoIdActual = productoId;
+    productoNombreActual = nombreProducto;
+    
+    const modal = document.getElementById('modalDesactivarPersonalizado');
+    
+    // Actualizar elementos del modal
+    document.getElementById('desactivarProductoNombre').textContent = nombreProducto;
+    document.getElementById('desactivarProductoNombreDisplay').textContent = `¿Desactivar "${nombreProducto}"?`;
+    document.getElementById('desactivarProductoId').innerHTML = `<small class="text-muted">ID: #${productoId}</small>`;
+    
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+// Función para cerrar el modal de desactivación
+function cerrarModalDesactivarPersonalizado() {
+    const modal = document.getElementById('modalDesactivarPersonalizado');
+    modal.style.display = 'none';
+    
+    // Limpiar variables
+    productoIdActual = null;
+    productoNombreActual = null;
+}
+
+// Función para abrir el modal de activación
+function abrirModalActivarPersonalizado(productoId, nombreProducto) {
+    productoIdActual = productoId;
+    productoNombreActual = nombreProducto;
+    
+    const modal = document.getElementById('modalActivarPersonalizado');
+    
+    // Actualizar elementos del modal
+    document.getElementById('activarProductoNombre').textContent = nombreProducto;
+    document.getElementById('activarProductoNombreDisplay').textContent = `¿Activar "${nombreProducto}"?`;
+    document.getElementById('activarProductoId').innerHTML = `<small class="text-muted">ID: #${productoId}</small>`;
+    
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+// Función para cerrar el modal de activación
+function cerrarModalActivarPersonalizado() {
+    const modal = document.getElementById('modalActivarPersonalizado');
+    modal.style.display = 'none';
+    
+    // Limpiar variables
+    productoIdActual = null;
+    productoNombreActual = null;
+}
+
+// Función para ejecutar la desactivación (CORREGIDA)
+function ejecutarDesactivacion() {
+    if (!productoIdActual) {
+        alert('Error: No se ha seleccionado un producto');
+        cerrarModalDesactivarPersonalizado();
+        return;
+    }
+    
+    // Crear formulario con método DELETE (CORREGIDO)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/productos/${productoIdActual}`;
+    form.style.display = 'none';
+    
+    // Agregar CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    form.appendChild(csrfInput);
+    
+    // Agregar método DELETE (Laravel lo requiere así)
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'DELETE';
+    form.appendChild(methodInput);
+    
+    document.body.appendChild(form);
+    
+    // Mostrar indicador de carga
+    const btn = document.getElementById('confirmDesactivarBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Procesando...';
+    btn.disabled = true;
+    
+    // Enviar el formulario
+    form.submit();
+}
+
+// Función para ejecutar la activación (CORREGIDA)
+function ejecutarActivacion() {
+    if (!productoIdActual) {
+        alert('Error: No se ha seleccionado un producto');
+        cerrarModalActivarPersonalizado();
+        return;
+    }
+    
+    // Crear formulario con método PATCH (CORREGIDO)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/productos/${productoIdActual}/activar`;
+    form.style.display = 'none';
+    
+    // Agregar CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    form.appendChild(csrfInput);
+    
+    // Agregar método PATCH (Laravel lo requiere así)
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'PATCH';
+    form.appendChild(methodInput);
+    
+    document.body.appendChild(form);
+    
+    // Mostrar indicador de carga
+    const btn = document.getElementById('confirmActivarBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Procesando...';
+    btn.disabled = true;
+    
+    // Enviar el formulario
+    form.submit();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initTooltips();
     setupExpandButtons();
     setupFilterAutoSubmit();
     setupRefreshButton();
-    setupModalCleanup();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalDesactivarPersonalizado();
+            cerrarModalActivarPersonalizado();
+        }
+    });
 });
 
 function initTooltips() {
@@ -1189,7 +1460,7 @@ function setupExpandButtons() {
 }
 
 function setupFilterAutoSubmit() {
-    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="categoria_id"], select[name="estado_stock"]').forEach(select => {
+    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="categoria_id"], select[name="estado_stock"], select[name="estado"]').forEach(select => {
         select.addEventListener('change', function() {
             document.getElementById('filtrosForm').submit();
         });
@@ -1206,132 +1477,23 @@ function setupRefreshButton() {
     }
 }
 
-function setupModalCleanup() {
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
-    
-    const activarModal = document.getElementById('activarModal');
-    if (activarModal) {
-        activarModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
-    
-    const loadingModal = document.getElementById('loadingModal');
-    if (loadingModal) {
-        loadingModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
-}
-
-function forceCleanupModals() {
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    document.documentElement.style.overflow = '';
-}
-
-let loadingModalInstance = null;
-
-function showLoadingModal() {
-    const modalElement = document.getElementById('loadingModal');
-    if (!modalElement) return;
-    
-    if (loadingModalInstance) {
-        loadingModalInstance.hide();
-        loadingModalInstance.dispose();
-    }
-    
-    forceCleanupModals();
-    
-    loadingModalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-    });
-    
-    setTimeout(() => {
-        if (loadingModalInstance) {
-            loadingModalInstance.show();
-        }
-    }, 10);
-}
-
-function hideLoadingModal() {
-    return new Promise((resolve) => {
-        if (loadingModalInstance) {
-            const modalElement = document.getElementById('loadingModal');
-            const handler = function() {
-                modalElement.removeEventListener('hidden.bs.modal', handler);
-                loadingModalInstance = null;
-                forceCleanupModals();
-                resolve();
-            };
-            
-            modalElement.addEventListener('hidden.bs.modal', handler);
-            loadingModalInstance.hide();
-        } else {
-            forceCleanupModals();
-            resolve();
-        }
-    });
-}
-
 function clearFilter(filterName) {
     const url = new URL(window.location.href);
     url.searchParams.delete(filterName);
     window.location.href = url.toString();
 }
 
-function setDesactivarProducto(productoId, nombreProducto) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('deleteProductoNombre').textContent = nombreProducto;
-        document.getElementById('deleteProductoNombreDisplay').textContent = `¿Desactivar "${nombreProducto}"?`;
-        document.getElementById('deleteProductoId').innerHTML = `<small class="text-muted">ID: #${productoId}</small>`;
-        
-        const deleteForm = document.getElementById('deleteForm');
-        if (deleteForm) {
-            deleteForm.action = `/productos/${productoId}`;
-        }
-        
-        setTimeout(() => {
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la desactivación. Por favor, recarga la página.');
-    }
+function clearFilters(filterNames) {
+    const url = new URL(window.location.href);
+    filterNames.forEach(filter => {
+        url.searchParams.delete(filter);
+    });
+    window.location.href = url.toString();
 }
 
-function activarProducto(productoId, nombreProducto) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('activarProductoNombre').textContent = nombreProducto;
-        document.getElementById('activarProductoNombreDisplay').textContent = `¿Activar "${nombreProducto}"?`;
-        document.getElementById('activarProductoId').innerHTML = `<small class="text-muted">ID: #${productoId}</small>`;
-        
-        const activarForm = document.getElementById('activarForm');
-        if (activarForm) {
-            activarForm.action = `/productos/${productoId}/activar`;
-        }
-        
-        setTimeout(() => {
-            const activarModal = new bootstrap.Modal(document.getElementById('activarModal'));
-            activarModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la activación. Por favor, recarga la página.');
-    }
-}
-
-const spinStyle = document.createElement('style');
-spinStyle.textContent = `
+// Estilos dinámicos para animaciones
+const style = document.createElement('style');
+style.textContent = `
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
@@ -1386,41 +1548,133 @@ spinStyle.textContent = `
         100% { transform: scale(1); }
     }
     
-    /* Estilos para la paginación */
-    .pagination {
-        margin-bottom: 0;
+    /* ===== ESTILOS DEL MODAL PERSONALIZADO ===== */
+    .modal-personalizado {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
         justify-content: center;
-    }
-    
-    .page-link {
-        border: none;
-        padding: 0.5rem 0.75rem;
-        margin: 0 0.25rem;
-        border-radius: 8px;
-        color: #4b5563;
-        transition: all 0.2s ease;
-    }
-    
-    .page-link:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-    }
-    
-    .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-    }
-    
-    .page-item.disabled .page-link {
-        color: #9ca3af;
         pointer-events: none;
-        background: #f3f4f6;
+    }
+    
+    .modal-personalizado-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        pointer-events: auto;
+    }
+    
+    .modal-personalizado-contenido {
+        position: relative;
+        background-color: white;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        z-index: 10000;
+        animation: modalAbrir 0.3s ease-out;
+        pointer-events: auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-personalizado-ancho-pequeno {
+        width: 90%;
+        max-width: 500px;
+    }
+    
+    @keyframes modalAbrir {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-personalizado-header {
+        padding: 1.25rem 1.5rem;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    
+    .modal-personalizado-titulo {
+        margin: 0;
+        color: white;
+        font-weight: 700;
+        font-size: 1.35rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .modal-personalizado-cerrar {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .modal-personalizado-cerrar:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+    
+    .modal-personalizado-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        background-color: white;
+    }
+    
+    .modal-personalizado-footer {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+        background-color: #f8fafc;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+        text-align: right;
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .modal-personalizado-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .modal-personalizado-footer .btn {
+            width: 100%;
+            margin: 0.25rem 0 !important;
+        }
     }
 `;
-document.head.appendChild(spinStyle);
+document.head.appendChild(style);
 </script>
 @endpush
 
@@ -1577,13 +1831,14 @@ document.head.appendChild(spinStyle);
         font-size: 0.8rem;
     }
     
-    .modal-footer .btn {
-        width: 100%;
-        margin: 0.25rem 0 !important;
+    .modal-personalizado-footer {
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
-    .modal-footer {
-        flex-direction: column;
+    .modal-personalizado-footer .btn {
+        width: 100%;
+        margin: 0.25rem 0 !important;
     }
 }
 

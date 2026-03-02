@@ -728,7 +728,7 @@
                                 <button type="button" 
                                         class="btn btn-sm btn-outline-danger" 
                                         style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                        onclick="setDeleteVenta({{ $venta->id }}, '{{ number_format($venta->Total, 2) }}')"
+                                        onclick="abrirModalEliminar({{ $venta->id }}, '{{ number_format($venta->Total, 2) }}')"
                                         title="Eliminar venta">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -919,7 +919,7 @@
                                                     <button type="button" 
                                                             class="btn btn-outline-danger btn-sm"
                                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                            onclick="setDeleteVenta({{ $venta->id }}, '{{ number_format($venta->Total, 2) }}')">
+                                                            onclick="abrirModalEliminar({{ $venta->id }}, '{{ number_format($venta->Total, 2) }}')">
                                                         <i class="fas fa-trash me-1"></i> Eliminar Venta
                                                     </button>
                                                 </div>
@@ -975,23 +975,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ELIMINACIÓN MEJORADO -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Eliminación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ELIMINAR - MÁS ALTO -->
+<div id="modalEliminar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalEliminar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalEliminar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="delete-icon-wrapper mb-4">
                     <div class="delete-icon-circle" style="
                         width: 80px;
@@ -1007,47 +1004,34 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="deleteVentaDisplay"></h5>
-                <p class="text-muted mb-4" id="deleteVentaInfo" style="font-size: 0.9rem;"></p>
+                <h5 class="fw-bold mb-3" id="eliminarVentaDisplay"></h5>
+                <p class="text-muted mb-4" id="eliminarVentaInfo" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
                     <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="text-muted">Venta a eliminar:</span>
-                            <span class="fw-bold" id="deleteVentaId"></span>
+                            <span class="fw-bold" id="eliminarVentaId"></span>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between mt-2">
+                        <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Valor total:</span>
-                            <span class="fw-bold text-danger" id="deleteVentaTotal"></span>
+                            <span class="fw-bold text-danger" id="eliminarVentaTotal"></span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="alert alert-warning border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
-                    <i class="fas fa-exclamation-circle fs-4 me-3 text-warning"></i>
-                    <div class="text-start">
-                        <strong class="text-warning">¡Importante!</strong>
-                        <p class="mb-0 text-muted small">Al eliminar esta venta, el stock de los productos se restaurará automáticamente.</p>
-                    </div>
-                </div>
-                
-                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center mt-3" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-danger bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-exclamation-circle fs-4 me-3 text-danger"></i>
                     <div class="text-start">
                         <strong class="text-danger">¡Atención!</strong>
                         <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente la venta del sistema.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
+                
+                <form id="eliminarForm" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-trash me-2"></i>Sí, eliminar
                     </button>
                 </form>
@@ -1056,6 +1040,295 @@
     </div>
 </div>
 
+<style>
+/* ===== MODAL PERSONALIZADO MEJORADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+}
+
+/* Clases para diferentes anchos */
+.modal-personalizado-ancho-pequeno {
+    width: 95%;
+    max-width: 500px;
+}
+
+/* Clase para hacer el modal más alto */
+.modal-personalizado-alto {
+    max-height: 90vh;
+    height: auto;
+    min-height: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+    flex: 1;
+}
+
+/* Animación para los íconos */
+.delete-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* El resto de tus estilos existentes se mantienen */
+#ventas-page {
+    padding-top: 20px;
+}
+
+#ventas-page .venta-avatar {
+    width: 48px;
+    height: 48px;
+}
+
+#ventas-page .table th { 
+    border-top: none; 
+    font-weight: 600; 
+    font-size: 0.875rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 2px solid #dee2e6;
+    background: #f8fafc;
+}
+
+#ventas-page .table tbody tr {
+    transition: all 0.2s ease;
+}
+
+#ventas-page .table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.02);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+#ventas-page .btn-group .btn { 
+    border-radius: 0.375rem !important; 
+    margin: 0 2px; 
+}
+
+#ventas-page .badge { 
+    font-size: 0.75rem; 
+    font-weight: 500;
+}
+
+#ventas-page .card {
+    border-radius: 12px;
+}
+
+#ventas-page .fw-semibold {
+    font-weight: 600;
+}
+
+#ventas-page .detalle-venta-row {
+    background-color: #f8fafc;
+}
+
+#ventas-page .collapse {
+    transition: all 0.3s ease;
+}
+
+#ventas-page .collapsing {
+    transition: height 0.35s ease;
+}
+
+#ventas-page .form-control:focus,
+#ventas-page .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+    #ventas-page .btn-expand {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    #ventas-page .venta-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    
+    #ventas-page .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    #ventas-page .detalle-venta-row .row {
+        flex-direction: column;
+    }
+    
+    #ventas-page .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .modal-personalizado-alto {
+        min-height: 400px;
+    }
+}
+
+#ventas-page .collapse.show {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effects para botones */
+#ventas-page .btn-outline-primary:hover,
+#ventas-page .btn-outline-danger:hover,
+#ventas-page .btn-outline-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.stat-card:hover .stat-decoration {
+    transform: scale(1.2);
+}
+
+.btn-expand:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.empty-state {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilos para la paginación */
+.pagination {
+    gap: 5px;
+}
+
+.page-link {
+    border-radius: 10px !important;
+    border: 1px solid #e5e7eb !important;
+    color: #4b5563 !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+</style>
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1063,6 +1336,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setupExpandButtons();
     setupFormValidations();
     setupAutoSubmit();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalEliminar();
+        }
+    });
 });
 
 function initTooltips() {
@@ -1200,25 +1480,34 @@ function clearFilters(filterNames) {
     window.location.href = url.toString();
 }
 
-function setDeleteVenta(ventaId, total) {
-    try {
-        document.getElementById('deleteVentaDisplay').textContent = `¿Eliminar Venta #${ventaId}?`;
-        document.getElementById('deleteVentaInfo').innerHTML = `<small class="text-muted">Esta acción no se puede deshacer</small>`;
-        document.getElementById('deleteVentaId').textContent = `#${String(ventaId).padStart(5, '0')}`;
-        document.getElementById('deleteVentaTotal').textContent = `$${total}`;
-        
-        const deleteForm = document.getElementById('deleteForm');
-        if (deleteForm) {
-            deleteForm.action = `/ventas/${ventaId}`;
-        }
-        
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la eliminación. Por favor, recarga la página.');
+// FUNCIONES PARA EL MODAL DE ELIMINAR
+function abrirModalEliminar(ventaId, total) {
+    // Actualizar el contenido del modal
+    document.getElementById('eliminarVentaDisplay').textContent = `¿Eliminar Venta #${ventaId}?`;
+    document.getElementById('eliminarVentaInfo').innerHTML = `<small class="text-muted">Esta acción no se puede deshacer</small>`;
+    document.getElementById('eliminarVentaId').textContent = `#${String(ventaId).padStart(5, '0')}`;
+    document.getElementById('eliminarVentaTotal').textContent = `$${total}`;
+    
+    // Actualizar la acción del formulario
+    const eliminarForm = document.getElementById('eliminarForm');
+    if (eliminarForm) {
+        eliminarForm.action = `/ventas/${ventaId}`;
     }
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalEliminar() {
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
 }
 
 // Agregar estilos de animación
@@ -1233,196 +1522,8 @@ style.textContent = `
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(100%); opacity: 0; }
     }
-    
-    .stat-card:hover .stat-decoration {
-        transform: scale(1.2);
-    }
-    
-    .btn-expand:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-    }
-    
-    .detail-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    .delete-icon-circle {
-        animation: pulseIcon 2s infinite;
-    }
-    
-    .pagination {
-        gap: 5px;
-    }
-    
-    .page-link {
-        border-radius: 10px !important;
-        border: 1px solid #e5e7eb !important;
-        color: #4b5563 !important;
-        padding: 0.5rem 1rem !important;
-        transition: all 0.3s ease;
-    }
-    
-    .page-link:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-        transform: translateY(-2px);
-    }
-    
-    .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border: none !important;
-    }
 `;
 document.head.appendChild(style);
 </script>
 @endpush
-
-<style>
-#ventas-page {
-    padding-top: 20px;
-}
-
-#ventas-page .venta-avatar {
-    width: 48px;
-    height: 48px;
-}
-
-#ventas-page .table th { 
-    border-top: none; 
-    font-weight: 600; 
-    font-size: 0.875rem; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
-    border-bottom: 2px solid #dee2e6;
-    background: #f8fafc;
-}
-
-#ventas-page .table tbody tr {
-    transition: all 0.2s ease;
-}
-
-#ventas-page .table tbody tr:hover {
-    background-color: rgba(102, 126, 234, 0.02);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-#ventas-page .btn-group .btn { 
-    border-radius: 0.375rem !important; 
-    margin: 0 2px; 
-}
-
-#ventas-page .badge { 
-    font-size: 0.75rem; 
-    font-weight: 500;
-}
-
-#ventas-page .card {
-    border-radius: 12px;
-}
-
-#ventas-page .fw-semibold {
-    font-weight: 600;
-}
-
-#ventas-page .detalle-venta-row {
-    background-color: #f8fafc;
-}
-
-#ventas-page .collapse {
-    transition: all 0.3s ease;
-}
-
-#ventas-page .collapsing {
-    transition: height 0.35s ease;
-}
-
-#ventas-page .form-control:focus,
-#ventas-page .form-select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-@media (max-width: 768px) {
-    #ventas-page .btn-expand {
-        width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
-    }
-    
-    #ventas-page .venta-avatar {
-        width: 32px;
-        height: 32px;
-    }
-    
-    #ventas-page .table-responsive {
-        font-size: 0.9rem;
-    }
-    
-    #ventas-page .detalle-venta-row .row {
-        flex-direction: column;
-    }
-    
-    #ventas-page .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.8rem;
-    }
-    
-    .modal-footer .btn {
-        width: 100%;
-        margin: 0.25rem 0 !important;
-    }
-    
-    .modal-footer {
-        flex-direction: column;
-    }
-}
-
-#ventas-page .collapse.show {
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Hover effects para botones */
-#ventas-page .btn-outline-primary:hover,
-#ventas-page .btn-outline-danger:hover,
-#ventas-page .btn-outline-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-</style>
 @endsection

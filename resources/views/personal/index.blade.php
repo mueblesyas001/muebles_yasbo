@@ -849,7 +849,7 @@
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-success" 
                                                 style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                onclick="setCreateUsuario({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')"
+                                                onclick="abrirModalCrearUsuario({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')"
                                                 title="Crear usuario">
                                             <i class="fas fa-user-plus"></i>
                                         </button>
@@ -858,7 +858,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-danger" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="setDesactivarEmpleado({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}', {{ $tieneUsuario ? 'true' : 'false' }})"
+                                            onclick="abrirModalDesactivar({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}', {{ $tieneUsuario ? 'true' : 'false' }})"
                                             title="Desactivar empleado">
                                         <i class="fas fa-power-off"></i>
                                     </button>
@@ -866,7 +866,7 @@
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-success" 
                                             style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                            onclick="activarEmpleado({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')"
+                                            onclick="abrirModalActivar({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')"
                                             title="Activar empleado">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
@@ -1069,7 +1069,7 @@
                                                 <button type="button" 
                                                         class="btn btn-outline-success btn-sm px-4"
                                                         style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                        onclick="setCreateUsuario({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')">
+                                                        onclick="abrirModalCrearUsuario({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')">
                                                     <i class="fas fa-user-plus me-1"></i> Crear Usuario
                                                 </button>
                                             @endif
@@ -1077,14 +1077,14 @@
                                             <button type="button" 
                                                     class="btn btn-outline-danger btn-sm px-4"
                                                     style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                    onclick="setDesactivarEmpleado({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}', {{ $tieneUsuario ? 'true' : 'false' }})">
+                                                    onclick="abrirModalDesactivar({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}', {{ $tieneUsuario ? 'true' : 'false' }})">
                                                 <i class="fas fa-power-off me-1"></i> Desactivar Empleado
                                             </button>
                                         @else
                                             <button type="button" 
                                                     class="btn btn-outline-success btn-sm px-4"
                                                     style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                    onclick="activarEmpleado({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')">
+                                                    onclick="abrirModalActivar({{ $empleado->id }}, '{{ addslashes($nombreCompleto) }}')">
                                                 <i class="fas fa-check-circle me-1"></i> Activar Empleado
                                             </button>
                                         @endif
@@ -1154,23 +1154,20 @@
     </div>
 </div>
 
-<!-- MODAL DE DESACTIVACIÓN MEJORADO -->
-<div class="modal fade" id="desactivarEmpleadoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="desactivarModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Desactivación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA DESACTIVAR - MÁS ALTO -->
+<div id="modalDesactivar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalDesactivar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo" id="desactivarModalTitulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalDesactivar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="delete-icon-wrapper mb-4">
                     <div class="delete-icon-circle" style="
                         width: 80px;
@@ -1186,19 +1183,19 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="desactivarModalTitle"></h5>
-                <p class="text-muted mb-4" id="empleadoNombreDesactivar"></p>
+                <h5 class="fw-bold mb-3" id="desactivarEmpleadoNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="desactivarEmpleadoId" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Empleado a desactivar:</span>
-                            <span class="fw-bold" id="empleadoNombreDesactivarDisplay"></span>
+                            <span class="fw-bold" id="desactivarEmpleadoNombre"></span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="alert border-0 text-start" id="desactivarAlertMessage" style="
+                <div class="alert border-0 text-start mb-4" id="desactivarAlertMessage" style="
                     background: #fff3cd;
                     border-left: 4px solid #ffc107;
                     border-radius: 12px;
@@ -1210,16 +1207,11 @@
                     <i class="fas fa-info-circle me-1"></i>
                     Puedes reactivarlo en cualquier momento
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="desactivarEmpleadoForm" method="POST" class="d-inline">
+                
+                <form id="desactivarForm" method="POST" class="d-inline mt-3">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" id="confirmDesactivarBtn" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-power-off me-2"></i>Sí, desactivar
                     </button>
                 </form>
@@ -1228,23 +1220,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ACTIVACIÓN -->
-<div class="modal fade" id="activarEmpleadoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-success text-white" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-check-circle me-2 fa-lg"></i>
-                    Confirmar Activación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ACTIVAR - MÁS ALTO -->
+<div id="modalActivar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalActivar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-check-circle me-2"></i>Confirmar Activación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalActivar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="activate-icon-wrapper mb-4">
                     <div class="activate-icon-circle" style="
                         width: 80px;
@@ -1260,35 +1249,30 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="activarModalTitle"></h5>
-                <p class="text-muted mb-4" id="empleadoNombreActivar"></p>
+                <h5 class="fw-bold mb-3" id="activarEmpleadoNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="activarEmpleadoId" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" style="border-radius: 16px;">
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Empleado a activar:</span>
-                            <span class="fw-bold" id="empleadoNombreActivarDisplay"></span>
+                            <span class="fw-bold" id="activarEmpleadoNombre"></span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center" role="alert" style="border-radius: 12px;">
+                <div class="alert alert-success bg-opacity-10 border-0 d-flex align-items-center mb-4" role="alert" style="border-radius: 12px;">
                     <i class="fas fa-info-circle fs-4 me-3 text-success"></i>
                     <div class="text-start">
                         <strong class="text-success">¡Información!</strong>
                         <p class="mb-0 text-muted small">Al activar este empleado, estará disponible nuevamente en el sistema.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="activarEmpleadoForm" method="POST" class="d-inline">
+                
+                <form id="activarForm" method="POST" class="d-inline">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-success px-4" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-success px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-check-circle me-2"></i>Sí, activar
                     </button>
                 </form>
@@ -1297,122 +1281,117 @@
     </div>
 </div>
 
-<!-- MODAL DE CREACIÓN DE USUARIO MEJORADO -->
-<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-success text-white" style="
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-user-plus me-2 fa-lg"></i>
-                    Crear Usuario
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <form id="createUserForm" method="POST" action="">
+<!-- MODAL PERSONALIZADO PARA CREAR USUARIO - MÁS ALTO -->
+<div id="modalCrearUsuario" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalCrearUsuario()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-user-plus me-2"></i>Crear Usuario
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalCrearUsuario()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column p-4">
+            <form id="crearUsuarioForm" method="POST" action="">
                 @csrf
-                <div class="modal-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="user-icon-wrapper mb-3">
-                            <div class="user-icon-circle" style="
-                                width: 70px;
-                                height: 70px;
-                                background: rgba(16, 185, 129, 0.1);
-                                border-radius: 50%;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                            ">
-                                <i class="fas fa-user-plus fa-3x text-success"></i>
-                            </div>
-                        </div>
-                        <h6 class="fw-bold">Asignar Usuario a Empleado</h6>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold text-muted small">Empleado</label>
-                        <div class="p-3 bg-light rounded-3" id="empleadoNombre" style="font-weight: 500; border-radius: 12px;"></div>
-                        <input type="hidden" id="empleadoId" name="empleado_id">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="correo" class="form-label fw-semibold text-muted small">
-                            <i class="fas fa-envelope me-1" style="color: #667eea;"></i>
-                            Correo Electrónico
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="fas fa-envelope text-primary"></i>
-                            </span>
-                            <input type="email" class="form-control border-0 bg-light" id="correo" 
-                                   name="correo" placeholder="ejemplo@empresa.com" required
-                                   style="box-shadow: none;">
+                <div class="text-center mb-4">
+                    <div class="user-icon-wrapper mb-3">
+                        <div class="user-icon-circle" style="
+                            width: 70px;
+                            height: 70px;
+                            background: rgba(16, 185, 129, 0.1);
+                            border-radius: 50%;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <i class="fas fa-user-plus fa-3x text-success"></i>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="rol" class="form-label fw-semibold text-muted small">
-                            <i class="fas fa-user-tag me-1" style="color: #667eea;"></i>
-                            Rol
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="fas fa-user-tag text-primary"></i>
-                            </span>
-                            <select class="form-select border-0 bg-light" id="rol" name="rol" required>
-                                <option value="">Seleccione un rol</option>
-                                <option value="Administración">Administración</option>
-                                <option value="Almacén">Almacén</option>
-                                <option value="Logística">Logística</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="contrasena" class="form-label fw-semibold text-muted small">
-                            <i class="fas fa-lock me-1" style="color: #667eea;"></i>
-                            Contraseña
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="fas fa-lock text-primary"></i>
-                            </span>
-                            <input type="password" class="form-control border-0 bg-light" id="contrasena" 
-                                   name="contrasena" placeholder="Mínimo 6 caracteres" required
-                                   style="box-shadow: none;">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="contrasena_confirmation" class="form-label fw-semibold text-muted small">
-                            <i class="fas fa-lock me-1" style="color: #667eea;"></i>
-                            Confirmar Contraseña
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="fas fa-lock text-primary"></i>
-                            </span>
-                            <input type="password" class="form-control border-0 bg-light" id="contrasena_confirmation" 
-                                   name="contrasena_confirmation" placeholder="Repite la contraseña" required
-                                   style="box-shadow: none;">
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info bg-opacity-10 border-0 d-flex align-items-center mt-3" role="alert" style="border-radius: 12px;">
-                        <i class="fas fa-info-circle fs-4 me-3 text-info"></i>
-                        <div class="text-start">
-                            <strong class="text-info">¡Importante!</strong>
-                            <p class="mb-0 text-muted small">El usuario podrá acceder al sistema inmediatamente después de su creación.</p>
-                        </div>
+                    <h6 class="fw-bold">Asignar Usuario a Empleado</h6>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-muted small">Empleado</label>
+                    <div class="p-3 bg-light rounded-3" id="empleadoNombreModal" style="font-weight: 500; border-radius: 12px;"></div>
+                    <input type="hidden" id="empleadoId" name="empleado_id">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="correo" class="form-label fw-semibold text-muted small">
+                        <i class="fas fa-envelope me-1" style="color: #667eea;"></i>
+                        Correo Electrónico
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-envelope text-primary"></i>
+                        </span>
+                        <input type="email" class="form-control border-0 bg-light" id="correo" 
+                               name="correo" placeholder="ejemplo@empresa.com" required
+                               style="box-shadow: none;">
                     </div>
                 </div>
                 
-                <div class="modal-footer justify-content-center border-0 pb-4">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
+                <div class="mb-3">
+                    <label for="rol" class="form-label fw-semibold text-muted small">
+                        <i class="fas fa-user-tag me-1" style="color: #667eea;"></i>
+                        Rol
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-user-tag text-primary"></i>
+                        </span>
+                        <select class="form-select border-0 bg-light" id="rol" name="rol" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="Administración">Administración</option>
+                            <option value="Almacén">Almacén</option>
+                            <option value="Logística">Logística</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="contrasena" class="form-label fw-semibold text-muted small">
+                        <i class="fas fa-lock me-1" style="color: #667eea;"></i>
+                        Contraseña
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-lock text-primary"></i>
+                        </span>
+                        <input type="password" class="form-control border-0 bg-light" id="contrasena" 
+                               name="contrasena" placeholder="Mínimo 6 caracteres" required
+                               style="box-shadow: none;">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="contrasena_confirmation" class="form-label fw-semibold text-muted small">
+                        <i class="fas fa-lock me-1" style="color: #667eea;"></i>
+                        Confirmar Contraseña
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">
+                            <i class="fas fa-lock text-primary"></i>
+                        </span>
+                        <input type="password" class="form-control border-0 bg-light" id="contrasena_confirmation" 
+                               name="contrasena_confirmation" placeholder="Repite la contraseña" required
+                               style="box-shadow: none;">
+                    </div>
+                </div>
+                
+                <div class="alert alert-info bg-opacity-10 border-0 d-flex align-items-center mt-3" role="alert" style="border-radius: 12px;">
+                    <i class="fas fa-info-circle fs-4 me-3 text-info"></i>
+                    <div class="text-start">
+                        <strong class="text-info">¡Importante!</strong>
+                        <p class="mb-0 text-muted small">El usuario podrá acceder al sistema inmediatamente después de su creación.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 justify-content-center mt-4">
+                    <button type="button" class="btn btn-outline-secondary px-4" onclick="cerrarModalCrearUsuario()" style="border-radius: 50px;">
                         <i class="fas fa-times me-2"></i>Cancelar
                     </button>
                     <button type="submit" class="btn btn-success px-4" style="border-radius: 50px;">
@@ -1424,300 +1403,122 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips
-    initTooltips();
-    
-    // Configurar eventos de expansión
-    setupExpandButtons();
-    
-    // Configurar auto-submit de filtros
-    setupFilterAutoSubmit();
-    
-    // Configurar botón de refrescar
-    setupRefreshButton();
-    
-    // Configurar limpieza de modales
-    setupModalCleanup();
-    
-    // Validación del formulario de creación de usuario
-    setupUserFormValidation();
-});
-
-function initTooltips() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-function setupExpandButtons() {
-    document.querySelectorAll('.btn-expand-empleado').forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            if (icon) {
-                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
-                icon.style.transition = 'transform 0.3s ease';
-            }
-            
-            if (isExpanded) {
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-outline-secondary');
-            } else {
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-primary');
-            }
-        });
-    });
-}
-
-function setupFilterAutoSubmit() {
-    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="cargo"], select[name="area"], select[name="estado_empleado"], select[name="estado_usuario"], select[name="rol"]').forEach(select => {
-        select.addEventListener('change', function() {
-            document.getElementById('filtrosForm').submit();
-        });
-    });
-}
-
-function setupRefreshButton() {
-    const refreshBtn = document.getElementById('refreshData');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            this.classList.add('spin');
-            setTimeout(() => location.reload(), 500);
-        });
-    }
-}
-
-function setupModalCleanup() {
-    const desactivarModal = document.getElementById('desactivarEmpleadoModal');
-    if (desactivarModal) {
-        desactivarModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-    
-    const activarModal = document.getElementById('activarEmpleadoModal');
-    if (activarModal) {
-        activarModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-        });
-    }
-    
-    const createUserModal = document.getElementById('createUserModal');
-    if (createUserModal) {
-        createUserModal.addEventListener('hidden.bs.modal', function() {
-            forceCleanupModals();
-            document.getElementById('createUserForm').reset();
-        });
-    }
-}
-
-function forceCleanupModals() {
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    document.documentElement.style.overflow = '';
-}
-
-function setupUserFormValidation() {
-    const createUserForm = document.getElementById('createUserForm');
-    if (createUserForm) {
-        createUserForm.addEventListener('submit', function(e) {
-            const contrasena = document.getElementById('contrasena').value;
-            const confirmacion = document.getElementById('contrasena_confirmation').value;
-            
-            if (contrasena !== confirmacion) {
-                e.preventDefault();
-                alert('Las contraseñas no coinciden');
-                return false;
-            }
-            
-            if (contrasena.length < 6) {
-                e.preventDefault();
-                alert('La contraseña debe tener al menos 6 caracteres');
-                return false;
-            }
-        });
-    }
-}
-
-function clearFilter(filterName) {
-    const url = new URL(window.location.href);
-    url.searchParams.delete(filterName);
-    window.location.href = url.toString();
-}
-
-function setDesactivarEmpleado(empleadoId, empleadoNombre, tieneUsuario) {
-    try {
-        forceCleanupModals();
-        
-        const modalTitle = document.getElementById('desactivarModalTitle');
-        const empleadoNombreElem = document.getElementById('empleadoNombreDesactivar');
-        const empleadoNombreDisplay = document.getElementById('empleadoNombreDesactivarDisplay');
-        const alertMessage = document.getElementById('desactivarAlertMessage');
-        
-        empleadoNombreElem.innerHTML = `<strong>"${empleadoNombre}"</strong>`;
-        empleadoNombreDisplay.textContent = empleadoNombre;
-        
-        if (tieneUsuario) {
-            modalTitle.textContent = '¿Desactivar empleado y su usuario?';
-            alertMessage.innerHTML = `
-                <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
-                <strong class="text-warning-emphasis">Se desactivarán:</strong>
-                <ul class="mt-2 mb-0">
-                    <li>✓ El empleado (cambiará a estado inactivo)</li>
-                    <li>✓ La cuenta de usuario asociada (no podrá iniciar sesión)</li>
-                </ul>
-                <div class="mt-2 fw-semibold text-danger">⚠️ El empleado perderá acceso al sistema</div>
-            `;
-        } else {
-            modalTitle.textContent = '¿Desactivar empleado?';
-            alertMessage.innerHTML = `
-                <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
-                <strong class="text-warning-emphasis">Se desactivará:</strong>
-                <ul class="mt-2 mb-0">
-                    <li>✓ El empleado (cambiará a estado inactivo)</li>
-                </ul>
-                <div class="mt-2 text-muted small">(No tiene usuario asociado)</div>
-            `;
-        }
-        
-        document.getElementById('desactivarEmpleadoForm').action = `/personal/${empleadoId}`;
-        
-        setTimeout(() => {
-            const desactivarModal = new bootstrap.Modal(document.getElementById('desactivarEmpleadoModal'));
-            desactivarModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la desactivación. Por favor, recarga la página.');
-    }
-}
-
-function activarEmpleado(empleadoId, empleadoNombre) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('activarModalTitle').textContent = `¿Activar "${empleadoNombre}"?`;
-        document.getElementById('empleadoNombreActivar').innerHTML = `<strong>"${empleadoNombre}"</strong>`;
-        document.getElementById('empleadoNombreActivarDisplay').textContent = empleadoNombre;
-        
-        document.getElementById('activarEmpleadoForm').action = `/personal/${empleadoId}/activar`;
-        
-        setTimeout(() => {
-            const activarModal = new bootstrap.Modal(document.getElementById('activarEmpleadoModal'));
-            activarModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la activación. Por favor, recarga la página.');
-    }
-}
-
-function setCreateUsuario(empleadoId, empleadoNombre) {
-    try {
-        forceCleanupModals();
-        
-        document.getElementById('empleadoNombre').textContent = empleadoNombre;
-        document.getElementById('empleadoId').value = empleadoId;
-        document.getElementById('createUserForm').action = `/personal/usuario/${empleadoId}`;
-        
-        setTimeout(() => {
-            const createModal = new bootstrap.Modal(document.getElementById('createUserModal'));
-            createModal.show();
-        }, 50);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al preparar la creación de usuario. Por favor, recarga la página.');
-    }
-}
-
-// Estilos dinámicos para animaciones
-const spinStyle = document.createElement('style');
-spinStyle.textContent = `
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    .spin {
-        animation: spin 0.5s linear infinite;
-    }
-    
-    .stat-card:hover .stat-decoration {
-        transform: scale(1.2);
-    }
-    
-    .btn-expand-empleado:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-color: transparent !important;
-    }
-    
-    .detail-item {
-        padding: 0.5rem 0;
-        border-bottom: 1px dashed #e5e7eb;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    #personal-page .collapse.show {
-        animation: slideDown 0.3s ease;
-    }
-    
-    .delete-icon-circle, .activate-icon-circle, .user-icon-circle {
-        animation: pulseIcon 2s infinite;
-    }
-    
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #667eea !important;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-    }
-    
-    .table-secondary {
-        background-color: rgba(156, 163, 175, 0.05) !important;
-    }
-    
-    .table-secondary:hover {
-        background-color: rgba(156, 163, 175, 0.1) !important;
-    }
-`;
-document.head.appendChild(spinStyle);
-</script>
-@endpush
-
 <style>
+/* ===== MODAL PERSONALIZADO MEJORADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+}
+
+/* Clases para diferentes anchos */
+.modal-personalizado-ancho-pequeno {
+    width: 95%;
+    max-width: 500px;
+}
+
+/* Clase para hacer el modal más alto */
+.modal-personalizado-alto {
+    max-height: 90vh;
+    height: auto;
+    min-height: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+    flex: 1;
+}
+
+/* Animación para los íconos */
+.delete-icon-circle, .activate-icon-circle, .user-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* El resto de tus estilos existentes se mantienen */
 #personal-page .empleado-avatar {
     width: 48px;
     height: 48px;
@@ -1822,11 +1623,291 @@ document.head.appendChild(spinStyle);
     #personal-page .detalle-empleado-row .row {
         flex-direction: column;
     }
+    
+    .modal-personalizado-alto {
+        min-height: 400px;
+    }
 }
 
 /* Tooltips */
 .text-truncate[data-bs-toggle="tooltip"] {
     cursor: help;
 }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.table-secondary {
+    background-color: rgba(156, 163, 175, 0.05) !important;
+}
+
+.table-secondary:hover {
+    background-color: rgba(156, 163, 175, 0.1) !important;
+}
+
+.btn-expand-empleado:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+.detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.empty-state {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#personal-page .collapse.show {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips
+    initTooltips();
+    
+    // Configurar eventos de expansión
+    setupExpandButtons();
+    
+    // Configurar auto-submit de filtros
+    setupFilterAutoSubmit();
+    
+    // Configurar botón de refrescar
+    setupRefreshButton();
+    
+    // Validación del formulario de creación de usuario
+    setupUserFormValidation();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalDesactivar();
+            cerrarModalActivar();
+            cerrarModalCrearUsuario();
+        }
+    });
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+function setupExpandButtons() {
+    document.querySelectorAll('.btn-expand-empleado').forEach(button => {
+        button.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            if (icon) {
+                icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+            
+            if (isExpanded) {
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-secondary');
+            } else {
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-primary');
+            }
+        });
+    });
+}
+
+function setupFilterAutoSubmit() {
+    document.querySelectorAll('select[name="sort_by"], select[name="sort_order"], select[name="cargo"], select[name="area"], select[name="estado_empleado"], select[name="estado_usuario"], select[name="rol"]').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filtrosForm').submit();
+        });
+    });
+}
+
+function setupRefreshButton() {
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            this.classList.add('spin');
+            setTimeout(() => location.reload(), 500);
+        });
+    }
+}
+
+function setupUserFormValidation() {
+    const crearUsuarioForm = document.getElementById('crearUsuarioForm');
+    if (crearUsuarioForm) {
+        crearUsuarioForm.addEventListener('submit', function(e) {
+            const contrasena = document.getElementById('contrasena').value;
+            const confirmacion = document.getElementById('contrasena_confirmation').value;
+            
+            if (contrasena !== confirmacion) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden');
+                return false;
+            }
+            
+            if (contrasena.length < 6) {
+                e.preventDefault();
+                alert('La contraseña debe tener al menos 6 caracteres');
+                return false;
+            }
+        });
+    }
+}
+
+function clearFilter(filterName) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(filterName);
+    window.location.href = url.toString();
+}
+
+// FUNCIONES PARA EL MODAL DE DESACTIVAR
+function abrirModalDesactivar(empleadoId, empleadoNombre, tieneUsuario) {
+    // Actualizar el contenido del modal
+    document.getElementById('desactivarEmpleadoNombre').textContent = empleadoNombre;
+    document.getElementById('desactivarEmpleadoNombreDisplay').textContent = `¿Desactivar "${empleadoNombre}"?`;
+    document.getElementById('desactivarEmpleadoId').innerHTML = `<small class="text-muted">ID: #${String(empleadoId).padStart(5, '0')}</small>`;
+    
+    const modalTitulo = document.getElementById('desactivarModalTitulo');
+    const alertMessage = document.getElementById('desactivarAlertMessage');
+    
+    if (tieneUsuario) {
+        modalTitulo.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Desactivar empleado y su usuario';
+        alertMessage.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+            <strong class="text-warning-emphasis">Se desactivarán:</strong>
+            <ul class="mt-2 mb-0">
+                <li>✓ El empleado (cambiará a estado inactivo)</li>
+                <li>✓ La cuenta de usuario asociada (no podrá iniciar sesión)</li>
+            </ul>
+            <div class="mt-2 fw-semibold text-danger">⚠️ El empleado perderá acceso al sistema</div>
+        `;
+    } else {
+        modalTitulo.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Confirmar Desactivación';
+        alertMessage.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+            <strong class="text-warning-emphasis">Se desactivará:</strong>
+            <ul class="mt-2 mb-0">
+                <li>✓ El empleado (cambiará a estado inactivo)</li>
+            </ul>
+            <div class="mt-2 text-muted small">(No tiene usuario asociado)</div>
+        `;
+    }
+    
+    // Actualizar la acción del formulario
+    const desactivarForm = document.getElementById('desactivarForm');
+    desactivarForm.action = `/personal/${empleadoId}`;
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalDesactivar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalDesactivar() {
+    const modal = document.getElementById('modalDesactivar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE ACTIVAR
+function abrirModalActivar(empleadoId, empleadoNombre) {
+    // Actualizar el contenido del modal
+    document.getElementById('activarEmpleadoNombre').textContent = empleadoNombre;
+    document.getElementById('activarEmpleadoNombreDisplay').textContent = `¿Activar "${empleadoNombre}"?`;
+    document.getElementById('activarEmpleadoId').innerHTML = `<small class="text-muted">ID: #${String(empleadoId).padStart(5, '0')}</small>`;
+    
+    // Actualizar la acción del formulario
+    const activarForm = document.getElementById('activarForm');
+    activarForm.action = `/personal/${empleadoId}/activar`;
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalActivar() {
+    const modal = document.getElementById('modalActivar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE CREAR USUARIO
+function abrirModalCrearUsuario(empleadoId, empleadoNombre) {
+    // Actualizar el contenido del modal
+    document.getElementById('empleadoNombreModal').textContent = empleadoNombre;
+    document.getElementById('empleadoId').value = empleadoId;
+    
+    // Actualizar la acción del formulario
+    const crearUsuarioForm = document.getElementById('crearUsuarioForm');
+    crearUsuarioForm.action = `/personal/usuario/${empleadoId}`;
+    
+    // Limpiar campos del formulario
+    document.getElementById('correo').value = '';
+    document.getElementById('rol').value = '';
+    document.getElementById('contrasena').value = '';
+    document.getElementById('contrasena_confirmation').value = '';
+    
+    // Mostrar el modal
+    const modal = document.getElementById('modalCrearUsuario');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalCrearUsuario() {
+    const modal = document.getElementById('modalCrearUsuario');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+const spinStyle = document.createElement('style');
+spinStyle.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 0.5s linear infinite;
+    }
+`;
+document.head.appendChild(spinStyle);
+</script>
+@endpush
 @endsection

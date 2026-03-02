@@ -148,7 +148,7 @@ Route::middleware('auth')->group(function () {
     // Restaurar desde archivo SQL subido
     Route::post('/respaldos/restaurar-archivo', [App\Http\Controllers\RespaldoController::class, 'restaurarDesdeArchivo'])
         ->name('respaldos.restaurar-archivo');
-    
+    Route::post('/respaldos/restaurar/{respaldo}', [App\Http\Controllers\RespaldoController::class, 'restaurar']);
     // Rutas para el calendario
     Route::get('/calendario/pedido/{id}', [CalendarioController::class, 'obtenerDetallePedido'])->name('calendario.pedido.detalle');
     Route::get('/calendario/eventos', [CalendarioController::class, 'eventosJson'])->name('calendario.eventos');

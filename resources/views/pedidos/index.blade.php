@@ -791,7 +791,7 @@
                                 <button type="button" 
                                         class="btn btn-sm btn-outline-danger" 
                                         style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                        onclick="verificarYEliminar({{ $pedido->id }}, {{ $pedido->Total }}, '{{ $pedido->Estado }}', {{ $tieneVentaAsociada ? 'true' : 'false' }})"
+                                        onclick="abrirModalEliminar({{ $pedido->id }}, {{ $pedido->Total }}, '{{ $pedido->Estado }}', {{ $tieneVentaAsociada ? 'true' : 'false' }})"
                                         title="Eliminar pedido">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -1044,7 +1044,7 @@
                                                             <button type="button" 
                                                                     class="btn btn-outline-danger btn-sm"
                                                                     style="border-radius: 10px; border: 1px solid #e5e7eb;"
-                                                                    onclick="verificarYEliminar({{ $pedido->id }}, {{ $pedido->Total }}, '{{ $pedido->Estado }}', {{ $tieneVentaAsociada ? 'true' : 'false' }})">
+                                                                    onclick="abrirModalEliminar({{ $pedido->id }}, {{ $pedido->Total }}, '{{ $pedido->Estado }}', {{ $tieneVentaAsociada ? 'true' : 'false' }})">
                                                                 <i class="fas fa-trash me-1"></i> Eliminar pedido
                                                             </button>
                                                         </div>
@@ -1091,23 +1091,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ELIMINACIÓN MEJORADO -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-danger text-white" style="
-                background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Confirmar Eliminación
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ELIMINAR - MÁS ALTO -->
+<div id="modalEliminar" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalEliminar()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalEliminar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="delete-icon-wrapper mb-4">
                     <div class="delete-icon-circle" style="
                         width: 80px;
@@ -1123,18 +1120,18 @@
                     </div>
                 </div>
                 
-                <h5 class="fw-bold mb-3" id="deletePedidoNombreDisplay"></h5>
-                <p class="text-muted mb-4" id="deletePedidoId" style="font-size: 0.9rem;"></p>
+                <h5 class="fw-bold mb-3" id="eliminarPedidoNombreDisplay"></h5>
+                <p class="text-muted mb-4" id="eliminarPedidoId" style="font-size: 0.9rem;"></p>
                 
                 <div class="card bg-light border-0 mb-4" id="deleteInfoCard" style="border-radius: 16px;">
                     <div class="card-body py-3">
-                        <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="text-muted">Total:</span>
-                            <span class="fw-bold text-success" id="deletePedidoTotal"></span>
+                            <span class="fw-bold text-success" id="eliminarPedidoTotal"></span>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between mt-2">
+                        <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted">Estado:</span>
-                            <span class="badge" id="deletePedidoEstado"></span>
+                            <span class="badge" id="eliminarPedidoEstado"></span>
                         </div>
                     </div>
                 </div>
@@ -1155,16 +1152,11 @@
                         <p class="mb-0 text-muted small">Esta acción es irreversible y eliminará permanentemente el pedido del sistema.</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <form id="deleteForm" method="POST" class="d-inline">
+                
+                <form id="eliminarForm" method="POST" class="d-inline mt-3">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger px-4" style="border-radius: 50px;">
+                    <button type="submit" class="btn btn-danger px-5 py-2" style="border-radius: 50px;">
                         <i class="fas fa-trash me-2"></i>Sí, eliminar
                     </button>
                 </form>
@@ -1173,23 +1165,20 @@
     </div>
 </div>
 
-<!-- MODAL DE ADVERTENCIA PARA PEDIDOS CON VENTA -->
-<div class="modal fade" id="ventaWarningModal" tabindex="-1" aria-labelledby="ventaWarningModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-header bg-gradient-warning text-white" style="
-                background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-                border: none;
-                padding: 1.5rem;
-            ">
-                <h5 class="modal-title fw-bold" id="ventaWarningModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
-                    Pedido con Venta Asociada
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            
-            <div class="modal-body text-center p-4">
+<!-- MODAL PERSONALIZADO PARA ADVERTENCIA DE VENTA -->
+<div id="modalVentaWarning" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay" onclick="cerrarModalVentaWarning()"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno modal-personalizado-alto">
+        <div class="modal-personalizado-header" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+            <h5 class="modal-personalizado-titulo">
+                <i class="fas fa-exclamation-triangle me-2"></i>Pedido con Venta Asociada
+            </h5>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalVentaWarning()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-personalizado-body d-flex flex-column justify-content-center p-4">
+            <div class="text-center">
                 <div class="warning-icon-wrapper mb-4">
                     <div class="warning-icon-circle" style="
                         width: 90px;
@@ -1208,7 +1197,7 @@
                 <h5 class="fw-bold mb-3" id="ventaWarningTitle"></h5>
                 <p class="text-muted mb-4" id="ventaWarningText"></p>
                 
-                <div class="alert alert-warning text-start" style="border-radius: 12px;">
+                <div class="alert alert-warning text-start mb-4" style="border-radius: 12px;">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>¿Qué pasará?</strong>
                     <ul class="mt-2 mb-0">
@@ -1217,37 +1206,332 @@
                         <li>El stock de los productos se restaurará</li>
                     </ul>
                 </div>
-            </div>
-            
-            <div class="modal-footer justify-content-center border-0 pb-4">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cancelar
-                </button>
-                <button type="button" class="btn btn-warning px-4" id="confirmVentaDelete" style="border-radius: 50px;">
-                    <i class="fas fa-trash me-2"></i>Sí, eliminar
-                </button>
+                
+                <form id="ventaWarningForm" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-warning px-5 py-2" style="border-radius: 50px;">
+                        <i class="fas fa-trash me-2"></i>Sí, eliminar
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de Carga -->
-<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <div class="modal-body text-center py-4">
-                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Procesando...</span>
-                </div>
-                <h6 class="fw-bold mb-2">Procesando solicitud</h6>
-                <p class="text-muted small mb-0">Por favor espera un momento...</p>
+<!-- MODAL PERSONALIZADO DE CARGA -->
+<div id="modalCarga" class="modal-personalizado" style="display: none;">
+    <div class="modal-personalizado-overlay"></div>
+    <div class="modal-personalizado-contenido modal-personalizado-ancho-pequeno">
+        <div class="modal-personalizado-body text-center py-4">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Procesando...</span>
             </div>
+            <h6 class="fw-bold mb-2">Procesando solicitud</h6>
+            <p class="text-muted small mb-0">Por favor espera un momento...</p>
         </div>
     </div>
 </div>
 
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+/* ===== MODAL PERSONALIZADO MEJORADO ===== */
+.modal-personalizado {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-personalizado-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-personalizado-contenido {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    animation: modalAbrir 0.3s ease-out;
+}
+
+/* Clases para diferentes anchos */
+.modal-personalizado-ancho-pequeno {
+    width: 95%;
+    max-width: 500px;
+}
+
+/* Clase para hacer el modal más alto */
+.modal-personalizado-alto {
+    max-height: 90vh;
+    height: auto;
+    min-height: 500px;
+}
+
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-personalizado-header {
+    padding: 1.25rem 1.5rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-personalizado-titulo {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.modal-personalizado-cerrar {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-personalizado-cerrar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-personalizado-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background-color: white;
+    flex: 1;
+}
+
+/* Animación para los íconos */
+.delete-icon-circle, .warning-icon-circle {
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* El resto de tus estilos existentes se mantienen */
+#pedidos-page {
+    padding-top: 20px;
+}
+
+#pedidos-page .pedido-avatar {
+    width: 48px;
+    height: 48px;
+}
+
+#pedidos-page .table th { 
+    border-top: none; 
+    font-weight: 600; 
+    font-size: 0.875rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 2px solid #dee2e6;
+    background: #f8fafc;
+}
+
+#pedidos-page .table tbody tr {
+    transition: all 0.2s ease;
+}
+
+#pedidos-page .table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.02);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+#pedidos-page .btn-group .btn { 
+    border-radius: 0.375rem !important; 
+    margin: 0 2px; 
+}
+
+#pedidos-page .badge { 
+    font-size: 0.75rem; 
+    font-weight: 500;
+}
+
+#pedidos-page .card {
+    border-radius: 12px;
+}
+
+#pedidos-page .fw-semibold {
+    font-weight: 600;
+}
+
+#pedidos-page .detalle-pedido-row {
+    background-color: #f8fafc;
+}
+
+#pedidos-page .collapse {
+    transition: all 0.3s ease;
+}
+
+#pedidos-page .collapsing {
+    transition: height 0.35s ease;
+}
+
+#pedidos-page .form-control:focus,
+#pedidos-page .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+    #pedidos-page .btn-expand-pedido {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    #pedidos-page .pedido-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    
+    #pedidos-page .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    #pedidos-page .detalle-pedido-row .row {
+        flex-direction: column;
+    }
+    
+    #pedidos-page .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        margin: 0.25rem 0 !important;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-personalizado-alto {
+        min-height: 400px;
+    }
+}
+
+#pedidos-page .collapse.show {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effects para botones */
+#pedidos-page .btn-outline-primary:hover,
+#pedidos-page .btn-outline-danger:hover,
+#pedidos-page .btn-outline-success:hover,
+#pedidos-page .btn-outline-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Paginación */
+.pagination {
+    gap: 5px;
+}
+
+.page-link {
+    border-radius: 10px !important;
+    border: 1px solid #e5e7eb !important;
+    color: #4b5563 !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Tooltips personalizados */
+.tooltip-inner {
+    max-width: 300px;
+    text-align: left;
+    padding: 0.75rem 1rem;
+}
+
+/* Scrollbar para comentarios */
+.comentario-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comentario-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.comentario-box::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.comentario-box::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
 
 @push('scripts')
 <script>
@@ -1256,7 +1540,15 @@ document.addEventListener('DOMContentLoaded', function() {
     setupExpandButtons();
     setupFilters();
     setupRefreshButton();
-    setupModalCleanup();
+    
+    // Cerrar modales con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalEliminar();
+            cerrarModalVentaWarning();
+            cerrarModalCarga();
+        }
+    });
     
     @if(session('foreign_key_error'))
         @php
@@ -1334,13 +1626,9 @@ function setupFilters() {
     const applyFilters = document.getElementById('applyFilters');
     const resetFilters = document.getElementById('resetFilters');
     const pedidosRows = document.querySelectorAll('.pedido-row');
-    const visibleCount = document.getElementById('visibleCount');
     const filterCount = document.getElementById('filterCount');
     const sortDisplay = document.getElementById('sortDisplay');
-    const totalPedidos = document.getElementById('totalPedidos');
-    const pedidosHoy = document.getElementById('pedidosHoy');
-    const ingresoTotal = document.getElementById('ingresoTotal');
-    const promedioPedido = document.getElementById('promedioPedido');
+    const totalCount = document.getElementById('totalCount');
 
     function updateFilterCount() {
         let count = 0;
@@ -1371,8 +1659,6 @@ function setupFilters() {
         
         let visibleRows = 0;
         let totalIngreso = 0;
-        let hoy = new Date().toISOString().split('T')[0];
-        let pedidosHoyCount = 0;
 
         pedidosRows.forEach(row => {
             const rowId = row.dataset.id;
@@ -1400,23 +1686,12 @@ function setupFilters() {
                 row.style.display = '';
                 visibleRows++;
                 totalIngreso += rowMonto;
-                
-                if (rowFecha === hoy) {
-                    pedidosHoyCount++;
-                }
             } else {
                 row.style.display = 'none';
             }
         });
 
-        visibleCount.textContent = visibleRows;
-        totalPedidos.textContent = visibleRows;
-        pedidosHoy.textContent = pedidosHoyCount;
-        ingresoTotal.textContent = '$' + totalIngreso.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        promedioPedido.textContent = visibleRows > 0 
-            ? '$' + (totalIngreso / visibleRows).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-            : '$0.00';
-        
+        totalCount.textContent = visibleRows;
         updateFilterCount();
         updateSortDisplay();
     }
@@ -1525,111 +1800,37 @@ function setupRefreshButton() {
     }
 }
 
-function setupModalCleanup() {
-    const deleteModal = document.getElementById('deleteModal');
-    if (deleteModal) {
-        deleteModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
+// FUNCIONES PARA EL MODAL DE ELIMINAR
+function abrirModalEliminar(pedidoId, total, estado, tieneVenta) {
+    // Actualizar el contenido del modal
+    document.getElementById('eliminarPedidoId').innerHTML = `<small class="text-muted">ID: #${String(pedidoId).padStart(5, '0')}</small>`;
+    document.getElementById('eliminarPedidoNombreDisplay').textContent = `¿Eliminar Pedido #${pedidoId}?`;
+    document.getElementById('eliminarPedidoTotal').textContent = `$${total.toFixed(2)}`;
     
-    const warningModal = document.getElementById('ventaWarningModal');
-    if (warningModal) {
-        warningModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
-    
-    const loadingModal = document.getElementById('loadingModal');
-    if (loadingModal) {
-        loadingModal.addEventListener('hidden.bs.modal', forceCleanupModals);
-    }
-}
-
-function forceCleanupModals() {
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    document.documentElement.style.overflow = '';
-}
-
-let loadingModalInstance = null;
-
-function showLoadingModal() {
-    const modalElement = document.getElementById('loadingModal');
-    if (!modalElement) return;
-    
-    if (loadingModalInstance) {
-        loadingModalInstance.hide();
-        loadingModalInstance.dispose();
-    }
-    
-    forceCleanupModals();
-    
-    loadingModalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-    });
-    
-    setTimeout(() => {
-        if (loadingModalInstance) {
-            loadingModalInstance.show();
-        }
-    }, 10);
-}
-
-function hideLoadingModal() {
-    return new Promise((resolve) => {
-        if (loadingModalInstance) {
-            const modalElement = document.getElementById('loadingModal');
-            const handler = function() {
-                modalElement.removeEventListener('hidden.bs.modal', handler);
-                loadingModalInstance = null;
-                forceCleanupModals();
-                resolve();
-            };
-            
-            modalElement.addEventListener('hidden.bs.modal', handler);
-            loadingModalInstance.hide();
-        } else {
-            forceCleanupModals();
-            resolve();
-        }
-    });
-}
-
-function verificarYEliminar(pedidoId, total, estado, tieneVenta) {
-    forceCleanupModals();
-    
-    document.getElementById('deletePedidoId').innerHTML = `<small class="text-muted">ID: #${String(pedidoId).padStart(5, '0')}</small>`;
-    document.getElementById('deletePedidoNombreDisplay').textContent = `¿Eliminar Pedido #${pedidoId}?`;
-    document.getElementById('deletePedidoTotal').textContent = `$${total}`;
-    
-    const estadoBadge = document.getElementById('deletePedidoEstado');
-    let estadoClass = '';
+    const estadoBadge = document.getElementById('eliminarPedidoEstado');
     let estadoGradiente = '';
     
     switch(estado) {
         case 'Pendiente':
-            estadoClass = 'warning';
             estadoGradiente = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
             break;
         case 'En proceso':
-            estadoClass = 'info';
             estadoGradiente = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
             break;
         case 'Completado':
-            estadoClass = 'success';
             estadoGradiente = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
             break;
         case 'Cancelado':
-            estadoClass = 'danger';
             estadoGradiente = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
             break;
         default:
-            estadoClass = 'secondary';
             estadoGradiente = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
     }
     
     estadoBadge.style.background = estadoGradiente;
     estadoBadge.style.color = 'white';
+    estadoBadge.style.padding = '0.5rem 1rem';
+    estadoBadge.style.borderRadius = '50px';
     estadoBadge.textContent = estado;
     
     const deleteWarning = document.getElementById('deleteWarning');
@@ -1649,13 +1850,56 @@ function verificarYEliminar(pedidoId, total, estado, tieneVenta) {
         deleteWarning.style.display = 'none';
     }
     
-    const deleteForm = document.getElementById('deleteForm');
-    deleteForm.action = `/pedidos/${pedidoId}`;
+    const eliminarForm = document.getElementById('eliminarForm');
+    eliminarForm.action = `/pedidos/${pedidoId}`;
     
-    setTimeout(() => {
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
-    }, 50);
+    // Mostrar el modal
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'flex';
+    
+    // Bloquear scroll del body
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalEliminar() {
+    const modal = document.getElementById('modalEliminar');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE ADVERTENCIA DE VENTA
+function abrirModalVentaWarning(pedidoId) {
+    document.getElementById('ventaWarningTitle').textContent = `Pedido #${pedidoId} con Venta Asociada`;
+    document.getElementById('ventaWarningText').innerHTML = 'Este pedido tiene una venta asociada. ¿Estás seguro de que deseas eliminarlo?';
+    
+    const ventaWarningForm = document.getElementById('ventaWarningForm');
+    ventaWarningForm.action = `/pedidos/${pedidoId}`;
+    
+    const modal = document.getElementById('modalVentaWarning');
+    modal.style.display = 'flex';
+    
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalVentaWarning() {
+    const modal = document.getElementById('modalVentaWarning');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// FUNCIONES PARA EL MODAL DE CARGA
+function abrirModalCarga() {
+    const modal = document.getElementById('modalCarga');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalCarga() {
+    const modal = document.getElementById('modalCarga');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
 }
 
 function completarPedido(pedidoId) {
@@ -1684,7 +1928,7 @@ function completarPedido(pedidoId) {
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
-            showLoadingModal();
+            abrirModalCarga();
             
             const form = document.createElement('form');
             form.method = 'POST';
@@ -1775,21 +2019,11 @@ spinStyle.textContent = `
         to { opacity: 1; }
     }
     
-    @keyframes pulseIcon {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    
-    .delete-icon-circle {
+    .delete-icon-circle, .warning-icon-circle {
         animation: pulseIcon 2s infinite;
     }
     
-    #loadingModal .modal-content {
-        border-radius: 20px !important;
-    }
-    
-    #loadingModal .spinner-border {
+    #modalCarga .spinner-border {
         width: 3.5rem;
         height: 3.5rem;
     }
@@ -1797,182 +2031,4 @@ spinStyle.textContent = `
 document.head.appendChild(spinStyle);
 </script>
 @endpush
-
-<style>
-#pedidos-page {
-    padding-top: 20px;
-}
-
-#pedidos-page .pedido-avatar {
-    width: 48px;
-    height: 48px;
-}
-
-#pedidos-page .table th { 
-    border-top: none; 
-    font-weight: 600; 
-    font-size: 0.875rem; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
-    border-bottom: 2px solid #dee2e6;
-    background: #f8fafc;
-}
-
-#pedidos-page .table tbody tr {
-    transition: all 0.2s ease;
-}
-
-#pedidos-page .table tbody tr:hover {
-    background-color: rgba(102, 126, 234, 0.02);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-#pedidos-page .btn-group .btn { 
-    border-radius: 0.375rem !important; 
-    margin: 0 2px; 
-}
-
-#pedidos-page .badge { 
-    font-size: 0.75rem; 
-    font-weight: 500;
-}
-
-#pedidos-page .card {
-    border-radius: 12px;
-}
-
-#pedidos-page .fw-semibold {
-    font-weight: 600;
-}
-
-#pedidos-page .detalle-pedido-row {
-    background-color: #f8fafc;
-}
-
-#pedidos-page .collapse {
-    transition: all 0.3s ease;
-}
-
-#pedidos-page .collapsing {
-    transition: height 0.35s ease;
-}
-
-#pedidos-page .form-control:focus,
-#pedidos-page .form-select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-@media (max-width: 768px) {
-    #pedidos-page .btn-expand-pedido {
-        width: 28px;
-        height: 28px;
-        font-size: 0.8rem;
-    }
-    
-    #pedidos-page .pedido-avatar {
-        width: 32px;
-        height: 32px;
-    }
-    
-    #pedidos-page .table-responsive {
-        font-size: 0.9rem;
-    }
-    
-    #pedidos-page .detalle-pedido-row .row {
-        flex-direction: column;
-    }
-    
-    #pedidos-page .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.8rem;
-    }
-    
-    .modal-footer .btn {
-        width: 100%;
-        margin: 0.25rem 0 !important;
-    }
-    
-    .modal-footer {
-        flex-direction: column;
-    }
-}
-
-#pedidos-page .collapse.show {
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Hover effects para botones */
-#pedidos-page .btn-outline-primary:hover,
-#pedidos-page .btn-outline-danger:hover,
-#pedidos-page .btn-outline-success:hover,
-#pedidos-page .btn-outline-warning:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-/* Paginación */
-.pagination {
-    gap: 5px;
-}
-
-.page-link {
-    border-radius: 10px !important;
-    border: 1px solid #e5e7eb !important;
-    color: #4b5563 !important;
-    padding: 0.5rem 1rem !important;
-    transition: all 0.3s ease;
-}
-
-.page-link:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border-color: transparent !important;
-    transform: translateY(-2px);
-}
-
-.page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border: none !important;
-}
-
-/* Tooltips personalizados */
-.tooltip-inner {
-    max-width: 300px;
-    text-align: left;
-    padding: 0.75rem 1rem;
-}
-
-/* Scrollbar para comentarios */
-.comentario-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.comentario-box::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.comentario-box::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-}
-
-.comentario-box::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-</style>
 @endsection
