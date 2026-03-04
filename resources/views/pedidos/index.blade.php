@@ -495,7 +495,7 @@
         </div>
     </div>
 
-    <!-- Tabla de pedidos Mejorada -->
+    <!-- Tabla de pedidos Mejorada CON PRIORIDAD AGREGADA -->
     <div class="table-container" style="
         background: white;
         border-radius: 24px;
@@ -539,6 +539,7 @@
                         <th class="py-3">Fecha y Hora Entrega</th>
                         <th class="py-3">Cliente</th>
                         <th class="py-3">Productos</th>
+                        <th class="py-3">Prioridad</th> <!-- NUEVA COLUMNA -->
                         <th class="py-3">Comentario</th>
                         <th class="py-3">Estado</th>
                         <th class="py-3">Total</th>
@@ -558,6 +559,31 @@
                         $empleadoNombre = $pedido->empleado->Nombre ?? 'Sin empleado';
                         $empleadoApellido = $pedido->empleado->ApPaterno ?? '';
                         $empleadoCompleto = trim("$empleadoNombre $empleadoApellido");
+                        
+                        // Prioridad
+                        $prioridad = $pedido->Prioridad ?? 'normal';
+                        $prioridadLower = strtolower(trim($prioridad));
+                        
+                        $prioridadClass = [
+                            'alta' => 'danger',
+                            'media' => 'warning',
+                            'baja' => 'success',
+                            'normal' => 'info'
+                        ][$prioridadLower] ?? 'secondary';
+                        
+                        $prioridadGradiente = [
+                            'alta' => 'linear-gradient(135deg, #dc3545 0%, #b02a37 100%)',
+                            'media' => 'linear-gradient(135deg, #ffc107 0%, #e0a800 100%)',
+                            'baja' => 'linear-gradient(135deg, #198754 0%, #146c43 100%)',
+                            'normal' => 'linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%)'
+                        ][$prioridadLower] ?? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+                        
+                        $prioridadIcono = [
+                            'alta' => 'fa-exclamation-triangle',
+                            'media' => 'fa-clock',
+                            'baja' => 'fa-arrow-down',
+                            'normal' => 'fa-check-circle'
+                        ][$prioridadLower] ?? 'fa-flag';
                         
                         $estadoClass = [
                             'Pendiente' => 'warning',
@@ -583,6 +609,7 @@
                         data-cliente-id="{{ $pedido->Cliente_idCliente }}"
                         data-empleado-id="{{ $pedido->Empleado_idEmpleado }}"
                         data-estado="{{ $pedido->Estado }}"
+                        data-prioridad="{{ $prioridadLower }}"
                         data-monto="{{ $pedido->Total }}"
                         data-producto="{{ strtolower($pedido->detallePedidos->pluck('producto.Nombre')->implode(' ')) }}">
                         
@@ -686,6 +713,19 @@
                             <div class="mt-1">
                                 <small class="text-muted">{{ $totalUnidades }} unidades</small>
                             </div>
+                        </td>
+
+                        <!-- PRIORIDAD - NUEVA COLUMNA -->
+                        <td>
+                            <span class="badge px-3 py-2" style="
+                                background: {{ $prioridadGradiente }};
+                                color: white;
+                                border-radius: 50px;
+                                font-size: 0.75rem;
+                            ">
+                                <i class="fas {{ $prioridadIcono }} me-1"></i>
+                                {{ ucfirst($prioridad) }}
+                            </span>
                         </td>
 
                         <!-- Comentario -->
@@ -799,9 +839,9 @@
                         </td>
                     </tr>
                     
-                    <!-- Fila expandible con detalles del pedido -->
+                    <!-- Fila expandible con detalles del pedido (CON PRIORIDAD AGREGADA) -->
                     <tr class="detalle-pedido-row">
-                        <td colspan="9" class="p-0 border-0">
+                        <td colspan="10" class="p-0 border-0">
                             <div class="collapse" id="detallesPedido{{ $pedido->id }}">
                                 <div class="p-4" style="background: #f8fafc; border-top: 1px solid #e5e7eb;">
                                     <!-- Advertencias -->
@@ -927,8 +967,50 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Columna de comentario completo -->
+                                        <!-- Columna de comentario completo y prioridad -->
                                         <div class="col-md-5">
+                                            <!-- PRIORIDAD AGREGADA EN DETALLES -->
+                                            <div class="detail-card p-3 mb-3" style="
+                                                background: white;
+                                                border-radius: 16px;
+                                                box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                                            ">
+                                                <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                                                    <i class="fas fa-flag me-2 text-primary"></i>
+                                                    Prioridad del Pedido
+                                                </h6>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="text-muted">Nivel de prioridad:</span>
+                                                    <span class="badge px-4 py-3" style="
+                                                        background: {{ $prioridadGradiente }};
+                                                        color: white;
+                                                        border-radius: 50px;
+                                                        font-size: 0.9rem;
+                                                        font-weight: 600;
+                                                    ">
+                                                        <i class="fas {{ $prioridadIcono }} me-2"></i>
+                                                        {{ ucfirst($prioridad) }}
+                                                    </span>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <small class="text-muted">
+                                                        @if($prioridadLower == 'alta')
+                                                            <i class="fas fa-exclamation-circle text-danger me-1"></i>
+                                                            Requiere atención inmediata y prioridad en la entrega
+                                                        @elseif($prioridadLower == 'media')
+                                                            <i class="fas fa-clock text-warning me-1"></i>
+                                                            Entregar dentro del tiempo establecido
+                                                        @elseif($prioridadLower == 'baja')
+                                                            <i class="fas fa-arrow-down text-success me-1"></i>
+                                                            Puede entregarse con mayor flexibilidad
+                                                        @else
+                                                            <i class="fas fa-check-circle text-info me-1"></i>
+                                                            Prioridad estándar para entrega
+                                                        @endif
+                                                    </small>
+                                                </div>
+                                            </div>
+
                                             <div class="detail-card p-3" style="
                                                 background: white;
                                                 border-radius: 16px;
@@ -943,7 +1025,7 @@
                                                     <div class="comentario-box p-3 mb-3" style="
                                                         background: #f8fafc;
                                                         border-radius: 12px;
-                                                        max-height: 200px;
+                                                        max-height: 150px;
                                                         overflow-y: auto;
                                                         border-left: 3px solid #667eea;
                                                     ">
@@ -954,8 +1036,8 @@
                                                         Este comentario fue registrado al crear/modificar el pedido
                                                     </small>
                                                 @else
-                                                    <div class="text-center py-4">
-                                                        <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                                    <div class="text-center py-3">
+                                                        <i class="fas fa-comment-slash fa-3x text-muted mb-2"></i>
                                                         <p class="text-muted mb-0">No hay comentarios para este pedido</p>
                                                     </div>
                                                 @endif
@@ -963,7 +1045,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Resumen del pedido -->
+                                    <!-- Resumen del pedido (CON PRIORIDAD AGREGADA) -->
                                     <div class="row mt-4">
                                         <div class="col-12">
                                             <div class="detail-card p-3" style="
@@ -972,7 +1054,7 @@
                                                 box-shadow: 0 4px 10px rgba(0,0,0,0.02);
                                             ">
                                                 <div class="row">
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-2">
                                                         <div class="detail-item d-flex justify-content-between mb-2">
                                                             <span class="text-muted">Subtotal:</span>
                                                             <span class="fw-medium">${{ number_format($pedido->Total, 2) }}</span>
@@ -997,17 +1079,17 @@
                                                         </div>
                                                         <div class="detail-item d-flex justify-content-between">
                                                             <span class="text-muted">Lugar Entrega:</span>
-                                                            <span class="fw-medium">{{ $pedido->Lugar_entrega }}</span>
+                                                            <span class="fw-medium">{{ Str::limit($pedido->Lugar_entrega, 15) }}</span>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-3">
                                                         <div class="detail-item d-flex justify-content-between mb-2">
                                                             <span class="text-muted">Cliente:</span>
-                                                            <span class="fw-medium">{{ Str::limit($clienteCompleto, 20) }}</span>
+                                                            <span class="fw-medium">{{ Str::limit($clienteCompleto, 15) }}</span>
                                                         </div>
                                                         <div class="detail-item d-flex justify-content-between mb-2">
                                                             <span class="text-muted">Empleado:</span>
-                                                            <span class="fw-medium">{{ Str::limit($empleadoCompleto, 20) }}</span>
+                                                            <span class="fw-medium">{{ Str::limit($empleadoCompleto, 15) }}</span>
                                                         </div>
                                                         <div class="detail-item d-flex justify-content-between">
                                                             <span class="text-muted">Estado:</span>
@@ -1016,7 +1098,14 @@
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-4">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="fw-bold">Prioridad:</span>
+                                                            <span class="badge px-3 py-2" style="background: {{ $prioridadGradiente }}; color: white;">
+                                                                <i class="fas {{ $prioridadIcono }} me-1"></i>
+                                                                {{ ucfirst($prioridad) }}
+                                                            </span>
+                                                        </div>
                                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                                             <span class="fw-bold">Total:</span>
                                                             <h5 class="mb-0 fw-bold" style="color: #10b981;">
@@ -1059,7 +1148,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-5">
+                        <td colspan="10" class="text-center py-5">
                             <div class="empty-state py-5">
                                 <i class="fas fa-clipboard-list fa-4x mb-3" style="color: #9ca3af;"></i>
                                 <h5 class="fw-bold mb-2">No hay pedidos registrados</h5>

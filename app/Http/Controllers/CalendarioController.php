@@ -28,42 +28,44 @@ class CalendarioController extends Controller
             ->whereBetween('Fecha_entrega', [$fechaInicio->format('Y-m-d'), $fechaFin->format('Y-m-d')])
             ->orderBy('Fecha_entrega')
             ->orderBy('Hora_entrega')
-            ->get()
-            ->map(function($pedido) {
-                // Obtener nombre completo del cliente
-                $clienteNombre = 'Cliente no encontrado';
-                if ($pedido->cliente) {
-                    $clienteNombre = trim(
-                        ($pedido->cliente->Nombre ?? '') . ' ' . 
-                        ($pedido->cliente->ApPaterno ?? '') . ' ' . 
-                        ($pedido->cliente->ApMaterno ?? '')
-                    );
-                }
-                
-                return [
-                    'id' => $pedido->id,
-                    'fecha_entrega' => $pedido->Fecha_entrega,
-                    'hora_entrega' => $pedido->Hora_entrega,
-                    'lugar_entrega' => $pedido->Lugar_entrega,
-                    'estado' => $pedido->Estado,
-                    'prioridad' => $pedido->Prioridad,
-                    'total' => number_format($pedido->Total, 2),
-                    'cliente_nombre' => $clienteNombre,
-                    'cliente_id' => $pedido->Cliente_idCliente,
-                    'comentario' => $pedido->comentario,
-                    'detalles' => $pedido->detallePedidos->map(function($detalle) {
-                        return [
-                            'producto_nombre' => $detalle->producto->Nombre ?? 'Producto no encontrado',
-                            'cantidad' => $detalle->Cantidad,
-                            'precio' => number_format($detalle->PrecioUnitario, 2),
-                            'subtotal' => number_format($detalle->Cantidad * $detalle->PrecioUnitario, 2)
-                        ];
-                    })
-                ];
-            });
+            ->get();
+        
+        // Mapear los pedidos para el calendario
+        $pedidosMapeados = $pedidos->map(function($pedido) {
+            // Obtener nombre completo del cliente
+            $clienteNombre = 'Cliente no encontrado';
+            if ($pedido->cliente) {
+                $clienteNombre = trim(
+                    ($pedido->cliente->Nombre ?? '') . ' ' . 
+                    ($pedido->cliente->ApPaterno ?? '') . ' ' . 
+                    ($pedido->cliente->ApMaterno ?? '')
+                );
+            }
+            
+            return [
+                'id' => $pedido->id,
+                'fecha_entrega' => $pedido->Fecha_entrega,
+                'hora_entrega' => $pedido->Hora_entrega,
+                'lugar_entrega' => $pedido->Lugar_entrega,
+                'estado' => $pedido->Estado,
+                'prioridad' => $pedido->Prioridad,
+                'total' => number_format($pedido->Total, 2),
+                'cliente_nombre' => $clienteNombre,
+                'cliente_id' => $pedido->Cliente_idCliente,
+                'comentario' => $pedido->comentario,
+                'detalles' => $pedido->detallePedidos->map(function($detalle) {
+                    return [
+                        'producto_nombre' => $detalle->producto->Nombre ?? 'Producto no encontrado',
+                        'cantidad' => $detalle->Cantidad,
+                        'precio' => number_format($detalle->PrecioUnitario, 2),
+                        'subtotal' => number_format($detalle->Cantidad * $detalle->PrecioUnitario, 2)
+                    ];
+                })
+            ];
+        });
 
         // Agrupar pedidos por fecha para el calendario
-        $pedidosPorFecha = $pedidos->groupBy('fecha_entrega');
+        $pedidosPorFecha = $pedidosMapeados->groupBy('fecha_entrega');
 
         // Generar estructura del calendario
         $calendario = $this->generarCalendario($mes, $anio, $pedidosPorFecha);
@@ -76,19 +78,61 @@ class CalendarioController extends Controller
         $mesSiguiente = $mes + 1 > 12 ? 1 : $mes + 1;
         $anioMesSiguiente = $mes + 1 > 12 ? $anio + 1 : $anio;
 
-        // Estadísticas
+        // Calcular estadísticas directamente desde los pedidos originales
+        $totalPedidos = $pedidos->count();
+        
+        // Inicializar contadores
+        $altaPrioridad = 0;
+        $mediaPrioridad = 0;
+        $bajaPrioridad = 0;
+        $normalPrioridad = 0;
+        $pendientes = 0;
+        
+        foreach ($pedidos as $pedido) {
+            // Convertir prioridad a minúsculas para comparación consistente
+            $prioridad = strtolower(trim($pedido->Prioridad ?? ''));
+            
+            // Contar por prioridad
+            if ($prioridad === 'alta') {
+                $altaPrioridad++;
+            } elseif ($prioridad === 'media') {
+                $mediaPrioridad++;
+            } elseif ($prioridad === 'baja') {
+                $bajaPrioridad++;
+            } elseif ($prioridad === 'normal') {
+                $normalPrioridad++;
+            } elseif (empty($prioridad)) {
+                // Si está vacío, contar como normal por defecto
+                $normalPrioridad++;
+            }
+            
+            // Contar pendientes (estado pendiente)
+            $estado = strtolower(trim($pedido->Estado ?? ''));
+            if ($estado === 'pendiente') {
+                $pendientes++;
+            }
+        }
+
+        // Estadísticas con los nombres correctos
         $estadisticas = [
-            'total_pedidos' => $pedidos->count(),
-            'alta_prioridad' => $pedidos->where('prioridad', 'alta')->count(),
-            'media_prioridad' => $pedidos->where('prioridad', 'media')->count(),
-            'baja_prioridad' => $pedidos->where('prioridad', 'baja')->count(),
-            'normal_prioridad' => $pedidos->where('prioridad', 'normal')->count(),
-            'pendientes' => $pedidos->where('estado', 'pendiente')->count(),
+            'total_pedidos' => $totalPedidos,
+            'alta_prioridad' => $altaPrioridad,
+            'media_prioridad' => $mediaPrioridad,
+            'baja_prioridad' => $bajaPrioridad,
+            'normal_prioridad' => $normalPrioridad,
+            'pendientes' => $pendientes,
         ];
+
+        // DEBUG: Registrar para verificar (puedes comentar esto después)
+        \Log::info('=== ESTADÍSTICAS CALCULADAS ===', $estadisticas);
+        \Log::info('Pedidos del mes:', [
+            'total' => $totalPedidos,
+            'prioridades' => $pedidos->pluck('Prioridad')->toArray()
+        ]);
 
         return view('calendario.index', compact(
             'calendario', 
-            'pedidos', 
+            'pedidosMapeados',
             'clientes',
             'mes',
             'anio',
@@ -200,7 +244,7 @@ class CalendarioController extends Controller
                 $clienteDireccion = $pedido->cliente->Direccion ?? 'N/A';
             }
 
-            // Colores para badges (CORREGIDO - AHORA SOPORTA 'normal')
+            // Colores para badges
             $prioridadColor = $this->getPrioridadColor($pedido->Prioridad);
             $estadoColor = $this->getEstadoColor($pedido->Estado);
 
@@ -489,7 +533,7 @@ class CalendarioController extends Controller
         }
     }
 
-    // Método auxiliar para color de prioridad (CORREGIDO - AHORA SOPORTA 'normal')
+    // Método auxiliar para color de prioridad
     private function getPrioridadColor($prioridad)
     {
         $prioridad = strtolower(trim($prioridad));
@@ -550,9 +594,9 @@ class CalendarioController extends Controller
                     );
                 }
 
-                // Color según prioridad (CORREGIDO)
+                // Color según prioridad
                 $color = '#007bff'; // default (azul)
-                $prioridad = strtolower(trim($pedido->Prioridad));
+                $prioridad = strtolower(trim($pedido->Prioridad ?? ''));
                 
                 if ($prioridad == 'alta') {
                     $color = '#dc3545'; // rojo

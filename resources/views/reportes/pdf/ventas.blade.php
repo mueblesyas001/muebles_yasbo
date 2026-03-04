@@ -1,572 +1,351 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Reporte de Ventas</title>
-
-<style>
-@page {
-    margin: 2.2cm;
-}
-
-body {
-    font-family: 'DejaVu Sans', 'Helvetica', 'Arial', sans-serif;
-    font-size: 10px;
-    color: #2c3e50;
-    line-height: 1.4;
-}
-
-h1 {
-    font-size: 22px;
-    text-align: center;
-    margin-bottom: 5px;
-    color: #1e272e;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
-
-h2 {
-    font-size: 14px;
-    margin-top: 25px;
-    border-bottom: 2px solid #2c3e50;
-    padding-bottom: 6px;
-    color: #1e272e;
-    font-weight: 500;
-}
-
-.header-info {
-    text-align: center;
-    font-size: 9px;
-    margin-bottom: 25px;
-    color: #7f8c8d;
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #bdc3c7;
-}
-
-/* ===== MÉTRICAS (IGUAL A TU DISEÑO) ===== */
-.metrics {
-    width: 100%;
-    margin-bottom: 25px;
-    text-align: center;
-}
-
-.metric-box {
-    width: 23%;
-    display: inline-block;
-    background: #f4f6f9;
-    padding: 12px 5px;
-    margin-right: 1%;
-    text-align: center;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.metric-box:last-child {
-    margin-right: 0;
-}
-
-.metric-title {
-    font-size: 8px;
-    text-transform: uppercase;
-    color: #7f8c8d;
-    letter-spacing: 0.5px;
-}
-
-.metric-value {
-    font-size: 18px;
-    font-weight: 600;
-    margin-top: 5px;
-    color: #2c3e50;
-}
-
-/* ===== GRÁFICAS - EXACTAMENTE TUS COLORES ===== */
-.chart-container {
-    margin-top: 15px;
-    margin-bottom: 25px;
-}
-
-.bar-row {
-    margin-bottom: 15px;
-}
-
-.bar-label {
-    font-size: 10px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: #34495e;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.bar-label .rank-number {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    background: #ecf0f1;
-    color: #2c3e50;
-    text-align: center;
-    line-height: 18px;
-    border-radius: 3px;
-    font-size: 9px;
-    font-weight: 600;
-    margin-right: 6px;
-}
-
-.bar-label .rank-1 {
-    background: #2c3e50;
-    color: white;
-}
-
-.bar-label .rank-2 {
-    background: #7f8c8d;
-    color: white;
-}
-
-.bar-label .rank-3 {
-    background: #95a5a6;
-    color: white;
-}
-
-.bar-wrapper {
-    width: 100%;
-    background: #ecf0f1;
-    height: 16px;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-/* ===== COLORES ESPECÍFICOS QUE PEDISTE ===== */
-.bar-fill-blue {
-    height: 16px;
-    background: #3498db;  /* AZUL PARA EMPLEADOS */
-    width: 0%;
-    transition: width 0.2s ease;
-}
-
-.bar-fill-green {
-    height: 16px;
-    background: #2ecc71;  /* VERDE PARA PRODUCTOS */
-    width: 0%;
-    transition: width 0.2s ease;
-}
-
-.bar-value {
-    font-size: 9px;
-    margin-top: 4px;
-    color: #555;
-    display: flex;
-    justify-content: space-between;
-}
-
-.bar-value strong {
-    color: #2c3e50;
-    font-weight: 600;
-}
-
-/* ===== TABLAS (MEJORADAS PERO CONSERVANDO ESENCIA) ===== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-    font-size: 9px;
-}
-
-th {
-    background: #2c3e50;
-    color: white;
-    padding: 8px 6px;
-    font-size: 9px;
-    font-weight: 500;
-    text-align: left;
-}
-
-th:first-child {
-    padding-left: 10px;
-    border-radius: 4px 0 0 0;
-}
-
-th:last-child {
-    padding-right: 10px;
-    border-radius: 0 4px 0 0;
-}
-
-td {
-    padding: 7px 6px;
-    border-bottom: 1px solid #ecf0f1;
-    font-size: 9px;
-}
-
-td:first-child {
-    padding-left: 10px;
-}
-
-td:last-child {
-    padding-right: 10px;
-}
-
-tr:last-child td {
-    border-bottom: none;
-}
-
-tr:hover td {
-    background: #f8f9fa;
-}
-
-.text-right {
-    text-align: right;
-}
-
-.text-center {
-    text-align: center;
-}
-
-/* ===== BADGES ===== */
-.badge {
-    display: inline-block;
-    background: #ecf0f1;
-    color: #2c3e50;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 8px;
-    font-weight: 600;
-}
-
-.badge-dark {
-    background: #2c3e50;
-    color: white;
-}
-
-.badge-blue {
-    background: #3498db;
-    color: white;
-}
-
-.badge-green {
-    background: #2ecc71;
-    color: white;
-}
-
-/* ===== RESUMEN ===== */
-.summary-box {
-    margin-top: 25px;
-    padding: 15px;
-    background: #f4f6f9;
-    border-left: 4px solid #2c3e50;
-    border-radius: 0 4px 4px 0;
-}
-
-.summary-title {
-    font-size: 11px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #2c3e50;
-}
-
-.summary-grid {
-    display: flex;
-    gap: 30px;
-    font-size: 9px;
-}
-
-.summary-item p {
-    margin-bottom: 5px;
-    color: #34495e;
-}
-
-.summary-item strong {
-    color: #2c3e50;
-    font-weight: 600;
-    min-width: 100px;
-    display: inline-block;
-}
-
-/* ===== FOOTER ===== */
-.footer {
-    position: fixed;
-    bottom: -15px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 8px;
-    color: #95a5a6;
-    padding-top: 8px;
-    border-top: 1px solid #ecf0f1;
-}
-
-.page-number:before {
-    content: "Página " counter(page);
-}
-
-/* ===== UTILIDADES ===== */
-.truncate {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.separator {
-    height: 1px;
-    background: #ecf0f1;
-    margin: 15px 0;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Ventas</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .reporte-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card .numero {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .graficas-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .grafica-card {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .grafica-card h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        
+        .grafica {
+            width: 100%;
+            height: 300px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .badge {
+            background: #10b981;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+    </style>
 </head>
-
 <body>
-
-<h1>REPORTE DE VENTAS</h1>
-
-<div class="header-info">
-    Periodo: {{ date('d/m/Y', strtotime($fechaInicio)) }} — {{ date('d/m/Y', strtotime($fechaFin)) }} 
-    <span style="margin:0 8px;">|</span> 
-    Generado: {{ $fechaGeneracion }}
-    @if($empleadoSeleccionado ?? false)
-    <span class="badge-dark" style="margin-left: 8px; padding:2px 8px;">{{ $empleadoSeleccionado->nombre_completo ?? $empleadoSeleccionado->Nombre }}</span>
-    @endif
-</div>
-
-<!-- ===== MÉTRICAS ===== -->
-<div class="metrics">
-    <div class="metric-box">
-        <div class="metric-title">Ventas</div>
-        <div class="metric-value">{{ number_format($totalVentas) }}</div>
+    <div class="reporte-container">
+        <div class="header">
+            <h1>📊 Reporte de Ventas</h1>
+            <p>Período: {{ date('d/m/Y', strtotime($fechaInicio)) }} - {{ date('d/m/Y', strtotime($fechaFin)) }}</p>
+            <p style="font-size: 0.9em;">Generado: {{ $fechaGeneracion }}</p>
+        </div>
+        
+        <div class="content">
+            <!-- Cards de resumen -->
+            <div class="cards-container">
+                <div class="card">
+                    <h3>Total Ventas</h3>
+                    <div class="numero">{{ $totalVentas }}</div>
+                </div>
+                <div class="card">
+                    <h3>Total Ingresos</h3>
+                    <div class="numero">${{ number_format($totalIngresos, 2) }}</div>
+                </div>
+                <div class="card">
+                    <h3>Ticket Promedio</h3>
+                    <div class="numero">${{ number_format($ventaPromedio, 2) }}</div>
+                </div>
+                <div class="card">
+                    <h3>Días con Ventas</h3>
+                    <div class="numero">{{ $resumenEjecutivo['dias_con_ventas'] ?? 0 }}</div>
+                </div>
+            </div>
+            
+            <!-- Gráficas -->
+            <div class="graficas-row">
+                <!-- Gráfica de Empleados -->
+                <div class="grafica-card">
+                    <h3>👥 Ventas por Vendedor</h3>
+                    <div id="graficaEmpleados" class="grafica"></div>
+                </div>
+                
+                <!-- Gráfica de Productos -->
+                <div class="grafica-card">
+                    <h3>🏆 Productos más vendidos</h3>
+                    <div id="graficaProductos" class="grafica"></div>
+                </div>
+            </div>
+            
+            <div class="graficas-row">
+                <!-- Gráfica de Ventas por Día -->
+                <div class="grafica-card" style="flex: 2;">
+                    <h3>📈 Tendencia de Ventas Diarias</h3>
+                    <div id="graficaDiaria" class="grafica"></div>
+                </div>
+            </div>
+            
+            <!-- Tabla de productos más vendidos -->
+            <h3 style="margin: 30px 0 15px;">🔥 Productos más vendidos</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Ingresos</th>
+                        <th>% del total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($productosMasVendidos as $item)
+                    @php
+                        $porcentaje = $totalIngresos > 0 ? ($item->total_ingresos / $totalIngresos) * 100 : 0;
+                    @endphp
+                    <tr>
+                        <td><strong>{{ $item->producto->Nombre ?? 'Producto' }}</strong></td>
+                        <td><span class="badge">{{ $item->total_vendido }} und</span></td>
+                        <td class="text-right">${{ number_format($item->total_ingresos, 2) }}</td>
+                        <td class="text-right">{{ number_format($porcentaje, 1) }}%</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">No hay productos vendidos en este período</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            
+            <div class="footer">
+                <p>© {{ date('Y') }} - Sistema de Gestión</p>
+            </div>
+        </div>
     </div>
-
-    <div class="metric-box">
-        <div class="metric-title">Ingresos</div>
-        <div class="metric-value">${{ number_format($totalIngresos, 0) }}</div>
-    </div>
-
-    <div class="metric-box">
-        <div class="metric-title">Promedio</div>
-        <div class="metric-value">${{ number_format($ventaPromedio, 2) }}</div>
-    </div>
-
-    <div class="metric-box">
-        <div class="metric-title">Ventas/Día</div>
-        <div class="metric-value">{{ number_format($resumenEjecutivo['ventas_por_dia'], 1) }}</div>
-    </div>
-</div>
-
-<!-- ===== SPOTLIGHT (DESTACADOS) ===== -->
-@if(($mejorVenta ?? false) || ($resumenEjecutivo['empleado_top'] ?? false))
-<div style="display: flex; gap: 15px; margin-bottom: 25px;">
-    @if($mejorVenta ?? false)
-    <div style="flex:1; background:#f4f6f9; padding:12px 15px; border-left:4px solid #3498db;">
-        <div style="font-size:7px; text-transform:uppercase; color:#7f8c8d;">Mejor Venta</div>
-        <div style="font-size:16px; font-weight:600; color:#2c3e50;">${{ number_format($mejorVenta->Total, 2) }}</div>
-        <div style="font-size:8px; color:#95a5a6;">Venta #{{ $mejorVenta->id }} · {{ date('d/m/Y', strtotime($mejorVenta->Fecha)) }}</div>
-    </div>
-    @endif
     
-    @if($resumenEjecutivo['empleado_top'] ?? false)
-    @php
-        $empleado = $resumenEjecutivo['empleado_top']->empleado;
-        $nombreCompleto = $empleado ? trim(($empleado->Nombre ?? '') . ' ' . ($empleado->ApPaterno ?? '')) : '—';
-    @endphp
-    <div style="flex:1; background:#f4f6f9; padding:12px 15px; border-left:4px solid #2ecc71;">
-        <div style="font-size:7px; text-transform:uppercase; color:#7f8c8d;">Mejor Desempeño</div>
-        <div style="font-size:14px; font-weight:600; color:#2c3e50;" class="truncate">{{ $nombreCompleto }}</div>
-        <div style="font-size:8px; color:#95a5a6;">{{ $resumenEjecutivo['empleado_top']->total_ventas }} ventas · ${{ number_format($resumenEjecutivo['empleado_top']->total_ingresos, 0) }}</div>
-    </div>
-    @endif
-</div>
-@endif
-
-<!-- ============================= -->
-<!-- ===== GRÁFICA EMPLEADOS ===== -->
-<!-- ===== COLOR AZUL #3498db ===== -->
-<!-- ============================= -->
-
-<h2>Rendimiento por Empleado</h2>
-
-<div class="chart-container">
-@php
-$maxVentas = $datosGraficaEmpleados->max('ventas') ?: 1;
-$totalIngresosEmpleados = $datosGraficaEmpleados->sum('ingresos');
-$totalVentasEmpleados = $datosGraficaEmpleados->sum('ventas');
-@endphp
-
-@foreach($datosGraficaEmpleados as $index => $empleado)
-@php
-$porcentaje = ($empleado['ventas'] / $maxVentas) * 100;
-$promedio = $empleado['ventas'] > 0 ? $empleado['ingresos'] / $empleado['ventas'] : 0;
-@endphp
-
-<div class="bar-row">
-    <div class="bar-label">
-        <span>
-            <span class="rank-number {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : '')) }}">{{ $index + 1 }}</span>
-            {{ $empleado['nombre'] }}
-        </span>
-        <span class="badge-blue" style="font-size:8px;">{{ $empleado['ventas'] }} ventas</span>
-    </div>
-    <div class="bar-wrapper">
-        <div class="bar-fill-blue" style="width: {{ $porcentaje }}%;"></div>
-    </div>
-    <div class="bar-value">
-        <span>💵 <strong>${{ number_format($empleado['ingresos'], 2) }}</strong></span>
-        <span>📊 Prom. <strong>${{ number_format($promedio, 2) }}</strong></span>
-    </div>
-</div>
-
-@endforeach
-
-<div class="bar-value" style="margin-top: 10px; padding-top: 8px; border-top: 2px solid #ecf0f1;">
-    <span><strong>TOTALES:</strong> {{ $totalVentasEmpleados }} ventas</span>
-    <span><strong>${{ number_format($totalIngresosEmpleados, 2) }}</strong></span>
-</div>
-</div>
-
-<!-- ============================= -->
-<!-- ===== GRÁFICA PRODUCTOS ===== -->
-<!-- ===== COLOR VERDE #2ecc71 ===== -->
-<!-- ============================= -->
-
-<h2>Top Productos</h2>
-
-<div class="chart-container">
-@php
-$maxCantidad = $datosGraficaProductos->max('cantidad') ?: 1;
-$totalUnidades = $datosGraficaProductos->sum('cantidad');
-$totalIngresosProductos = $datosGraficaProductos->sum('ingresos');
-@endphp
-
-@foreach($datosGraficaProductos as $index => $producto)
-@php
-$porcentaje = ($producto['cantidad'] / $maxCantidad) * 100;
-$precioPromedio = $producto['cantidad'] > 0 ? $producto['ingresos'] / $producto['cantidad'] : 0;
-@endphp
-
-<div class="bar-row">
-    <div class="bar-label">
-        <span>
-            <span class="rank-number {{ $index == 0 ? 'rank-1' : ($index == 1 ? 'rank-2' : ($index == 2 ? 'rank-3' : '')) }}">{{ $index + 1 }}</span>
-            {{ $producto['nombre'] }}
-        </span>
-        <span class="badge-green" style="font-size:8px;">{{ $producto['cantidad'] }} unid.</span>
-    </div>
-    <div class="bar-wrapper">
-        <div class="bar-fill-green" style="width: {{ $porcentaje }}%;"></div>
-    </div>
-    <div class="bar-value">
-        <span>💵 <strong>${{ number_format($producto['ingresos'], 2) }}</strong></span>
-        <span>🏷️ <strong>${{ number_format($precioPromedio, 2) }}</strong> c/u</span>
-    </div>
-</div>
-
-@endforeach
-
-<div class="bar-value" style="margin-top: 10px; padding-top: 8px; border-top: 2px solid #ecf0f1;">
-    <span><strong>TOTALES:</strong> {{ $totalUnidades }} unidades</span>
-    <span><strong>${{ number_format($totalIngresosProductos, 2) }}</strong></span>
-</div>
-</div>
-
-<!-- ============================= -->
-<!-- ===== TABLA EMPLEADOS ===== -->
-<!-- ============================= -->
-
-@if($ventasPorEmpleado->count() > 0)
-<h2>Detalle por Colaborador</h2>
-
-<table>
-<thead>
-<tr>
-    <th>Nombre</th>
-    <th class="text-right">Ventas</th>
-    <th class="text-right">Ingresos</th>
-    <th class="text-right">Promedio</th>
-    <th class="text-right">%</th>
-</tr>
-</thead>
-<tbody>
-@foreach($ventasPorEmpleado as $index => $ventaEmpleado)
-@php
-$porcentaje = $totalIngresos > 0 ? ($ventaEmpleado->total_ingresos / $totalIngresos) * 100 : 0;
-$empleado = $ventaEmpleado->empleado;
-$nombreEmpleado = $empleado 
-    ? trim(($empleado->Nombre ?? '') . ' ' . ($empleado->ApPaterno ?? ''))
-    : '—';
-@endphp
-<tr>
-    <td>
-        @if($index == 0)
-            <span class="badge-dark" style="margin-right:5px;">TOP</span>
-        @endif
-        {{ $nombreEmpleado }}
-    </td>
-    <td class="text-right">{{ $ventaEmpleado->total_ventas }}</td>
-    <td class="text-right">${{ number_format($ventaEmpleado->total_ingresos, 2) }}</td>
-    <td class="text-right">${{ number_format($ventaEmpleado->promedio_venta, 2) }}</td>
-    <td class="text-right">{{ number_format($porcentaje, 1) }}%</td>
-</tr>
-@endforeach
-</tbody>
-</table>
-@endif
-
-<!-- ============================= -->
-<!-- ===== TABLA VENTAS ===== -->
-<!-- ============================= -->
-
-@if($ventas->count() > 0)
-<h2>Últimas Transacciones</h2>
-
-<table>
-<thead>
-<tr>
-    <th>Folio</th>
-    <th>Fecha</th>
-    <th>Empleado</th>
-    <th class="text-right">Total</th>
-    <th class="text-center">Items</th>
-</tr>
-</thead>
-<tbody>
-@foreach($ventas->take(12) as $venta)
-<tr>
-    <td>#{{ str_pad($venta->id, 4, '0', STR_PAD_LEFT) }}</td>
-    <td>{{ date('d/m', strtotime($venta->Fecha)) }}</td>
-    <td class="truncate">
-        {{ $venta->empleado 
-            ? trim(($venta->empleado->Nombre ?? '') . ' ' . ($venta->empleado->ApPaterno ?? ''))
-            : '—' }}
-    </td>
-    <td class="text-right">${{ number_format($venta->Total, 2) }}</td>
-    <td class="text-center">{{ $venta->detalleVentas->count() }}</td>
-</tr>
-@endforeach
-</tbody>
-</table>
-@endif
-
-<!-- ============================= -->
-<!-- ===== RESUMEN EJECUTIVO ===== -->
-<!-- ============================= -->
-
-<div class="summary-box">
-    <div class="summary-title">RESUMEN EJECUTIVO</div>
-    <div class="summary-grid">
-        <div class="summary-item">
-            <p><strong>Período analizado:</strong> {{ $resumenEjecutivo['dias_periodo'] }} días</p>
-            <p><strong>Días con ventas:</strong> {{ $resumenEjecutivo['dias_con_ventas'] }}</p>
-            <p><strong>Días sin ventas:</strong> {{ $resumenEjecutivo['dias_sin_ventas'] }}</p>
-        </div>
-        <div class="summary-item">
-            <p><strong>Ingreso promedio diario:</strong> ${{ number_format($resumenEjecutivo['ingresos_por_dia'], 2) }}</p>
-            @if($productosMasVendidos->first() ?? false)
-            <p><strong>Producto más vendido:</strong> {{ $productosMasVendidos->first()->producto->Nombre ?? '—' }}</p>
+    <script>
+        // Cargar Google Charts
+        google.charts.load('current', { packages: ['corechart', 'bar'] });
+        google.charts.setOnLoadCallback(drawCharts);
+        
+        function drawCharts() {
+            // 1. GRÁFICA DE EMPLEADOS
+            @if(!empty($datosGraficaEmpleados) && count($datosGraficaEmpleados) > 0)
+                try {
+                    var dataEmpleados = new google.visualization.DataTable();
+                    dataEmpleados.addColumn('string', 'Vendedor');
+                    dataEmpleados.addColumn('number', 'Ventas');
+                    
+                    @foreach($datosGraficaEmpleados as $empleado)
+                        dataEmpleados.addRow(['{{ $empleado['nombre'] }}', {{ $empleado['total'] }}]);
+                    @endforeach
+                    
+                    var optionsEmpleados = {
+                        title: 'Ventas por Vendedor',
+                        colors: ['#667eea'],
+                        legend: { position: 'none' },
+                        bars: 'vertical',
+                        vAxis: { 
+                            title: 'Monto ($)',
+                            format: 'currency'
+                        },
+                        hAxis: { 
+                            title: 'Vendedor',
+                            slantedText: true,
+                            slantedTextAngle: 30
+                        },
+                        height: 300
+                    };
+                    
+                    var chartEmpleados = new google.visualization.ColumnChart(document.getElementById('graficaEmpleados'));
+                    chartEmpleados.draw(dataEmpleados, optionsEmpleados);
+                } catch (e) {
+                    console.error('Error empleados:', e);
+                    document.getElementById('graficaEmpleados').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">Error al cargar gráfica</p>';
+                }
+            @else
+                document.getElementById('graficaEmpleados').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">No hay datos de ventas por empleado</p>';
             @endif
-        </div>
-    </div>
-</div>
-
-<div class="footer">
-    CONFIDENCIAL · <span class="page-number"></span> · {{ $fechaGeneracion }}
-</div>
-
+            
+            // 2. GRÁFICA DE PRODUCTOS
+            @if(!empty($datosGraficaProductos) && count($datosGraficaProductos) > 0)
+                try {
+                    var dataProductos = new google.visualization.DataTable();
+                    dataProductos.addColumn('string', 'Producto');
+                    dataProductos.addColumn('number', 'Cantidad');
+                    
+                    @foreach($datosGraficaProductos as $producto)
+                        dataProductos.addRow(['{{ $producto['nombre'] }}', {{ $producto['cantidad'] }}]);
+                    @endforeach
+                    
+                    var optionsProductos = {
+                        title: 'Productos más vendidos',
+                        colors: ['#ff9f40'],
+                        legend: { position: 'none' },
+                        bars: 'vertical',
+                        vAxis: { 
+                            title: 'Cantidad',
+                            format: '0'
+                        },
+                        hAxis: { 
+                            title: 'Producto',
+                            slantedText: true,
+                            slantedTextAngle: 30
+                        },
+                        height: 300
+                    };
+                    
+                    var chartProductos = new google.visualization.ColumnChart(document.getElementById('graficaProductos'));
+                    chartProductos.draw(dataProductos, optionsProductos);
+                } catch (e) {
+                    console.error('Error productos:', e);
+                    document.getElementById('graficaProductos').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">Error al cargar gráfica</p>';
+                }
+            @else
+                document.getElementById('graficaProductos').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">No hay datos de productos vendidos</p>';
+            @endif
+            
+            // 3. GRÁFICA DIARIA
+            @if(!empty($datosGraficaDiaria) && count($datosGraficaDiaria) > 0)
+                try {
+                    var dataDiaria = new google.visualization.DataTable();
+                    dataDiaria.addColumn('string', 'Fecha');
+                    dataDiaria.addColumn('number', 'Ventas');
+                    
+                    @foreach($datosGraficaDiaria as $dia)
+                        dataDiaria.addRow(['{{ $dia['fecha'] }}', {{ $dia['total'] }}]);
+                    @endforeach
+                    
+                    var optionsDiaria = {
+                        title: 'Ventas por Día',
+                        colors: ['#10b981'],
+                        legend: { position: 'none' },
+                        curveType: 'function',
+                        vAxis: { 
+                            title: 'Monto ($)',
+                            format: 'currency'
+                        },
+                        hAxis: { 
+                            title: 'Fecha',
+                            slantedText: true,
+                            slantedTextAngle: 30
+                        },
+                        height: 300,
+                        pointSize: 5
+                    };
+                    
+                    var chartDiaria = new google.visualization.LineChart(document.getElementById('graficaDiaria'));
+                    chartDiaria.draw(dataDiaria, optionsDiaria);
+                } catch (e) {
+                    console.error('Error diaria:', e);
+                    document.getElementById('graficaDiaria').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">Error al cargar gráfica</p>';
+                }
+            @else
+                document.getElementById('graficaDiaria').innerHTML = '<p style="text-align: center; color: #999; padding: 50px;">No hay datos de ventas diarias</p>';
+            @endif
+        }
+    </script>
 </body>
 </html>

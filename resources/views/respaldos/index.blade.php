@@ -95,7 +95,7 @@
         </div>
     @endif
 
-    <!-- LEYENDA DE RESTAURACIÓN EXITOSA MEJORADA -->
+    <!-- LEYENDA DE RESTAURACIÓN EXITOSA CON REDIRECCIÓN A LOGIN -->
     @if(session('restauracion_exitosa'))
     <div class="alert alert-modern alert-success mb-4 p-0" style="
         background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
@@ -902,6 +902,7 @@
                             <h5 class="alert-heading fw-bold mb-2" style="color: #721c24;">¡ADVERTENCIA CRÍTICA!</h5>
                             <p class="mb-0" style="color: #721c24;">
                                 Esta acción <strong>ELIMINARÁ</strong> toda la base de datos actual y <strong>CREARÁ UNA NUEVA</strong> con los datos del archivo SQL seleccionado.
+                                <br><strong class="text-warning">NOTA:</strong> Serás redirigido a la página de login después de la restauración exitosa.
                             </p>
                         </div>
                     </div>
@@ -1132,12 +1133,11 @@ function validarConfirmacionRestaurarPersonalizado() {
     }
 }
 
-// Función para enviar el formulario
+// Función para enviar el formulario - VERSIÓN CORREGIDA PARA MANEJAR CIERRE DE SESIÓN
 function enviarFormularioRestaurarPersonalizado() {
     const form = document.getElementById('restaurarFormPersonalizado');
     const formData = new FormData(form);
     
-    // Mostrar confirmación con SweetAlert
     Swal.fire({
         title: '¿Restaurar Base de Datos?',
         html: `
@@ -1149,8 +1149,9 @@ function enviarFormularioRestaurarPersonalizado() {
                         Esta acción:
                         <ul class="mb-2 mt-2">
                             <li>Eliminará la base de datos actual</li>
-                            <li>Importará el archivo: <strong>${archivoSeleccionadoPersonalizado.name}</strong></li>
+                            <li>Importará el archivo: <strong>${archivoSeleccionadoPersonalizado ? archivoSeleccionadoPersonalizado.name : 'No seleccionado'}</strong></li>
                             <li>Podría tomar varios minutos</li>
+                            <li><strong class="text-warning">Serás redirigido a la página de login después de la restauración exitosa</strong></li>
                         </ul>
                     </div>
                 </div>
@@ -1162,8 +1163,7 @@ function enviarFormularioRestaurarPersonalizado() {
         cancelButtonText: '<i class="fas fa-times me-2"></i> Cancelar',
         confirmButtonColor: '#ffc107',
         cancelButtonColor: '#6c757d',
-        reverseButtons: true,
-        customClass: { popup: 'shadow-lg' }
+        reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
             // Mostrar loading
@@ -1185,36 +1185,133 @@ function enviarFormularioRestaurarPersonalizado() {
             // Cerrar el modal personalizado
             cerrarModalRestaurarPersonalizado();
             
-            // Enviar formulario
+            // Enviar formulario con fetch
             fetch(form.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(async response => {
+                // Verificar si la respuesta es JSON o HTML
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Error en la restauración');
+                    }
+                    
+                    return data;
+                } else {
+                    const text = await response.text();
+                    
+                    // Si es una redirección a login (código 302)
+                    if (response.status === 302 || response.redirected) {
+                        // La restauración fue exitosa pero la sesión se perdió
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Restauración Exitosa!',
+                            html: `
+                                <div class="text-center">
+                                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                    <h5>Base de datos restaurada correctamente</h5>
+                                    <p class="mb-3">La sesión ha sido cerrada por seguridad.</p>
+                                    <a href="${response.url || '{{ route("login") }}'}" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Ir a Iniciar Sesión
+                                    </a>
+                                </div>
+                            `,
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            backdrop: 'rgba(0,0,0,0.7)'
+                        });
+                        
+                        // Redirigir después de 5 segundos si no hay clic
+                        setTimeout(() => {
+                            window.location.href = response.url || '{{ route("login") }}';
+                        }, 5000);
+                        
+                        return null;
+                    }
+                    
+                    // Si contiene HTML de error
+                    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                        throw new Error('Error en la restauración. Por favor, verifica los logs.');
+                    }
+                    
+                    return text;
+                }
+            })
             .then(data => {
-                if (data.success) {
+                if (data === null) return; // Ya manejamos la redirección
+                
+                if (data && data.success) {
+                    // Restauración exitosa con respuesta JSON
                     Swal.fire({
                         icon: 'success',
                         title: '¡Restauración Exitosa!',
-                        text: data.message || 'Base de datos restaurada correctamente',
-                        confirmButtonColor: '#28a745'
-                    }).then(() => {
-                        window.location.reload();
+                        html: `
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h5>${data.message || 'Base de datos restaurada correctamente'}</h5>
+                                <p class="mb-3">Serás redirigido a la página de login por seguridad.</p>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        backdrop: 'rgba(0,0,0,0.7)'
                     });
-                } else {
+                    
+                    // Redirigir a login
+                    setTimeout(() => {
+                        window.location.href = '{{ route("login") }}';
+                    }, 3000);
+                    
+                } else if (data && !data.success) {
                     throw new Error(data.message || 'Error en la restauración');
+                } else {
+                    // Si no hay datos pero tampoco error, redirigir a login
+                    window.location.href = '{{ route("login") }}';
                 }
             })
             .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message,
-                    confirmButtonColor: '#dc3545'
-                });
+                console.error('Error completo:', error);
+                
+                // Verificar si el error es por autenticación (lo cual es esperado después de restaurar)
+                if (error.message.includes('Unauthenticated') || error.message.includes('login')) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Restauración Exitosa!',
+                        html: `
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h5>La base de datos fue restaurada correctamente</h5>
+                                <p class="mb-3">La sesión se cerró por seguridad.</p>
+                                <a href="{{ route('login') }}" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Ir a Iniciar Sesión
+                                </a>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        backdrop: 'rgba(0,0,0,0.7)'
+                    });
+                    
+                    setTimeout(() => {
+                        window.location.href = '{{ route("login") }}';
+                    }, 5000);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en la restauración',
+                        text: error.message || 'Error al conectar con el servidor',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
             });
         }
     });
@@ -1448,15 +1545,33 @@ function eliminarRespaldo(id) {
         headers: {
             'X-CSRF-TOKEN': csrfToken,
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
+    .then(async response => {
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Error en la respuesta');
+            return data;
+        } else {
+            const text = await response.text();
+            if (response.redirected) {
+                window.location.href = response.url;
+                return null;
+            }
+            if (text.includes('<!DOCTYPE')) {
+                throw new Error('La operación se completó pero hubo un problema con la respuesta');
+            }
+            return text;
+        }
     })
     .then(data => {
-        if (data.success) {
+        if (data === null) return;
+        
+        if (data && data.success) {
             Swal.fire({
                 title: '¡Eliminado!',
                 text: data.message || 'Respaldo eliminado exitosamente',
@@ -1465,7 +1580,7 @@ function eliminarRespaldo(id) {
                 confirmButtonText: 'OK'
             }).then(() => window.location.reload());
         } else {
-            throw new Error(data.message || 'Error al eliminar');
+            throw new Error(data?.message || 'Error al eliminar');
         }
     })
     .catch(error => {
@@ -1475,7 +1590,7 @@ function eliminarRespaldo(id) {
             text: error.message || 'No se pudo eliminar el respaldo',
             icon: 'error',
             confirmButtonColor: '#dc3545'
-        });
+        }).then(() => window.location.reload());
     });
 }
 

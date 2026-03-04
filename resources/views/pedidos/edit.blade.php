@@ -277,7 +277,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Prioridad - CON EL MISMO DISEÑO QUE SOLICITASTE -->
+                                    <!-- Prioridad -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -294,21 +294,17 @@
                                                         name="Prioridad" 
                                                         required>
                                                     <option value="">Seleccionar prioridad</option>
-                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }} 
-                                                            data-badge="danger" data-icon="fa-exclamation-triangle">
-                                                        Alta Prioridad 
+                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }}>
+                                                        Alta Prioridad
                                                     </option>
-                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}
-                                                            data-badge="warning" data-icon="fa-clock">
-                                                        Media Prioridad 
+                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}>
+                                                        Media Prioridad
                                                     </option>
-                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}
-                                                            data-badge="success" data-icon="fa-calendar-check">
-                                                        Baja Prioridad 
+                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}>
+                                                        Baja Prioridad
                                                     </option>
-                                                    <option value="Normal" {{ old('Prioridad', $pedido->Prioridad) == 'Normal' ? 'selected' : '' }}
-                                                            data-badge="info" data-icon="fa-check-circle">
-                                                        Prioridad Normal 
+                                                    <option value="Normal" {{ old('Prioridad', $pedido->Prioridad) == 'Normal' ? 'selected' : '' }}>
+                                                        Prioridad Normal
                                                     </option>
                                                 </select>
                                                 <div class="input-decoration"></div>
@@ -645,7 +641,7 @@
 <!-- Toast Notifications Container -->
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-<!-- Template para fila de producto (oculto) -->
+<!-- Template para fila de producto (oculto) - CORREGIDO -->
 <template id="templateFilaProducto">
     <tr class="fila-producto" style="animation: slideIn 0.3s ease-out;">
         <td>
@@ -1565,7 +1561,7 @@ class FormManager {
         this.setupEventListeners();
         this.initDateValidation();
         this.initRealTimeValidation();
-        this.initPrioridadField(); // AGREGADO: Inicializar campo prioridad
+        this.initPrioridadField();
         this.updateProgress();
         this.initFormReset();
         this.cargarProductosExistentes();
@@ -1575,7 +1571,7 @@ class FormManager {
         this.showServerErrors();
     }
 
-    // AGREGADO: Método para inicializar campo prioridad
+    // Método para inicializar campo prioridad
     initPrioridadField() {
         const prioridadSelect = document.getElementById('prioridad');
         const prioridadBadge = document.getElementById('prioridadBadge');
@@ -1593,7 +1589,7 @@ class FormManager {
         }
     }
 
-    // AGREGADO: Método para actualizar badge de prioridad
+    // Método para actualizar badge de prioridad
     actualizarBadgePrioridad(select, badgeContainer) {
         const valor = select.value;
         
@@ -1937,6 +1933,7 @@ class FormManager {
         document.getElementById('validFieldsCount').textContent = `${completedFields}/${this.requiredFields.length}`;
     }
 
+    // CORREGIDO: Método para cargar productos existentes
     cargarProductosExistentes() {
         @if($pedido->detallePedidos && count($pedido->detallePedidos) > 0)
             @foreach($pedido->detallePedidos as $detalle)
@@ -1951,6 +1948,7 @@ class FormManager {
         @endif
     }
 
+    // CORREGIDO: Método para agregar fila de producto
     agregarFilaProducto(productoId = '', precio = 0, cantidad = 1) {
         const template = document.getElementById('templateFilaProducto');
         const cuerpoTabla = document.getElementById('cuerpoTablaProductos');
@@ -1979,7 +1977,7 @@ class FormManager {
             
             // Establecer precio y cantidad
             const inputPrecio = fila.querySelector('.precio-unitario');
-            inputPrecio.value = precio;
+            inputPrecio.value = precio.toFixed(2);
             
             const inputCantidad = fila.querySelector('.cantidad');
             inputCantidad.value = cantidad;
@@ -2040,7 +2038,9 @@ class FormManager {
             } else {
                 inputPrecio.value = '0';
                 precioBaseIndicator.textContent = '';
-                this.productosSeleccionados.delete(productoId);
+                if (productoId) {
+                    this.productosSeleccionados.delete(productoId);
+                }
             }
             
             this.calcularSubtotal(fila);
@@ -2086,7 +2086,9 @@ class FormManager {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    this.productosSeleccionados.delete(productoId);
+                    if (productoId) {
+                        this.productosSeleccionados.delete(productoId);
+                    }
                     fila.remove();
                     this.actualizarResumen();
                     this.reindexarFilas();
@@ -2235,9 +2237,8 @@ class FormManager {
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
 
-            setTimeout(() => {
-                form.submit();
-            }, 500);
+            // Enviar el formulario directamente
+            form.submit();
         }
     }
 }

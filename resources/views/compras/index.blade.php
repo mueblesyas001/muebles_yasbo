@@ -1193,7 +1193,7 @@ function cerrarModalEliminarPersonalizado() {
     compraProveedorAEliminar = null;
 }
 
-// Función para ejecutar la eliminación
+// Función simplificada para ejecutar la eliminación (OPCIÓN 3 - FORMULARIO TRADICIONAL)
 function ejecutarEliminacion() {
     if (!compraIdAEliminar) {
         notifier.showError('Error: No se ha seleccionado una compra para eliminar');
@@ -1201,38 +1201,45 @@ function ejecutarEliminacion() {
         return;
     }
     
-    // Mostrar loading
-    notifier.showInfo('Eliminando compra...', 'info', 'Procesando');
-    
     const form = document.getElementById('deleteFormPersonalizado');
+    
+    // Configurar la acción del formulario con el ID de la compra
     form.action = `/compras/${compraIdAEliminar}`;
     
-    // Enviar formulario
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        cerrarModalEliminarPersonalizado();
-        
-        if (data.success) {
-            notifier.showSuccess(data.message || 'Compra eliminada exitosamente');
-            // Recargar la página después de un pequeño delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            throw new Error(data.message || 'Error al eliminar la compra');
-        }
-    })
-    .catch(error => {
-        cerrarModalEliminarPersonalizado();
-        notifier.showError(error.message);
-    });
+    // Asegurar que tenga el método DELETE
+    let methodInput = form.querySelector('input[name="_method"]');
+    if (!methodInput) {
+        methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'DELETE';
+        form.appendChild(methodInput);
+    } else {
+        methodInput.value = 'DELETE';
+    }
+    
+    // Asegurar token CSRF
+    let tokenInput = form.querySelector('input[name="_token"]');
+    if (!tokenInput) {
+        tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        form.appendChild(tokenInput);
+    } else {
+        tokenInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    }
+    
+    // Cerrar el modal
+    cerrarModalEliminarPersonalizado();
+    
+    // Mostrar mensaje de carga (opcional)
+    if (typeof notifier !== 'undefined') {
+        notifier.showInfo('Eliminando compra...', 'info', 'Procesando');
+    }
+    
+    // Enviar el formulario
+    form.submit();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1272,6 +1279,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cerrar modal con tecla ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
+            cerrarModalEliminarPersonalizado();
+        }
+    });
+    
+    // Cerrar modal al hacer click en el overlay
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-personalizado-overlay')) {
             cerrarModalEliminarPersonalizado();
         }
     });
