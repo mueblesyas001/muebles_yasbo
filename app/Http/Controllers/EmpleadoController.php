@@ -239,7 +239,7 @@ class EmpleadoController extends Controller
 
             // Si tiene usuario y se editan credenciales
             if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
-                $rules['correo'] = [
+                $rules['correo_usuario'] = [ // CORREGIDO: de 'correo' a 'correo_usuario'
                     'required',
                     'email',
                     Rule::unique('usuarios', 'correo')->ignore($empleado->usuario->id)
@@ -253,7 +253,7 @@ class EmpleadoController extends Controller
 
             $validated = $request->validate($rules, [
                 'Telefono.unique' => 'El número de teléfono ya está registrado.',
-                'correo.unique' => 'El correo electrónico ya está en uso.',
+                'correo_usuario.unique' => 'El correo electrónico ya está en uso.', // CORREGIDO
             ]);
 
             // Verificar edad
@@ -277,7 +277,7 @@ class EmpleadoController extends Controller
             // Actualizar usuario si corresponde
             if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
                 $userData = [
-                    'correo' => $validated['correo'],
+                    'correo' => $validated['correo_usuario'], // CORREGIDO: de 'correo' a 'correo_usuario'
                     'rol' => $validated['rol'],
                 ];
 

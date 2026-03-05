@@ -483,7 +483,6 @@ class ReporteController extends Controller
             return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
         }
     }
-
     /**
      * ===========================================
      * 3. REPORTE DE PEDIDOS
@@ -497,7 +496,7 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
-        // Usar Fecha_entrega como columna de fecha (ajusta según tu modelo)
+        // Usar Fecha_entrega como columna de fecha
         $fechaColumn = 'Fecha_entrega';
         
         // Verificar si hay pedidos en el período seleccionado
@@ -514,7 +513,7 @@ class ReporteController extends Controller
         $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto']);
         
         $query->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-              ->whereDate($fechaColumn, '<=', $request->fecha_fin);
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin);
         
         if ($request->filled('estado')) {
             $query->where('Estado', $request->estado);
@@ -531,24 +530,24 @@ class ReporteController extends Controller
         
         $pedidos = $query->get();
         
-        // DIAGNÓSTICO: Ver los valores reales de Estado
+        // Ver los valores reales de Estado (para diagnóstico)
         $valoresEstado = $pedidos->pluck('Estado')->unique()->values();
         \Log::info('Valores de Estado en pedidos:', $valoresEstado->toArray());
         
         // ESTADÍSTICAS PRINCIPALES
         $totalPedidos = $pedidos->count();
         
-        // Mapeo de estados (ajusta según tus valores reales)
+        // Mapeo de estados según los valores que viste en el log: ["Pendiente","En proceso"]
         $estadoMap = [
             'pendiente' => ['pendiente', 'pending', 'Pendiente'],
             'proceso' => ['en proceso', 'proceso', 'processing', 'En Proceso', 'En proceso'],
-            'completado' => ['completado', 'entregado', 'completed', 'Completado', 'Entregado'],
+            'entregado' => ['completado', 'entregado', 'completed', 'Completado', 'Entregado'],
             'cancelado' => ['cancelado', 'cancelled', 'Cancelado']
         ];
         
         $pedidosPendientes = 0;
         $pedidosEnProceso = 0;
-        $pedidosCompletados = 0;
+        $pedidosEntregados = 0;  // Cambiado de pedidosCompletados a pedidosEntregados
         $pedidosCancelados = 0;
         
         foreach ($pedidos as $pedido) {
@@ -558,8 +557,8 @@ class ReporteController extends Controller
                 $pedidosPendientes++;
             } elseif (in_array($estado, $estadoMap['proceso'])) {
                 $pedidosEnProceso++;
-            } elseif (in_array($estado, $estadoMap['completado'])) {
-                $pedidosCompletados++;
+            } elseif (in_array($estado, $estadoMap['entregado'])) {
+                $pedidosEntregados++;  // Cambiado
             } elseif (in_array($estado, $estadoMap['cancelado'])) {
                 $pedidosCancelados++;
             }
@@ -567,6 +566,9 @@ class ReporteController extends Controller
         
         // Calcular total de pedidos en valor
         $valorTotalPedidos = $pedidos->sum('Total');
+        
+        // Tiempo promedio de entrega (si aplica)
+        $tiempoPromedioEntrega = 'N/A';
         
         // Cliente con más pedidos
         $clienteTop = Pedido::with('cliente')
@@ -610,7 +612,7 @@ class ReporteController extends Controller
         $pedidosPorEstado = [
             'pendiente' => $pedidosPendientes,
             'en proceso' => $pedidosEnProceso,
-            'completado' => $pedidosCompletados,
+            'entregado' => $pedidosEntregados,  // Cambiado
             'cancelado' => $pedidosCancelados
         ];
         
@@ -623,7 +625,7 @@ class ReporteController extends Controller
             )
             ->whereHas('pedido', function($q) use ($request, $fechaColumn) {
                 $q->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-                  ->whereDate($fechaColumn, '<=', $request->fecha_fin);
+                ->whereDate($fechaColumn, '<=', $request->fecha_fin);
             })
             ->groupBy('Producto')
             ->orderBy('total_cantidad', 'desc')
@@ -632,8 +634,8 @@ class ReporteController extends Controller
         
         // PREPARAR DATOS PARA GRÁFICAS GD
         $datosChartEstados = [
-            'labels' => ['Pendientes', 'En Proceso', 'Completados', 'Cancelados'],
-            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosCompletados, $pedidosCancelados]
+            'labels' => ['Pendientes', 'En Proceso', 'Entregados', 'Cancelados'],  // Cambiado
+            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosEntregados, $pedidosCancelados]  // Cambiado
         ];
         
         $datosChartVendedores = [
@@ -731,8 +733,9 @@ class ReporteController extends Controller
                 'valorTotalPedidos' => $valorTotalPedidos,
                 'pedidosPendientes' => $pedidosPendientes,
                 'pedidosEnProceso' => $pedidosEnProceso,
-                'pedidosCompletados' => $pedidosCompletados,
+                'pedidosEntregados' => $pedidosEntregados,  // Cambiado
                 'pedidosCancelados' => $pedidosCancelados,
+                'tiempoPromedioEntrega' => $tiempoPromedioEntrega,
                 'pedidosPorEstado' => $pedidosPorEstado,
                 'clienteTop' => $clienteTop,
                 'vendedorTop' => $vendedorTop,
@@ -743,16 +746,30 @@ class ReporteController extends Controller
             ]);
             
             $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions([
+                'enable-javascript' => true,
+                'javascript-delay' => 1000,
+                'no-stop-slow-scripts' => true,
+                'enable-smart-shrinking' => true,
+                'dpi' => 150,
+                'defaultFont' => 'sans-serif'
+            ]);
+            
             $nombreArchivo = 'reporte_pedidos_' . date('Y-m-d_H-i-s') . '.pdf';
             
-            return $this->enviarPDFaNuevaPestana($pdf, $nombreArchivo);
+            // Para descargar:
+            return $pdf->download($nombreArchivo);
+            
+            // Para abrir en el navegador (comenta la línea de arriba y descomenta esta):
+            // return $pdf->stream($nombreArchivo);
             
         } catch (\Exception $e) {
             \Log::error('Error en reporte pedidos: ' . $e->getMessage());
+            \Log::error('Trace: ' . $e->getTraceAsString());
             return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
         }
     }
-
+    
     /**
      * ===========================================
      * 4. REPORTE DE INVENTARIO

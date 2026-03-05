@@ -286,9 +286,9 @@
                 <div class="stat-desc">Días para entregar</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Entregados</div>
-                <div class="stat-value">{{ $pedidosEntregados }}</div>
-                <div class="stat-desc">{{ $totalPedidos > 0 ? round(($pedidosEntregados/$totalPedidos)*100, 1) : 0 }}% del total</div>
+                <div class="stat-label">Completados</div>
+                <div class="stat-value">{{ $pedidosCompletados ?? 0 }}</div>
+                <div class="stat-desc">{{ $totalPedidos > 0 ? round((($pedidosCompletados ?? 0)/$totalPedidos)*100, 1) : 0 }}% del total</div>
             </div>
         </div>
         
@@ -356,8 +356,8 @@
                     <div style="font-size: 10px; color: #7f8c8d;">En Proceso</div>
                 </div>
                 <div style="background: #e8f5e9; padding: 12px; border-radius: 6px; text-align: center;">
-                    <div style="font-size: 20px; font-weight: 700; color: #27ae60;">{{ $pedidosEntregados }}</div>
-                    <div style="font-size: 10px; color: #7f8c8d;">Entregados</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #27ae60;">{{ $pedidosCompletados ?? 0 }}</div>
+                    <div style="font-size: 10px; color: #7f8c8d;">Completados</div>
                 </div>
                 <div style="background: #fdeded; padding: 12px; border-radius: 6px; text-align: center;">
                     <div style="font-size: 20px; font-weight: 700; color: #e74c3c;">{{ $pedidosCancelados }}</div>
