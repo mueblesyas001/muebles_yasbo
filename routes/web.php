@@ -46,8 +46,6 @@ Route::middleware('guest')->group(function () {
     // LOGIN
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
-    // En routes/web.php
-    Route::match(['get', 'post'], '/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
     Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
