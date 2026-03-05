@@ -1,0 +1,105 @@
+[33mcommit 321293c2860b62d3cf41b556d236c5915e0c1f52[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Thu Mar 5 11:25:20 2026 -0600
+
+    Reportes y problemas de usabilidad resueltos
+
+[33mcommit 2c61f6b1f613a468696fbd7e31ccef147a8fa0df[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Wed Mar 4 10:55:20 2026 -0600
+
+    Soluciones:
+    Problema con la restauración de la Base de datos
+    Problema con la generación de gráficas en los reportes
+    Problema con el módulo de calendarización
+
+[33mcommit 8a50783ed717dd99dc193bcaad44053f555c0ed5[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Mon Mar 2 13:59:56 2026 -0600
+
+    Correcciones
+
+[33mcommit 7e1ac83643825689361f3269202e71e03783720c[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Sun Mar 1 23:34:58 2026 -0600
+
+    Sistema completo, cambios:
+    Gestión de proveedores
+    Problemas de usabilidad
+    Diseño de calendario
+
+[33mcommit 68f88547b4caf0a939ae7c88172ef9a62571e10b[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Fri Feb 27 16:32:46 2026 -0600
+
+    Problemas resueltos
+
+[33mcommit e11548be691286bec4c04e69f6a74ba307965860[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Fri Feb 27 00:30:25 2026 -0600
+
+    Problemas de usabilidad resueltos
+
+[33mcommit c5e19271e9298b314be0b3de56ea6d9d4be92b5d[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Thu Feb 26 21:25:16 2026 -0600
+
+    Actualiza diseño de página principal
+
+[33mcommit 42cd8fd0653cbb211d7c769ac6d5def949da259d[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Thu Feb 26 20:59:50 2026 -0600
+
+    Logica modificada
+
+[33mcommit 421189da253f6f53164ced96e684acc0a8ad1eb7[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Thu Feb 26 17:51:35 2026 -0600
+
+    Sistema al 100 Correcciones de validaciones, categorias y sistema funcionando al 10000000%d
+
+[33mcommit fa828a470b12c341c090e15f2bb2594f5138b213[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Wed Feb 25 00:15:27 2026 -0600
+
+    Sistema terminado
+
+[33mcommit f61b848c948583f71718c08e2140807b520d0909[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Tue Feb 24 23:04:28 2026 -0600
+
+    Mejoras en validaciones y calendario:
+    - Agregadas validaciones para evitar duplicados en empleados (teléfono, correo, nombre completo)
+    - Mejorados permisos por roles en el layout
+    - Corregidos colores de prioridad en calendario (sincronizados con leyenda)
+    - Optimizada interfaz de calendario con mejor visualización
+
+[33mcommit fcf288834085da106d056a6e6bc7660fa70483e5[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Fri Feb 20 22:33:17 2026 -0600
+
+    Actualizar sistema de roles: Administración, Almacén y Logística
+
+[33mcommit d3e6c45e690942fe9e65492a1d6b8cbc997d7908[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Fri Feb 20 07:41:59 2026 -0600
+
+    Solucion de conflictos y problemas
+
+[33mcommit 79e4349bf51dc46fc4398a48a4602178a1e696da[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Wed Feb 18 12:47:30 2026 -0600
+
+    Subiendo proyecto completo Muebles Yasbo
+
+[33mcommit 66b69766ee256d5b40b6d4478db3f0411619b00b[m
+Author: mueblesyas001 <mueblesyasboof@gmail.com>
+Date:   Wed Feb 18 12:44:05 2026 -0600
+
+    first commit
+
+[33mcommit ec99e3470995f92d76b1ba1f22dba372509f0765[m
+Author: GustavoVega1 <vego210232@upemor.edu.mx>
+Date:   Wed Feb 18 12:40:31 2026 -0600
+
+    first commit

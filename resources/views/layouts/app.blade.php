@@ -1024,7 +1024,7 @@ function exportarExcel(nombre, datos, columnas) {
 </script>
 
 @auth
-<form id="logout-form" method="POST" action="{{ route('welcome') }}" class="d-none">
+<form id="logout-form" method="POST" action="{{ route('/') }}" class="d-none">
     @csrf
 </form>
 @endauth
