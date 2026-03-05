@@ -8,11 +8,14 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "chartpdf/chartpdf": "^0.0.6",
         "consoletvs/charts": "6.*",
         "laravel/fortify": "^1.31",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "spatie/laravel-pdf": "*",
+        "spatie/browsershot": "^5.2",
+        "spatie/laravel-pdf": "^2.2",
+        "szymach/c-pchart": "^1.1",
         "tecnickcom/tcpdf": "*"
     },
     "require-dev": {

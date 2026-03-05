@@ -18,6 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Helpers\GraficaHelper;
 
 class ReporteController extends Controller
 {
@@ -70,7 +71,7 @@ class ReporteController extends Controller
 
     /**
      * ===========================================
-     * 1. REPORTE DE VENTAS
+     * 1. REPORTE DE VENTAS (CON GRÁFICAS GD)
      * ===========================================
      */
     public function generarReporteVentas(Request $request){
@@ -124,11 +125,7 @@ class ReporteController extends Controller
             $productosMasVendidos = $productosMasVendidos->sortByDesc('total_vendido')->take(10);
         }
         
-        // ===== DATOS PARA GRÁFICAS =====
-        
-        // 5. GRÁFICA 1: VENTAS POR EMPLEADO
-        $datosGraficaEmpleados = [];
-        
+        // 5. VENTAS POR EMPLEADO
         $ventasPorEmpleado = Venta::with('empleado')
             ->select('Empleado_idEmpleado', DB::raw('SUM(Total) as total'))
             ->whereDate('Fecha', '>=', $request->fecha_inicio)
@@ -136,43 +133,7 @@ class ReporteController extends Controller
             ->groupBy('Empleado_idEmpleado')
             ->get();
         
-        foreach($ventasPorEmpleado as $venta) {
-            $nombre = 'Sin vendedor';
-            if($venta->empleado) {
-                $nombre = trim($venta->empleado->Nombre . ' ' . ($venta->empleado->ApPaterno ?? ''));
-            }
-            $datosGraficaEmpleados[] = [
-                'nombre' => $nombre,
-                'total' => floatval($venta->total)
-            ];
-        }
-        
-        // 6. GRÁFICA 2: PRODUCTOS MÁS VENDIDOS
-        $datosGraficaProductos = [];
-        
-        $productosTop = DetalleVenta::with('producto')
-            ->select('Producto', DB::raw('SUM(Cantidad) as total_cantidad'))
-            ->whereHas('venta', function($q) use ($request) {
-                $q->whereDate('Fecha', '>=', $request->fecha_inicio)
-                ->whereDate('Fecha', '<=', $request->fecha_fin);
-            })
-            ->groupBy('Producto')
-            ->orderBy('total_cantidad', 'desc')
-            ->limit(5)
-            ->get();
-        
-        foreach($productosTop as $detalle) {
-            if($detalle->producto) {
-                $datosGraficaProductos[] = [
-                    'nombre' => $detalle->producto->Nombre,
-                    'cantidad' => intval($detalle->total_cantidad)
-                ];
-            }
-        }
-        
-        // 7. GRÁFICA 3: VENTAS POR DÍA
-        $datosGraficaDiaria = [];
-        
+        // 6. VENTAS POR DÍA
         $ventasPorDia = Venta::select(
                 DB::raw('DATE(Fecha) as fecha'),
                 DB::raw('SUM(Total) as total')
@@ -183,14 +144,57 @@ class ReporteController extends Controller
             ->orderBy('fecha')
             ->get();
         
+        // 7. PREPARAR DATOS PARA GRÁFICAS CON GD
+        $datosChartDiario = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($ventasPorDia as $dia) {
-            $datosGraficaDiaria[] = [
-                'fecha' => date('d/m', strtotime($dia->fecha)),
-                'total' => floatval($dia->total)
-            ];
+            $datosChartDiario['labels'][] = date('d/m', strtotime($dia->fecha));
+            $datosChartDiario['data'][] = floatval($dia->total);
         }
         
-        // 8. RESUMEN EJECUTIVO
+        $datosChartEmpleados = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($ventasPorEmpleado as $venta) {
+            $nombre = 'Sin vendedor';
+            if($venta->empleado) {
+                $nombre = trim($venta->empleado->Nombre . ' ' . ($venta->empleado->ApPaterno ?? ''));
+            }
+            $datosChartEmpleados['labels'][] = $nombre;
+            $datosChartEmpleados['data'][] = floatval($venta->total);
+        }
+        
+        $datosChartProductos = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($productosMasVendidos->take(5) as $item) {
+            $datosChartProductos['labels'][] = $item->producto->Nombre ?? 'Producto';
+            $datosChartProductos['data'][] = intval($item->total_vendido);
+        }
+        
+        // 8. GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if (!empty($datosChartDiario['labels'])) {
+            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartDiario, 'Ventas Diarias');
+        }
+        
+        if (!empty($datosChartEmpleados['labels'])) {
+            $graficas['empleados'] = GraficaHelper::generarBarra($datosChartEmpleados, 'Ventas por Vendedor');
+        }
+        
+        if (!empty($datosChartProductos['labels'])) {
+            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductos, 'Productos más vendidos');
+        }
+        
+        // 9. RESUMEN EJECUTIVO
         $fechaInicioObj = Carbon::parse($request->fecha_inicio);
         $fechaFinObj = Carbon::parse($request->fecha_fin);
         $diasPeriodo = $fechaInicioObj->diffInDays($fechaFinObj) + 1;
@@ -201,7 +205,7 @@ class ReporteController extends Controller
             'dias_sin_ventas' => $diasPeriodo - $ventasPorDia->count(),
         ];
         
-        // 9. GENERAR PDF
+        // 10. GENERAR PDF
         try {
             $pdf = Pdf::loadView('reportes.pdf.ventas', [
                 'fechaInicio' => $request->fecha_inicio,
@@ -213,9 +217,8 @@ class ReporteController extends Controller
                 'resumenEjecutivo' => $resumenEjecutivo,
                 'productosMasVendidos' => $productosMasVendidos,
                 'ventasPorEmpleado' => $ventasPorEmpleado,
-                'datosGraficaEmpleados' => $datosGraficaEmpleados,
-                'datosGraficaProductos' => $datosGraficaProductos,
-                'datosGraficaDiaria' => $datosGraficaDiaria,
+                'ventasPorDia' => $ventasPorDia,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -231,7 +234,7 @@ class ReporteController extends Controller
 
     /**
      * ===========================================
-     * 2. REPORTE DE COMPRAS
+     * 2. REPORTE DE COMPRAS (CON GRÁFICAS GD)
      * ===========================================
      */
     public function generarReporteCompras(Request $request)
@@ -242,7 +245,7 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
-        // OBTENER COMPRAS CON TODOS LOS DATOS
+        // OBTENER COMPRAS
         $query = Compra::with(['proveedor', 'detalleCompras.producto']);
         
         $query->whereDate('Fecha_compra', '>=', $request->fecha_inicio)
@@ -252,7 +255,6 @@ class ReporteController extends Controller
             $query->where('Proveedor_idProveedor', $request->proveedor_id);
         }
         
-        // Ordenar
         $orden = $request->orden ?? 'fecha_desc';
         if ($orden == 'fecha_desc') $query->orderBy('Fecha_compra', 'desc');
         elseif ($orden == 'fecha_asc') $query->orderBy('Fecha_compra', 'asc');
@@ -273,7 +275,6 @@ class ReporteController extends Controller
             })
             ->get();
         
-        // Calcular subtotales para cada detalle
         foreach ($detalleCompras as $detalle) {
             $detalle->subtotal = $detalle->Cantidad * $detalle->Precio_unitario;
         }
@@ -340,46 +341,63 @@ class ReporteController extends Controller
             ->orderBy('fecha', 'asc')
             ->get();
         
-        // DATOS PARA GRÁFICAS
-        $datosGraficaProveedores = [];
+        // PREPARAR DATOS PARA GRÁFICAS GD
+        $datosChartProveedores = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($comprasPorProveedor as $item) {
             $nombreCompleto = $item->proveedor ? $item->proveedor->nombre_completo : 'Proveedor';
-            
-            $datosGraficaProveedores[] = [
-                'nombre' => $nombreCompleto,
-                'monto' => floatval($item->total_egresos)
-            ];
+            $datosChartProveedores['labels'][] = $nombreCompleto;
+            $datosChartProveedores['data'][] = floatval($item->total_egresos);
         }
         
-        $datosGraficaProductosComprados = [];
-        foreach($productosMasComprados as $item) {
+        $datosChartProductosComprados = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($productosMasComprados->take(5) as $item) {
             $nombreProducto = 'Producto';
             if ($item->producto) {
                 $nombreProducto = $item->producto->Nombre ?? $item->producto->nombre ?? 'Producto';
             }
-            
-            $datosGraficaProductosComprados[] = [
-                'nombre' => $nombreProducto,
-                'cantidad' => intval($item->total_comprado)
-            ];
+            $datosChartProductosComprados['labels'][] = $nombreProducto;
+            $datosChartProductosComprados['data'][] = intval($item->total_comprado);
         }
+        
+        $datosChartComprasDiarias = [
+            'labels' => [],
+            'data' => []
+        ];
         
         $fechaInicioObj = Carbon::parse($request->fecha_inicio);
         $fechaFinObj = Carbon::parse($request->fecha_fin);
         $diasTotales = $fechaInicioObj->diffInDays($fechaFinObj) + 1;
-        
-        $datosGraficaComprasDiarias = [];
         $diasAMostrar = min($diasTotales, 15);
+        
         for ($i = 0; $i < $diasAMostrar; $i++) {
             $fechaActual = $fechaInicioObj->copy()->addDays($i);
             $fechaStr = $fechaActual->format('Y-m-d');
-            
             $compraDia = $comprasPorDia->firstWhere('fecha', $fechaStr);
-            
-            $datosGraficaComprasDiarias[] = [
-                'fecha' => $fechaActual->format('d/m'),
-                'total' => floatval($compraDia->total ?? 0)
-            ];
+            $datosChartComprasDiarias['labels'][] = $fechaActual->format('d/m');
+            $datosChartComprasDiarias['data'][] = floatval($compraDia->total ?? 0);
+        }
+        
+        // GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if (!empty($datosChartProveedores['labels'])) {
+            $graficas['proveedores'] = GraficaHelper::generarBarra($datosChartProveedores, 'Compras por Proveedor');
+        }
+        
+        if (!empty($datosChartProductosComprados['labels'])) {
+            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosComprados, 'Productos más comprados');
+        }
+        
+        if (!empty($datosChartComprasDiarias['labels'])) {
+            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartComprasDiarias, 'Compras Diarias');
         }
         
         $diaPico = $comprasPorDia->sortByDesc('total')->first();
@@ -404,12 +422,10 @@ class ReporteController extends Controller
                 'productosMasComprados' => $productosMasComprados,
                 'comprasPorProveedor' => $comprasPorProveedor,
                 'comprasPorDia' => $comprasPorDia,
-                'datosGraficaProveedores' => $datosGraficaProveedores,
-                'datosGraficaProductosComprados' => $datosGraficaProductosComprados,
-                'datosGraficaComprasDiarias' => $datosGraficaComprasDiarias,
                 'diaPico' => $diaPico,
                 'proveedorPrincipal' => $proveedorPrincipal,
                 'diasPeriodo' => $diasTotales,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -425,7 +441,7 @@ class ReporteController extends Controller
 
     /**
      * ===========================================
-     * 3. REPORTE DE PEDIDOS
+     * 3. REPORTE DE PEDIDOS (SEGÚN REQUERIMIENTOS)
      * ===========================================
      */
     public function generarReportePedidos(Request $request)
@@ -436,23 +452,20 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
-        // OBTENER PEDIDOS CON TODAS LAS RELACIONES
+        // OBTENER PEDIDOS con relaciones necesarias
         $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto']);
         
         $query->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
               ->whereDate('Fecha_pedido', '<=', $request->fecha_fin);
         
-        // Filtro por estado
         if ($request->filled('estado')) {
             $query->where('Estado', $request->estado);
         }
         
-        // Filtro por empleado (vendedor)
         if ($request->filled('empleado_id')) {
             $query->where('Empleado_idEmpleado', $request->empleado_id);
         }
         
-        // Ordenar
         $orden = $request->orden ?? 'fecha_desc';
         if ($orden == 'fecha_desc') $query->orderBy('Fecha_pedido', 'desc');
         elseif ($orden == 'fecha_asc') $query->orderBy('Fecha_pedido', 'asc');
@@ -460,37 +473,15 @@ class ReporteController extends Controller
         
         $pedidos = $query->get();
         
-        // ESTADÍSTICAS GENERALES
+        // ESTADÍSTICAS PRINCIPALES
         $totalPedidos = $pedidos->count();
-        
-        // Conteo por estado
         $pedidosPendientes = $pedidos->where('Estado', 'pendiente')->count();
         $pedidosEnProceso = $pedidos->where('Estado', 'en proceso')->count();
         $pedidosEntregados = $pedidos->where('Estado', 'entregado')->count();
         $pedidosCancelados = $pedidos->where('Estado', 'cancelado')->count();
         
-        // Valor estimado de pedidos (basado en productos)
-        $valorTotalPedidos = 0;
-        foreach ($pedidos as $pedido) {
-            foreach ($pedido->detallePedidos as $detalle) {
-                $valorTotalPedidos += ($detalle->Cantidad * ($detalle->producto->Precio ?? 0));
-            }
-        }
-        
-        // Tiempo promedio de entrega (para pedidos entregados)
-        $tiempoPromedioEntrega = null;
-        $pedidosEntregadosCollection = $pedidos->where('Estado', 'entregado');
-        if ($pedidosEntregadosCollection->count() > 0) {
-            $diasTotales = 0;
-            foreach ($pedidosEntregadosCollection as $pedido) {
-                if ($pedido->Fecha_entrega) {
-                    $fechaPedido = Carbon::parse($pedido->Fecha_pedido);
-                    $fechaEntrega = Carbon::parse($pedido->Fecha_entrega);
-                    $diasTotales += $fechaEntrega->diffInDays($fechaPedido);
-                }
-            }
-            $tiempoPromedioEntrega = round($diasTotales / $pedidosEntregadosCollection->count(), 1);
-        }
+        // Calcular total de pedidos en valor (si tienen campo Total)
+        $valorTotalPedidos = $pedidos->sum('Total');
         
         // Cliente con más pedidos
         $clienteTop = Pedido::with('cliente')
@@ -510,14 +501,10 @@ class ReporteController extends Controller
             ->orderBy('total_pedidos', 'desc')
             ->first();
         
-        // PEDIDOS POR DÍA
+        // PEDIDOS POR DÍA (para gráfica)
         $pedidosPorDia = Pedido::select(
                 DB::raw('DATE(Fecha_pedido) as fecha'),
-                DB::raw('COUNT(*) as cantidad'),
-                DB::raw('SUM(CASE WHEN Estado = "pendiente" THEN 1 ELSE 0 END) as pendientes'),
-                DB::raw('SUM(CASE WHEN Estado = "en proceso" THEN 1 ELSE 0 END) as en_proceso'),
-                DB::raw('SUM(CASE WHEN Estado = "entregado" THEN 1 ELSE 0 END) as entregados'),
-                DB::raw('SUM(CASE WHEN Estado = "cancelado" THEN 1 ELSE 0 END) as cancelados')
+                DB::raw('COUNT(*) as cantidad')
             )
             ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
             ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
@@ -525,95 +512,108 @@ class ReporteController extends Controller
             ->orderBy('fecha', 'asc')
             ->get();
         
-        // PEDIDOS POR VENDEDOR
+        // PEDIDOS POR VENDEDOR (para gráfica)
         $pedidosPorVendedor = Pedido::with('empleado')
-            ->select(
-                'Empleado_idEmpleado', 
-                DB::raw('COUNT(*) as total_pedidos'),
-                DB::raw('SUM(CASE WHEN Estado = "pendiente" THEN 1 ELSE 0 END) as pendientes'),
-                DB::raw('SUM(CASE WHEN Estado = "en proceso" THEN 1 ELSE 0 END) as en_proceso'),
-                DB::raw('SUM(CASE WHEN Estado = "entregado" THEN 1 ELSE 0 END) as entregados')
-            )
+            ->select('Empleado_idEmpleado', DB::raw('COUNT(*) as total_pedidos'))
             ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
             ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
             ->groupBy('Empleado_idEmpleado')
             ->orderBy('total_pedidos', 'desc')
             ->get();
         
-        // PEDIDOS POR CLIENTE
-        $pedidosPorCliente = Pedido::with('cliente')
-            ->select('Cliente_idCliente', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-            ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
-            ->groupBy('Cliente_idCliente')
-            ->orderBy('total_pedidos', 'desc')
-            ->take(10)
-            ->get();
+        // PEDIDOS POR ESTADO (para gráfica)
+        $pedidosPorEstado = [
+            'pendiente' => $pedidosPendientes,
+            'en proceso' => $pedidosEnProceso,
+            'entregado' => $pedidosEntregados,
+            'cancelado' => $pedidosCancelados
+        ];
         
         // PRODUCTOS MÁS PEDIDOS
         $productosMasPedidos = DetallePedido::with('producto')
             ->select(
-                'Producto_idProducto',
+                'Producto',
                 DB::raw('SUM(Cantidad) as total_cantidad'),
-                DB::raw('COUNT(DISTINCT Pedido_idPedido) as veces_pedido')
+                DB::raw('COUNT(DISTINCT Pedido) as veces_pedido')
             )
             ->whereHas('pedido', function($q) use ($request) {
                 $q->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
                   ->whereDate('Fecha_pedido', '<=', $request->fecha_fin);
             })
-            ->groupBy('Producto_idProducto')
+            ->groupBy('Producto')
             ->orderBy('total_cantidad', 'desc')
             ->take(10)
             ->get();
         
-        // DATOS PARA GRÁFICAS
-        $datosGraficaEstados = [
-            ['estado' => 'Pendientes', 'cantidad' => $pedidosPendientes],
-            ['estado' => 'En Proceso', 'cantidad' => $pedidosEnProceso],
-            ['estado' => 'Entregados', 'cantidad' => $pedidosEntregados],
-            ['estado' => 'Cancelados', 'cantidad' => $pedidosCancelados]
+        // PREPARAR DATOS PARA GRÁFICAS GD
+        $datosChartEstados = [
+            'labels' => ['Pendientes', 'En Proceso', 'Entregados', 'Cancelados'],
+            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosEntregados, $pedidosCancelados]
+        ];
+        
+        $datosChartVendedores = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($pedidosPorVendedor as $item) {
+            $nombreCompleto = 'Sin vendedor';
+            if ($item->empleado) {
+                $nombreCompleto = trim(
+                    ($item->empleado->Nombre ?? '') . ' ' . 
+                    ($item->empleado->ApPaterno ?? '') . ' ' . 
+                    ($item->empleado->ApMaterno ?? '')
+                );
+            }
+            $datosChartVendedores['labels'][] = $nombreCompleto;
+            $datosChartVendedores['data'][] = intval($item->total_pedidos);
+        }
+        
+        $datosChartProductosPedidos = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($productosMasPedidos->take(5) as $item) {
+            $datosChartProductosPedidos['labels'][] = $item->producto->Nombre ?? 'Producto';
+            $datosChartProductosPedidos['data'][] = intval($item->total_cantidad);
+        }
+        
+        $datosChartPedidosDiarios = [
+            'labels' => [],
+            'data' => []
         ];
         
         $fechaInicioObj = Carbon::parse($request->fecha_inicio);
         $fechaFinObj = Carbon::parse($request->fecha_fin);
         $diasTotales = $fechaInicioObj->diffInDays($fechaFinObj) + 1;
+        $diasAMostrar = min($diasTotales, 15); // Mostrar máximo 15 días para no saturar
         
-        $datosGraficaPedidosDiarios = [];
-        $diasAMostrar = min($diasTotales, 15);
         for ($i = 0; $i < $diasAMostrar; $i++) {
             $fechaActual = $fechaInicioObj->copy()->addDays($i);
             $fechaStr = $fechaActual->format('Y-m-d');
-            
             $pedidoDia = $pedidosPorDia->firstWhere('fecha', $fechaStr);
-            
-            $datosGraficaPedidosDiarios[] = [
-                'fecha' => $fechaActual->format('d/m'),
-                'total' => intval($pedidoDia->cantidad ?? 0)
-            ];
+            $datosChartPedidosDiarios['labels'][] = $fechaActual->format('d/m');
+            $datosChartPedidosDiarios['data'][] = intval($pedidoDia->cantidad ?? 0);
         }
         
-        $datosGraficaVendedores = [];
-        foreach($pedidosPorVendedor as $item) {
-            $nombreCompleto = 'Sin vendedor';
-            if ($item->empleado) {
-                $nombreCompleto = trim(($item->empleado->Nombre ?? '') . ' ' . 
-                                      ($item->empleado->ApPaterno ?? '') . ' ' . 
-                                      ($item->empleado->ApMaterno ?? ''));
-                $nombreCompleto = $nombreCompleto ?: 'Vendedor';
-            }
-            
-            $datosGraficaVendedores[] = [
-                'nombre' => $nombreCompleto,
-                'total' => intval($item->total_pedidos)
-            ];
+        // GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if ($totalPedidos > 0) {
+            $graficas['estados'] = GraficaHelper::generarBarra($datosChartEstados, 'Distribución de Estados');
         }
         
-        $datosGraficaProductosPedidos = [];
-        foreach($productosMasPedidos as $item) {
-            $datosGraficaProductosPedidos[] = [
-                'nombre' => $item->producto->Nombre ?? 'Producto',
-                'cantidad' => intval($item->total_cantidad)
-            ];
+        if (!empty($datosChartVendedores['labels'])) {
+            $graficas['vendedores'] = GraficaHelper::generarBarra($datosChartVendedores, 'Pedidos por Vendedor');
+        }
+        
+        if (!empty($datosChartProductosPedidos['labels'])) {
+            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosPedidos, 'Productos más pedidos');
+        }
+        
+        if (!empty($datosChartPedidosDiarios['labels'])) {
+            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartPedidosDiarios, 'Pedidos Diarios');
         }
         
         // GENERAR PDF
@@ -626,32 +626,29 @@ class ReporteController extends Controller
                 'filtros' => $request->all(),
                 'estadoSeleccionado' => $request->estado,
                 'empleadoSeleccionado' => $request->filled('empleado_id') ? Empleado::find($request->empleado_id) : null,
-                
-                // Estadísticas
                 'totalPedidos' => $totalPedidos,
+                'valorTotalPedidos' => $valorTotalPedidos,
                 'pedidosPendientes' => $pedidosPendientes,
                 'pedidosEnProceso' => $pedidosEnProceso,
                 'pedidosEntregados' => $pedidosEntregados,
                 'pedidosCancelados' => $pedidosCancelados,
-                'valorTotalPedidos' => $valorTotalPedidos,
-                'tiempoPromedioEntrega' => $tiempoPromedioEntrega,
+                'pedidosPorEstado' => $pedidosPorEstado,
                 'clienteTop' => $clienteTop,
                 'vendedorTop' => $vendedorTop,
-                
-                // Datos detallados
                 'pedidosPorDia' => $pedidosPorDia,
                 'pedidosPorVendedor' => $pedidosPorVendedor,
-                'pedidosPorCliente' => $pedidosPorCliente,
                 'productosMasPedidos' => $productosMasPedidos,
-                
-                // Datos para gráficas
-                'datosGraficaEstados' => $datosGraficaEstados,
-                'datosGraficaPedidosDiarios' => $datosGraficaPedidosDiarios,
-                'datosGraficaVendedores' => $datosGraficaVendedores,
-                'datosGraficaProductosPedidos' => $datosGraficaProductosPedidos,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions([
+                'enable-javascript' => true,
+                'javascript-delay' => 1000,
+                'no-stop-slow-scripts' => true,
+                'enable-smart-shrinking' => true,
+            ]);
+            
             $nombreArchivo = 'reporte_pedidos_' . date('Y-m-d_H-i-s') . '.pdf';
             
             return $this->enviarPDFaNuevaPestana($pdf, $nombreArchivo);
@@ -673,12 +670,10 @@ class ReporteController extends Controller
         $query = Producto::query();
         $query->with('categoria');
         
-        // Filtrar por categoría si se especifica
         if ($request->filled('categoria_id')) {
             $query->where('Categoria', $request->categoria_id);
         }
         
-        // Filtrar por nivel de stock
         if ($request->filled('nivel_stock')) {
             if ($request->nivel_stock == 'bajo') {
                 $query->whereRaw("Cantidad <= Cantidad_minima AND Cantidad > 0");
@@ -691,7 +686,6 @@ class ReporteController extends Controller
             }
         }
         
-        // Ordenar
         $ordenStock = $request->orden_stock ?? 'nombre';
         if ($ordenStock == 'nombre') {
             $query->orderBy('Nombre', 'asc');
@@ -709,102 +703,28 @@ class ReporteController extends Controller
             return back()->with('warning', 'No hay productos en el inventario');
         }
         
-        // CÁLCULOS ESTADÍSTICOS
+        // CÁLCULOS
         $totalProductos = $productos->count();
         $totalStock = $productos->sum('Cantidad');
-        
         $totalInventario = $productos->sum(function($producto) {
             return $producto->Cantidad * $producto->Precio;
         });
         
-        // Productos bajo stock (Cantidad <= Cantidad_minima Y > 0)
         $productosBajoStock = $productos->filter(function($producto) {
             return $producto->Cantidad <= $producto->Cantidad_minima && $producto->Cantidad > 0;
         });
         
-        // Productos sin stock (Cantidad <= 0)
         $productosSinStock = $productos->filter(function($producto) {
             return $producto->Cantidad <= 0;
         });
         
-        // Productos con stock saludable (Cantidad > Cantidad_minima)
         $productosStockSaludable = $productos->filter(function($producto) {
             return $producto->Cantidad > $producto->Cantidad_minima && $producto->Cantidad > 0;
         });
         
-        // Productos más valiosos (por valor de inventario)
         $productosMasValiosos = $productos->sortByDesc(function($producto) {
             return $producto->Cantidad * $producto->Precio;
         })->take(10);
-        
-        // MOVIMIENTOS DE INVENTARIO (ENTRADAS Y SALIDAS DEL PERÍODO)
-        $fechaInicio = $request->fecha_inicio ?? Carbon::now()->startOfMonth();
-        $fechaFin = $request->fecha_fin ?? Carbon::now()->endOfMonth();
-        
-        // Entradas (compras)
-        $entradas = DetalleCompra::with('producto', 'compra')
-            ->whereHas('compra', function($q) use ($fechaInicio, $fechaFin) {
-                $q->whereDate('Fecha_compra', '>=', $fechaInicio)
-                  ->whereDate('Fecha_compra', '<=', $fechaFin);
-            })
-            ->get()
-            ->groupBy('Producto')
-            ->map(function($items) {
-                return [
-                    'total_cantidad' => $items->sum('Cantidad'),
-                    'total_costo' => $items->sum(function($item) {
-                        return $item->Cantidad * $item->Precio_unitario;
-                    }),
-                    'veces' => $items->count(),
-                    'producto' => $items->first()->producto,
-                ];
-            })
-            ->sortByDesc('total_cantidad');
-        
-        // Salidas (ventas)
-        $salidas = DetalleVenta::with('producto', 'venta')
-            ->whereHas('venta', function($q) use ($fechaInicio, $fechaFin) {
-                $q->whereDate('Fecha', '>=', $fechaInicio)
-                  ->whereDate('Fecha', '<=', $fechaFin);
-            })
-            ->get()
-            ->groupBy('Producto')
-            ->map(function($items) {
-                return [
-                    'total_cantidad' => $items->sum('Cantidad'),
-                    'total_ingresos' => $items->sum(function($item) {
-                        return $item->Cantidad * ($item->producto->Precio ?? 0);
-                    }),
-                    'veces' => $items->count(),
-                    'producto' => $items->first()->producto,
-                ];
-            })
-            ->sortByDesc('total_cantidad');
-        
-        // Productos con mayor rotación
-        $rotacionProductos = collect();
-        $productosConMovimiento = $entradas->keys()->merge($salidas->keys())->unique();
-        
-        foreach ($productosConMovimiento as $productoId) {
-            $producto = Producto::find($productoId);
-            if (!$producto) continue;
-            
-            $entrada = $entradas->get($productoId, ['total_cantidad' => 0]);
-            $salida = $salidas->get($productoId, ['total_cantidad' => 0]);
-            
-            $stockPromedio = ($producto->Cantidad + ($producto->Cantidad + $entrada['total_cantidad'] - $salida['total_cantidad'])) / 2;
-            $rotacion = $stockPromedio > 0 ? $salida['total_cantidad'] / $stockPromedio : 0;
-            
-            $rotacionProductos->push([
-                'producto' => $producto,
-                'entradas' => $entrada['total_cantidad'],
-                'salidas' => $salida['total_cantidad'],
-                'stock_actual' => $producto->Cantidad,
-                'rotacion' => round($rotacion, 2),
-            ]);
-        }
-        
-        $productosMayorRotacion = $rotacionProductos->sortByDesc('rotacion')->take(10);
         
         // INVENTARIO POR CATEGORÍA
         $inventarioPorCategoria = collect();
@@ -837,33 +757,66 @@ class ReporteController extends Controller
         // Análisis ABC
         $productosABC = $this->analisisABC($productos);
         
-        // Calcular estadísticas adicionales
         $porcentajeBajoStock = $totalProductos > 0 ? ($productosBajoStock->count() / $totalProductos) * 100 : 0;
         $porcentajeSinStock = $totalProductos > 0 ? ($productosSinStock->count() / $totalProductos) * 100 : 0;
         $porcentajeSaludable = $totalProductos > 0 ? ($productosStockSaludable->count() / $totalProductos) * 100 : 0;
-        $valorPromedioProducto = $totalProductos > 0 ? $totalInventario / $totalProductos : 0;
         
-        // DATOS PARA GRÁFICAS
-        $datosGraficaStockNiveles = [
-            ['nivel' => 'Stock Saludable', 'cantidad' => $productosStockSaludable->count()],
-            ['nivel' => 'Stock Bajo', 'cantidad' => $productosBajoStock->count()],
-            ['nivel' => 'Sin Stock', 'cantidad' => $productosSinStock->count()]
+        // PREPARAR DATOS PARA GRÁFICAS GD
+        $datosChartNivelesStock = [
+            'labels' => ['Stock Saludable', 'Stock Bajo', 'Sin Stock'],
+            'data' => [
+                $productosStockSaludable->count(),
+                $productosBajoStock->count(),
+                $productosSinStock->count()
+            ]
         ];
         
-        $datosGraficaCategorias = [];
+        $datosChartCategorias = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($inventarioPorCategoria as $categoria) {
-            $datosGraficaCategorias[] = [
-                'nombre' => $categoria->categoria_nombre,
-                'valor' => floatval($categoria->valor_total)
-            ];
+            $datosChartCategorias['labels'][] = $categoria->categoria_nombre;
+            $datosChartCategorias['data'][] = floatval($categoria->valor_total);
         }
         
-        $datosGraficaProductosValiosos = [];
+        $datosChartProductosValiosos = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($productosMasValiosos as $producto) {
-            $datosGraficaProductosValiosos[] = [
-                'nombre' => $producto->Nombre,
-                'valor' => floatval($producto->Cantidad * $producto->Precio)
-            ];
+            $datosChartProductosValiosos['labels'][] = $producto->Nombre;
+            $datosChartProductosValiosos['data'][] = floatval($producto->Cantidad * $producto->Precio);
+        }
+        
+        $datosChartABC = [
+            'labels' => ['A (80%)', 'B (15%)', 'C (5%)'],
+            'data' => [
+                $productosABC['valor_A'] ?? 0,
+                $productosABC['valor_B'] ?? 0,
+                $productosABC['valor_C'] ?? 0
+            ]
+        ];
+        
+        // GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if ($totalProductos > 0) {
+            $graficas['niveles'] = GraficaHelper::generarBarra($datosChartNivelesStock, 'Niveles de Stock');
+        }
+        
+        if (!empty($datosChartCategorias['labels'])) {
+            $graficas['categorias'] = GraficaHelper::generarBarra($datosChartCategorias, 'Valor por Categoría');
+        }
+        
+        if (!empty($datosChartProductosValiosos['labels'])) {
+            $graficas['valiosos'] = GraficaHelper::generarBarra($datosChartProductosValiosos, 'Productos más valiosos');
+        }
+        
+        if (!empty($datosChartABC['data']) && array_sum($datosChartABC['data']) > 0) {
+            $graficas['abc'] = GraficaHelper::generarBarra($datosChartABC, 'Análisis ABC');
         }
         
         // GENERAR PDF
@@ -872,8 +825,6 @@ class ReporteController extends Controller
                 'productos' => $productos,
                 'fechaGeneracion' => now()->format('d/m/Y H:i:s'),
                 'filtros' => $request->all(),
-                'fechaInicio' => $fechaInicio,
-                'fechaFin' => $fechaFin,
                 'categoriaSeleccionada' => $request->filled('categoria_id') ? Categoria::find($request->categoria_id) : null,
                 'totalProductos' => $totalProductos,
                 'totalStock' => $totalStock,
@@ -884,18 +835,10 @@ class ReporteController extends Controller
                 'productosMasValiosos' => $productosMasValiosos,
                 'inventarioPorCategoria' => $inventarioPorCategoria,
                 'productosABC' => $productosABC,
-                'entradas' => $entradas,
-                'salidas' => $salidas,
-                'productosMayorRotacion' => $productosMayorRotacion,
                 'porcentajeBajoStock' => $porcentajeBajoStock,
                 'porcentajeSinStock' => $porcentajeSinStock,
                 'porcentajeSaludable' => $porcentajeSaludable,
-                'valorPromedioProducto' => $valorPromedioProducto,
-                
-                // Datos para gráficas
-                'datosGraficaStockNiveles' => $datosGraficaStockNiveles,
-                'datosGraficaCategorias' => $datosGraficaCategorias,
-                'datosGraficaProductosValiosos' => $datosGraficaProductosValiosos,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -932,7 +875,7 @@ class ReporteController extends Controller
         
         $productos = $query->orderBy('Nombre', 'asc')->get();
         
-        // Calcular costo promedio ponderado de compras
+        // Calcular costo promedio
         $comprasProducto = DetalleCompra::select(
                 'Producto',
                 DB::raw('SUM(Cantidad) as total_comprado'),
@@ -945,7 +888,7 @@ class ReporteController extends Controller
             ->get()
             ->keyBy('Producto');
         
-        // Obtener ventas del período para cada producto
+        // Obtener ventas
         $ventasPorProducto = DetalleVenta::select('Producto', DB::raw('SUM(Cantidad) as total_vendido'))
             ->whereHas('venta', function($q) use ($request) {
                 $q->whereDate('Fecha', '>=', $request->fecha_inicio)
@@ -967,114 +910,90 @@ class ReporteController extends Controller
             $precioVenta = $producto->Precio ?? 0;
             $totalVentas = $totalVendido * $precioVenta;
             
-            // Obtener costo real de compras o estimar
             $compraInfo = $comprasProducto->get($producto->id);
-            $costo = $compraInfo ? $compraInfo->precio_promedio : ($precioVenta * 0.7); // Fallback a 70%
+            $costo = $compraInfo ? $compraInfo->precio_promedio : ($precioVenta * 0.7);
             $costoTotal = $totalVendido * $costo;
             $gananciaTotal = $totalVentas - $costoTotal;
             $margenGanancia = $totalVentas > 0 ? ($gananciaTotal / $totalVentas) * 100 : 0;
             
-            // Acumuladores
             $totalVentasGeneral += $totalVentas;
             $totalGananciaGeneral += $gananciaTotal;
             $totalCostoGeneral += $costoTotal;
             
             $productosProcesados->push([
-                'id' => $producto->id,
                 'nombre' => $producto->Nombre,
                 'categoria' => $producto->categoria->Nombre ?? 'Sin categoría',
-                'precio_venta' => $precioVenta,
-                'costo' => $costo,
-                'stock' => $producto->Cantidad,
                 'total_vendido' => $totalVendido,
                 'total_ventas' => $totalVentas,
                 'costo_total' => $costoTotal,
                 'ganancia_total' => $gananciaTotal,
                 'margen_ganancia' => round($margenGanancia, 2),
-                'ganancia_unidad' => $precioVenta - $costo,
-                'valor_inventario' => $producto->Cantidad * $costo,
-                'valor_venta_potencial' => $producto->Cantidad * $precioVenta,
             ]);
         }
         
-        // Productos con ventas
         $productosConVentas = $productosProcesados->where('total_vendido', '>', 0);
+        $productosMasRentables = $productosConVentas->sortByDesc('margen_ganancia')->take(10);
+        $productosMasGanancia = $productosConVentas->sortByDesc('ganancia_total')->take(10);
         
-        // Productos más rentables
-        $productosMasRentables = $productosConVentas
-            ->sortByDesc('margen_ganancia')
-            ->take(10);
-        
-        // Productos menos rentables
-        $productosMenosRentables = $productosConVentas
-            ->sortBy('margen_ganancia')
-            ->take(10);
-        
-        // Productos sin ventas
-        $productosSinVentas = $productosProcesados->where('total_vendido', 0);
-        
-        // Análisis por categoría
-        $analisisCategorias = $productosProcesados->groupBy('categoria')
-            ->map(function($productosCategoria) {
-                $totalVentas = $productosCategoria->sum('total_ventas');
-                $totalGanancia = $productosCategoria->sum('ganancia_total');
-                
-                return [
-                    'total_ventas' => $totalVentas,
-                    'total_ganancia' => $totalGanancia,
-                    'margen_promedio' => $totalVentas > 0 ? ($totalGanancia / $totalVentas) * 100 : 0,
-                    'cantidad_productos' => $productosCategoria->count(),
-                    'productos_vendidos' => $productosCategoria->where('total_vendido', '>', 0)->count(),
-                    'valor_inventario' => $productosCategoria->sum('valor_inventario'),
-                    'valor_venta_potencial' => $productosCategoria->sum('valor_venta_potencial'),
-                ];
-            })
-            ->sortByDesc('total_ganancia');
-        
-        // DATOS PARA GRÁFICAS
-        $datosGraficaRentabilidad = [];
-        foreach($productosMasRentables as $item) {
-            $datosGraficaRentabilidad[] = [
-                'nombre' => $item['nombre'],
-                'ganancia' => floatval($item['ganancia_total'])
-            ];
-        }
-        
-        $datosGraficaCategorias = [];
-        foreach($analisisCategorias as $key => $item) {
-            $datosGraficaCategorias[] = [
-                'nombre' => $key,
-                'ventas' => floatval($item['total_ventas']),
-                'ganancia' => floatval($item['total_ganancia'])
-            ];
-        }
-        
-        $datosGraficaComparativa = [
-            ['concepto' => 'Ventas', 'valor' => floatval($totalVentasGeneral)],
-            ['concepto' => 'Costo', 'valor' => floatval($totalCostoGeneral)],
-            ['concepto' => 'Ganancia', 'valor' => floatval($totalGananciaGeneral)]
+        // PREPARAR DATOS PARA GRÁFICAS GD
+        $datosChartComparativa = [
+            'labels' => ['Ventas', 'Costo', 'Ganancia'],
+            'data' => [
+                floatval($totalVentasGeneral),
+                floatval($totalCostoGeneral),
+                floatval($totalGananciaGeneral)
+            ]
         ];
+        
+        $datosChartMargenes = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($productosMasRentables as $item) {
+            $datosChartMargenes['labels'][] = $item['nombre'];
+            $datosChartMargenes['data'][] = floatval($item['margen_ganancia']);
+        }
+        
+        $datosChartGanancias = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($productosMasGanancia as $item) {
+            $datosChartGanancias['labels'][] = $item['nombre'];
+            $datosChartGanancias['data'][] = floatval($item['ganancia_total']);
+        }
+        
+        // GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if ($totalVentasGeneral > 0) {
+            $graficas['comparativa'] = GraficaHelper::generarBarra($datosChartComparativa, 'Ventas vs Costo vs Ganancia');
+        }
+        
+        if (!empty($datosChartMargenes['labels'])) {
+            $graficas['margenes'] = GraficaHelper::generarBarra($datosChartMargenes, 'Productos con mayor margen (%)');
+        }
+        
+        if (!empty($datosChartGanancias['labels'])) {
+            $graficas['ganancias'] = GraficaHelper::generarBarra($datosChartGanancias, 'Productos con mayor ganancia ($)');
+        }
         
         // GENERAR PDF
         try {
             $pdf = Pdf::loadView('reportes.pdf.rentabilidad', [
                 'productos' => $productosProcesados,
                 'productosMasRentables' => $productosMasRentables,
-                'productosMenosRentables' => $productosMenosRentables,
-                'productosSinVentas' => $productosSinVentas,
-                'analisisCategorias' => $analisisCategorias,
+                'productosMasGanancia' => $productosMasGanancia,
                 'fechaInicio' => $request->fecha_inicio,
                 'fechaFin' => $request->fecha_fin,
                 'fechaGeneracion' => now()->format('d/m/Y H:i:s'),
-                'categoriaSeleccionada' => $request->filled('categoria_id') ? Categoria::find($request->categoria_id) : null,
                 'totalGanancia' => $totalGananciaGeneral,
                 'totalVentas' => $totalVentasGeneral,
                 'totalCosto' => $totalCostoGeneral,
                 'margenPromedio' => $totalVentasGeneral > 0 ? round(($totalGananciaGeneral / $totalVentasGeneral) * 100, 2) : 0,
-                'filtros' => $request->all(),
-                'datosGraficaRentabilidad' => $datosGraficaRentabilidad,
-                'datosGraficaCategorias' => $datosGraficaCategorias,
-                'datosGraficaComparativa' => $datosGraficaComparativa,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -1101,23 +1020,19 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
-        // Obtener todos los empleados (vendedores)
         $empleados = Empleado::all();
-        
         $datosVendedores = collect();
         
         foreach ($empleados as $empleado) {
-            // Ventas del empleado en el período
             $ventas = Venta::where('Empleado_idEmpleado', $empleado->id)
                 ->whereDate('Fecha', '>=', $request->fecha_inicio)
                 ->whereDate('Fecha', '<=', $request->fecha_fin)
                 ->get();
             
             if ($ventas->isEmpty() && !$request->filled('incluir_sin_ventas')) {
-                continue; // Omitir vendedores sin ventas si no se pide incluirlos
+                continue;
             }
             
-            // Detalles de ventas para este vendedor
             $detallesVentas = DetalleVenta::with('producto')
                 ->whereHas('venta', function($q) use ($empleado, $request) {
                     $q->where('Empleado_idEmpleado', $empleado->id)
@@ -1126,89 +1041,84 @@ class ReporteController extends Controller
                 })
                 ->get();
             
-            // Productos vendidos (agrupados)
-            $productosVendidos = $detallesVentas->groupBy('Producto')
-                ->map(function($items) {
-                    $producto = $items->first()->producto;
-                    $cantidadTotal = $items->sum('Cantidad');
-                    $totalVentas = $cantidadTotal * ($producto->Precio ?? 0);
-                    
-                    return [
-                        'producto' => $producto,
-                        'cantidad' => $cantidadTotal,
-                        'total' => $totalVentas,
-                    ];
-                })
-                ->sortByDesc('cantidad')
-                ->take(5); // Top 5 productos por vendedor
-            
             $totalVentas = $ventas->sum('Total');
             $totalProductosVendidos = $detallesVentas->sum('Cantidad');
             $numVentas = $ventas->count();
-            $productosUnicos = $detallesVentas->groupBy('Producto')->count();
-            
-            // Ticket promedio
             $ticketPromedio = $numVentas > 0 ? $totalVentas / $numVentas : 0;
             
-            // Mejor día de ventas
-            $mejorDia = $ventas->groupBy(function($venta) {
-                return Carbon::parse($venta->Fecha)->format('Y-m-d');
-            })->map(function($ventasDia) {
-                return [
-                    'fecha' => $ventasDia->first()->Fecha,
-                    'total' => $ventasDia->sum('Total'),
-                    'cantidad' => $ventasDia->count(),
-                ];
-            })->sortByDesc('total')->first();
-            
             $datosVendedores->push([
-                'empleado' => $empleado,
                 'nombre_completo' => trim($empleado->Nombre . ' ' . $empleado->ApPaterno . ' ' . $empleado->ApMaterno),
                 'num_ventas' => $numVentas,
                 'total_ventas' => $totalVentas,
                 'total_productos' => $totalProductosVendidos,
-                'productos_unicos' => $productosUnicos,
                 'ticket_promedio' => $ticketPromedio,
-                'productos_destacados' => $productosVendidos,
-                'mejor_dia' => $mejorDia,
-                'ventas' => $ventas,
             ]);
         }
         
-        // Ordenar por total de ventas
         $datosVendedores = $datosVendedores->sortByDesc('total_ventas')->values();
         
-        // Estadísticas globales
         $totalGeneralVentas = $datosVendedores->sum('total_ventas');
         $totalGeneralProductos = $datosVendedores->sum('total_productos');
         $promedioPorVendedor = $datosVendedores->count() > 0 ? $totalGeneralVentas / $datosVendedores->count() : 0;
         
-        // Vendedor del mes (top)
-        $vendedorTop = $datosVendedores->first();
+        // PREPARAR DATOS PARA GRÁFICAS GD
+        $datosChartVentasVendedor = [
+            'labels' => [],
+            'data' => []
+        ];
         
-        // DATOS PARA GRÁFICAS
-        $datosGraficaVentas = [];
         foreach($datosVendedores as $item) {
-            $datosGraficaVentas[] = [
-                'nombre' => $item['nombre_completo'],
-                'total' => floatval($item['total_ventas'])
-            ];
+            $datosChartVentasVendedor['labels'][] = $item['nombre_completo'];
+            $datosChartVentasVendedor['data'][] = floatval($item['total_ventas']);
         }
         
-        $datosGraficaProductosVendidos = [];
+        $datosChartProductosVendedor = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($datosVendedores as $item) {
-            $datosGraficaProductosVendidos[] = [
-                'nombre' => $item['nombre_completo'],
-                'total' => intval($item['total_productos'])
-            ];
+            $datosChartProductosVendedor['labels'][] = $item['nombre_completo'];
+            $datosChartProductosVendedor['data'][] = intval($item['total_productos']);
         }
         
-        $datosGraficaTickets = [];
+        $datosChartTickets = [
+            'labels' => [],
+            'data' => []
+        ];
+        
         foreach($datosVendedores as $item) {
-            $datosGraficaTickets[] = [
-                'nombre' => $item['nombre_completo'],
-                'total' => floatval($item['ticket_promedio'])
-            ];
+            $datosChartTickets['labels'][] = $item['nombre_completo'];
+            $datosChartTickets['data'][] = floatval($item['ticket_promedio']);
+        }
+        
+        $datosChartNumVentas = [
+            'labels' => [],
+            'data' => []
+        ];
+        
+        foreach($datosVendedores as $item) {
+            $datosChartNumVentas['labels'][] = $item['nombre_completo'];
+            $datosChartNumVentas['data'][] = intval($item['num_ventas']);
+        }
+        
+        // GENERAR GRÁFICAS CON GD
+        $graficas = [];
+        
+        if (!empty($datosChartVentasVendedor['labels'])) {
+            $graficas['ventas'] = GraficaHelper::generarBarra($datosChartVentasVendedor, 'Ventas por Vendedor ($)');
+        }
+        
+        if (!empty($datosChartProductosVendedor['labels'])) {
+            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosVendedor, 'Productos vendidos por Vendedor');
+        }
+        
+        if (!empty($datosChartTickets['labels'])) {
+            $graficas['tickets'] = GraficaHelper::generarBarra($datosChartTickets, 'Ticket Promedio por Vendedor ($)');
+        }
+        
+        if (!empty($datosChartNumVentas['labels'])) {
+            $graficas['num_ventas'] = GraficaHelper::generarBarra($datosChartNumVentas, 'Número de Ventas por Vendedor');
         }
         
         // GENERAR PDF
@@ -1218,17 +1128,11 @@ class ReporteController extends Controller
                 'fechaInicio' => $request->fecha_inicio,
                 'fechaFin' => $request->fecha_fin,
                 'fechaGeneracion' => now()->format('d/m/Y H:i:s'),
-                'filtros' => $request->all(),
                 'totalGeneralVentas' => $totalGeneralVentas,
                 'totalGeneralProductos' => $totalGeneralProductos,
                 'promedioPorVendedor' => $promedioPorVendedor,
-                'vendedorTop' => $vendedorTop,
                 'totalVendedores' => $datosVendedores->count(),
-                
-                // Datos para gráficas
-                'datosGraficaVentas' => $datosGraficaVentas,
-                'datosGraficaProductosVendidos' => $datosGraficaProductosVendidos,
-                'datosGraficaTickets' => $datosGraficaTickets,
+                'graficas' => $graficas,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -1248,9 +1152,6 @@ class ReporteController extends Controller
      * ===========================================
      */
 
-    /**
-     * Análisis ABC para inventario
-     */
     private function analisisABC($productos)
     {
         if ($productos->isEmpty()) {
@@ -1261,7 +1162,6 @@ class ReporteController extends Controller
             ];
         }
         
-        // Calcular valor de inventario para cada producto
         $productosConValor = $productos->map(function($producto) {
             $valor = $producto->Cantidad * $producto->Precio;
             return [
@@ -1274,9 +1174,7 @@ class ReporteController extends Controller
             ];
         });
         
-        // Ordenar por valor de inventario (descendente)
         $productosOrdenados = $productosConValor->sortByDesc('valor_inventario')->values();
-        
         $totalValor = $productosOrdenados->sum('valor_inventario');
         
         if ($totalValor == 0) {
@@ -1324,9 +1222,6 @@ class ReporteController extends Controller
         ];
     }
 
-    /**
-     * Obtener el campo de stock
-     */
     private function getStockField()
     {
         if (Schema::hasColumn('productos', 'stock')) {
@@ -1339,9 +1234,6 @@ class ReporteController extends Controller
         return 'stock';
     }
     
-    /**
-     * Obtener el campo de precio
-     */
     private function getPriceField()
     {
         if (Schema::hasColumn('productos', 'precio_compra')) {
@@ -1354,9 +1246,6 @@ class ReporteController extends Controller
         return 'precio_compra';
     }
     
-    /**
-     * Obtener el campo de categoría
-     */
     private function getCategoryField()
     {
         if (Schema::hasColumn('productos', 'categoria_id')) {
@@ -1367,9 +1256,6 @@ class ReporteController extends Controller
         return null;
     }
     
-    /**
-     * Obtener el campo de stock mínimo
-     */
     private function getStockMinField()
     {
         if (Schema::hasColumn('productos', 'stock_minimo')) {
@@ -1382,9 +1268,6 @@ class ReporteController extends Controller
         return null;
     }
     
-    /**
-     * Obtener el campo de stock máximo
-     */
     private function getStockMaxField()
     {
         if (Schema::hasColumn('productos', 'stock_maximo')) {
@@ -1397,9 +1280,6 @@ class ReporteController extends Controller
         return null;
     }
     
-    /**
-     * Calcular valor del inventario
-     */
     private function calculateInventoryValue()
     {
         $stockField = $this->getStockField();
@@ -1408,9 +1288,6 @@ class ReporteController extends Controller
         return Producto::sum(DB::raw("$stockField * $priceField"));
     }
     
-    /**
-     * Obtener estadísticas de inventario
-     */
     private function getInventoryStatistics()
     {
         $stockField = $this->getStockField();
@@ -1437,7 +1314,7 @@ class ReporteController extends Controller
             'productos_agotados' => $productosAgotados,
         ];
     }
-    
+
     /**
      * Envía el PDF para que se abra en una nueva pestaña
      */

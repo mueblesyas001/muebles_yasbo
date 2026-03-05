@@ -874,7 +874,7 @@
     </div>
 </div>
 
-<!-- MODAL PERSONALIZADO PARA RESTAURAR BD (SIN BOOTSTRAP) -->
+<!-- MODAL PERSONALIZADO PARA RESTAURAR BD (SIN BOOTSTRAP) - SIN CHECKBOXES -->
 <div id="modalRestaurarPersonalizado" class="modal-personalizado" style="display: none;">
     <div class="modal-personalizado-overlay" onclick="cerrarModalRestaurarPersonalizado()"></div>
     <div class="modal-personalizado-contenido modal-personalizado-ancho-medio">
@@ -964,32 +964,7 @@
                     </div>
                 </div>
 
-                <!-- Opciones de restauración -->
-                <div class="options-card mb-4 p-3" style="
-                    background: #f8fafc;
-                    border-radius: 16px;
-                ">
-                    <h6 class="fw-bold mb-3" style="color: #1f2937;">
-                        <i class="fas fa-cogs me-2 text-primary"></i>
-                        Opciones de Restauración
-                    </h6>
-                    
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="dropDatabasePersonalizado" name="drop_database" checked>
-                        <label class="form-check-label fw-medium" for="dropDatabasePersonalizado">
-                            Eliminar base de datos actual antes de restaurar
-                        </label>
-                    </div>
-                    
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="backupCurrentPersonalizado" name="backup_current" checked>
-                        <label class="form-check-label fw-medium" for="backupCurrentPersonalizado">
-                            Crear respaldo de seguridad antes de restaurar
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Confirmación final -->
+                <!-- Confirmación final - CHECKBOXES ELIMINADOS, SOLO CONFIRMACIÓN -->
                 <div class="confirm-card p-3" style="
                     background: #f8fafc;
                     border-radius: 16px;

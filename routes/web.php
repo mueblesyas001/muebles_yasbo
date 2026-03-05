@@ -46,7 +46,8 @@ Route::middleware('guest')->group(function () {
     // LOGIN
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
-
+    // En routes/web.php
+    Route::match(['get', 'post'], '/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
     Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
@@ -156,7 +157,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('calendario', CalendarioController::class);
     Route::resource('reportes', ReporteController::class);
-
+    Route::post('/reportes/pedidos', [App\Http\Controllers\ReporteController::class, 'pedidos'])->name('reportes.pedidos');
     Route::post('reportes/ventas', [ReporteController::class, 'generarReporteVentas'])->name('reportes.ventas');
     Route::post('reportes/compras', [ReporteController::class, 'generarReporteCompras'])->name('reportes.compras');
     Route::post('reportes/inventario', [ReporteController::class, 'generarReporteInventario'])->name('reportes.inventario');

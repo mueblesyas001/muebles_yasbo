@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div id="reportes-page" class="container-fluid px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh;">
+<div id="reportes-page" class="container-fluid px-4" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); min-height: 100vh; padding-top: 20px;">
     <!-- Header con Glassmorphism -->
     <div class="glass-header py-4 px-4 mb-4" style="
         background: rgba(255, 255, 255, 0.9);
@@ -52,11 +52,12 @@
                 ">
                     <i class="fas fa-sync-alt me-1"></i> Actualizar
                 </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#helpModal" style="
+                <button type="button" class="btn btn-outline-secondary" id="btnAyuda" style="
                     border-radius: 14px;
                     padding: 12px 20px;
                     border: 1px solid #e5e7eb;
                     transition: all 0.3s ease;
+                    cursor: pointer;
                 ">
                     <i class="fas fa-question-circle me-1"></i> Ayuda
                 </button>
@@ -196,7 +197,7 @@
         </div>
         
         <div class="report-body p-4">
-            <!-- Tabs de selección mejorados -->
+            <!-- Tabs de selección mejorados - INCLUYE PEDIDOS -->
             <div class="report-tabs mb-4">
                 <div class="btn-group w-100" role="group" id="reportTypeTabs" style="gap: 8px;">
                     <button type="button" class="btn btn-primary flex-fill" data-type="ventas" onclick="selectReportType('ventas')" style="
@@ -228,6 +229,15 @@
                         border: 1px solid #e5e7eb;
                     ">
                         <i class="fas fa-chart-pie me-2"></i>Rentabilidad
+                    </button>
+                    <!-- NUEVO BOTÓN PARA PEDIDOS -->
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-type="pedidos" onclick="selectReportType('pedidos')" style="
+                        border-radius: 12px;
+                        padding: 12px;
+                        border: 1px solid #e5e7eb;
+                    ">
+                        <i class="fas fa-truck me-2"></i>Pedidos
+                        <span class="badge bg-secondary text-white ms-2">{{ $pedidosCount ?? 0 }}</span>
                     </button>
                 </div>
             </div>
@@ -390,296 +400,375 @@
     </div>
 </div>
 
-<!-- Modal de Ayuda Mejorado -->
-<div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 24px; overflow: hidden; border: none;">
-            <!-- Header mejorado -->
-            <div class="modal-header" style="
-                background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+<!-- MODAL PERSONALIZADO DE AYUDA - CON ESPACIO DEL NAVBAR -->
+<div id="modalAyudaPersonalizado" class="modal-personalizado" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; align-items: center; justify-content: center;">
+    <div class="modal-personalizado-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);" onclick="cerrarModalAyuda()"></div>
+    
+    <!-- Contenedor con margen superior para dejar espacio al navbar -->
+    <div class="modal-personalizado-contenido" style="
+        position: relative; 
+        background-color: white; 
+        border-radius: 24px; 
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+        display: flex; 
+        flex-direction: column; 
+        z-index: 100000; 
+        max-width: 900px; 
+        width: 95%; 
+        max-height: 80vh; 
+        margin-top: 70px; /* ESPACIO PARA EL NAVBAR */
+        animation: modalAbrir 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    ">
+        
+        <!-- Header del modal con gradiente -->
+        <div class="modal-personalizado-header" style="
+            background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+            padding: 1.5rem;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        ">
+            <div class="d-flex align-items-center gap-3">
+                <div class="header-icon" style="
+                    width: 50px;
+                    height: 50px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                ">
+                    <i class="fas fa-circle-question fa-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-white fw-bold mb-1" style="font-size: 1.5rem;">Centro de Ayuda</h3>
+                    <p class="text-white-50 mb-0 small">Guía completa para la generación de reportes</p>
+                </div>
+            </div>
+            <button class="modal-personalizado-cerrar" onclick="cerrarModalAyuda()" style="
+                background: rgba(255, 255, 255, 0.2);
                 border: none;
-                padding: 1.5rem;
+                color: white;
+                font-size: 1.2rem;
+                cursor: pointer;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                transition: all 0.3s ease;
             ">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="header-icon" style="
-                        width: 50px;
-                        height: 50px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 12px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                    ">
-                        <i class="fas fa-circle-question fa-lg"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title text-white fw-bold mb-1">Centro de Ayuda</h5>
-                        <p class="text-white-50 mb-0 small">Guía completa para la generación de reportes</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
-                
-                <!-- Elementos decorativos -->
-                <div class="position-absolute" style="top: -20px; right: -20px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-                <div class="position-absolute" style="bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); border-radius: 50%;"></div>
-            </div>
+                <i class="fas fa-times"></i>
+            </button>
             
-            <!-- Body mejorado -->
-            <div class="modal-body p-4" style="background: #f8fafc;">
-                <h6 class="small fw-bold text-uppercase text-muted mb-3">
-                    <i class="fas fa-chart-simple me-2" style="color: #667eea;"></i>
-                    Tipos de Reportes Disponibles
-                </h6>
-                
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="help-card p-3" style="
-                            background: white;
-                            border-radius: 16px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                            transition: all 0.3s ease;
+            <!-- Elementos decorativos -->
+            <div style="position: absolute; top: -20px; right: -20px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+            <div style="position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        </div>
+        
+        <!-- Body del modal -->
+        <div class="modal-personalizado-body" style="
+            padding: 1.8rem;
+            background: #f8fafc;
+            overflow-y: auto;
+        ">
+            <h6 class="small fw-bold text-uppercase text-muted mb-4">
+                <i class="fas fa-chart-simple me-2" style="color: #667eea;"></i>
+                Tipos de Reportes Disponibles
+            </h6>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <!-- Ventas -->
+                <div class="help-card" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                    transition: all 0.3s ease;
+                ">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         ">
-                            <div class="d-flex gap-3">
-                                <div class="icon-wrapper" style="
-                                    width: 48px;
-                                    height: 48px;
-                                    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-chart-line" style="color: #667eea;"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Reporte de Ventas</h6>
-                                    <p class="small text-muted mb-2">Análisis detallado de transacciones y rendimiento comercial</p>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📊 Tendencias</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">👥 Por empleado</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📦 Por producto</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <i class="fas fa-chart-line" style="color: #667eea;"></i>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="help-card p-3" style="
-                            background: white;
-                            border-radius: 16px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                        ">
-                            <div class="d-flex gap-3">
-                                <div class="icon-wrapper" style="
-                                    width: 48px;
-                                    height: 48px;
-                                    background: linear-gradient(135deg, #f093fb15 0%, #f5576c15 100%);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-truck" style="color: #f5576c;"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Reporte de Compras</h6>
-                                    <p class="small text-muted mb-2">Seguimiento de adquisiciones y análisis de proveedores</p>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">🏭 Proveedores</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">💰 Costos</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📅 Tendencias</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="help-card p-3" style="
-                            background: white;
-                            border-radius: 16px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                        ">
-                            <div class="d-flex gap-3">
-                                <div class="icon-wrapper" style="
-                                    width: 48px;
-                                    height: 48px;
-                                    background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-boxes" style="color: #4facfe;"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Reporte de Inventario</h6>
-                                    <p class="small text-muted mb-2">Control de stock, valorización y análisis ABC</p>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📦 Stock actual</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">⚠️ Bajo mínimo</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📊 Rotación</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="help-card p-3" style="
-                            background: white;
-                            border-radius: 16px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                        ">
-                            <div class="d-flex gap-3">
-                                <div class="icon-wrapper" style="
-                                    width: 48px;
-                                    height: 48px;
-                                    background: linear-gradient(135deg, #5ea9f015 0%, #2c3e5015 100%);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-coins" style="color: #2c3e50;"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Reporte de Rentabilidad</h6>
-                                    <p class="small text-muted mb-2">Márgenes de ganancia y productos más rentables</p>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">📈 Márgenes</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">⭐ Top productos</span>
-                                        <span class="badge px-2 py-1" style="background: #f3f4f6; color: #4b5563;">💹 ROI</span>
-                                    </div>
-                                </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 0.25rem;">Reporte de Ventas</h6>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Análisis detallado de transacciones</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">📊 Tendencias</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">👥 Por empleado</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Características y consejos -->
-                <div class="row g-3">
-                    <div class="col-md-7">
-                        <div class="help-card p-3" style="
-                            background: white;
-                            border-radius: 16px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                <!-- Compras -->
+                <div class="help-card" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                ">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(135deg, #f093fb15 0%, #f5576c15 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         ">
-                            <h6 class="fw-bold mb-3">
-                                <i class="fas fa-star text-warning me-2"></i>
-                                Características del Sistema
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="feature-icon me-2" style="
-                                            width: 28px;
-                                            height: 28px;
-                                            background: #10b98120;
-                                            border-radius: 8px;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        ">
-                                            <i class="fas fa-check" style="color: #10b981; font-size: 0.8rem;"></i>
-                                        </div>
-                                        <span class="small">Filtros dinámicos</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="feature-icon me-2" style="
-                                            width: 28px;
-                                            height: 28px;
-                                            background: #10b98120;
-                                            border-radius: 8px;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        ">
-                                            <i class="fas fa-check" style="color: #10b981; font-size: 0.8rem;"></i>
-                                        </div>
-                                        <span class="small">Exportación PDF</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="feature-icon me-2" style="
-                                            width: 28px;
-                                            height: 28px;
-                                            background: #10b98120;
-                                            border-radius: 8px;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        ">
-                                            <i class="fas fa-check" style="color: #10b981; font-size: 0.8rem;"></i>
-                                        </div>
-                                        <span class="small">Datos en tiempo real</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center">
-                                        <div class="feature-icon me-2" style="
-                                            width: 28px;
-                                            height: 28px;
-                                            background: #10b98120;
-                                            border-radius: 8px;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        ">
-                                            <i class="fas fa-check" style="color: #10b981; font-size: 0.8rem;"></i>
-                                        </div>
-                                        <span class="small">Presets de fecha</span>
-                                    </div>
-                                </div>
+                            <i class="fas fa-truck" style="color: #f5576c;"></i>
+                        </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 0.25rem;">Reporte de Compras</h6>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Seguimiento de adquisiciones</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">🏭 Proveedores</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">💰 Costos</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="col-md-5">
-                        <div class="help-card p-3" style="
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            border-radius: 16px;
-                            color: white;
+                </div>
+                
+                <!-- Inventario -->
+                <div class="help-card" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                ">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         ">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="icon-wrapper" style="
-                                    width: 32px;
-                                    height: 32px;
-                                    background: rgba(255, 255, 255, 0.2);
-                                    border-radius: 8px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-lightbulb"></i>
-                                </div>
-                                <h6 class="fw-bold mb-0">Consejo Profesional</h6>
+                            <i class="fas fa-boxes" style="color: #4facfe;"></i>
+                        </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 0.25rem;">Reporte de Inventario</h6>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Control de stock y valorización</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">📦 Stock actual</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">⚠️ Bajo mínimo</span>
                             </div>
-                            <p class="small text-white-50 mb-2">
-                                Para obtener mejores resultados, utiliza rangos de fecha específicos y aprovecha los filtros dinámicos para segmentar la información.
-                            </p>
-                            <div class="bg-white bg-opacity-10 rounded-3 p-2">
-                                <span class="small">
-                                    <i class="fas fa-clock me-1"></i>
-                                    Los reportes se generan en menos de 5 segundos
-                                </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rentabilidad -->
+                <div class="help-card" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                ">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(135deg, #5ea9f015 0%, #2c3e5015 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <i class="fas fa-coins" style="color: #2c3e50;"></i>
+                        </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 0.25rem;">Reporte de Rentabilidad</h6>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Márgenes y productos rentables</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">📈 Márgenes</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">⭐ Top productos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pedidos - NUEVA TARJETA -->
+                <div class="help-card" style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                ">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(135deg, #f59e0b15 0%, #d9770615 100%);
+                            border-radius: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <i class="fas fa-truck" style="color: #f59e0b;"></i>
+                        </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 0.25rem;">Reporte de Pedidos</h6>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">Seguimiento de pedidos a proveedores</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">📦 Estado pedidos</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">⏱️ Tiempos entrega</span>
+                                <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">🏭 Por proveedor</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Footer -->
-            <div class="modal-footer border-0 bg-light p-3">
-                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal" style="border-radius: 50px;">
-                    <i class="fas fa-times me-2"></i>Cerrar
-                </button>
+            <!-- Características y consejos -->
+            <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem;">
+                <!-- Características -->
+                <div style="
+                    background: white;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                ">
+                    <h6 style="font-weight: 700; margin-bottom: 1rem;">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Características del Sistema
+                    </h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="
+                                width: 24px;
+                                height: 24px;
+                                background: #10b98120;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-right: 0.5rem;
+                            ">
+                                <i class="fas fa-check" style="color: #10b981; font-size: 0.7rem;"></i>
+                            </div>
+                            <span style="font-size: 0.85rem;">Filtros dinámicos</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="
+                                width: 24px;
+                                height: 24px;
+                                background: #10b98120;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-right: 0.5rem;
+                            ">
+                                <i class="fas fa-check" style="color: #10b981; font-size: 0.7rem;"></i>
+                            </div>
+                            <span style="font-size: 0.85rem;">Exportación PDF</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="
+                                width: 24px;
+                                height: 24px;
+                                background: #10b98120;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-right: 0.5rem;
+                            ">
+                                <i class="fas fa-check" style="color: #10b981; font-size: 0.7rem;"></i>
+                            </div>
+                            <span style="font-size: 0.85rem;">Datos en tiempo real</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="
+                                width: 24px;
+                                height: 24px;
+                                background: #10b98120;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin-right: 0.5rem;
+                            ">
+                                <i class="fas fa-check" style="color: #10b981; font-size: 0.7rem;"></i>
+                            </div>
+                            <span style="font-size: 0.85rem;">Presets de fecha</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Consejo Profesional -->
+                <div style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    color: white;
+                ">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="
+                            width: 32px;
+                            height: 32px;
+                            background: rgba(255, 255, 255, 0.2);
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h6 style="font-weight: 700; margin-bottom: 0;">Consejo Profesional</h6>
+                    </div>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">
+                        Para obtener mejores resultados, utiliza rangos de fecha específicos y aprovecha los filtros dinámicos.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 0.5rem;">
+                        <span style="font-size: 0.8rem;">
+                            <i class="fas fa-clock me-1"></i>
+                            Los reportes se generan en menos de 5 segundos
+                        </span>
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <!-- Footer del modal -->
+        <div class="modal-personalizado-footer" style="
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            display: flex;
+            justify-content: flex-end;
+        ">
+            <button class="btn" onclick="cerrarModalAyuda()" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                border-radius: 50px;
+                padding: 0.75rem 2rem;
+                font-weight: 600;
+                color: white;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                transition: all 0.3s ease;
+            ">
+                <i class="fas fa-times me-2"></i>Cerrar
+            </button>
         </div>
     </div>
 </div>
@@ -719,42 +808,35 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* Estilos para el modal */
-.modal-content {
-    border: none;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+/* Animaciones para el modal */
+@keyframes modalAbrir {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
-.modal-body {
-    max-height: 70vh;
-    overflow-y: auto;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.modal-body::-webkit-scrollbar {
-    width: 6px;
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
 }
 
-.modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-.modal.fade .modal-dialog {
-    transform: scale(0.95) translateY(-20px);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.modal.show .modal-dialog {
-    transform: scale(1) translateY(0);
+#notification-toast {
+    animation: slideIn 0.3s ease;
 }
 
 /* Responsive */
@@ -772,36 +854,109 @@
         margin-top: 1rem;
     }
     
-    .modal-body {
-        max-height: 80vh;
+    .modal-personalizado-body {
+        max-height: 70vh;
+        overflow-y: auto;
     }
-}
-
-/* Animaciones para los elementos */
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-}
-
-#notification-toast {
-    animation: slideIn 0.3s ease;
+    
+    .modal-personalizado-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .modal-personalizado-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .modal-personalizado-body::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+    
+    .modal-personalizado-body::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
 }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-// RUTAS
+// Función para abrir el modal
+function abrirModalAyuda() {
+    console.log('Abriendo modal de ayuda...');
+    const modal = document.getElementById('modalAyudaPersonalizado');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('Modal abierto correctamente');
+    } else {
+        console.error('No se encontró el modal');
+        alert('Error: No se encontró el modal de ayuda');
+    }
+    return false;
+}
+
+// Función para cerrar el modal
+function cerrarModalAyuda() {
+    console.log('Cerrando modal...');
+    const modal = document.getElementById('modalAyudaPersonalizado');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Asignar evento al botón cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado - Configurando botón de ayuda');
+    
+    // Buscar el botón por ID
+    const btnAyuda = document.getElementById('btnAyuda');
+    if (btnAyuda) {
+        console.log('Botón de ayuda encontrado por ID');
+        btnAyuda.onclick = function(e) {
+            e.preventDefault();
+            abrirModalAyuda();
+            return false;
+        };
+    } else {
+        // Fallback: buscar por texto
+        const botones = document.querySelectorAll('button');
+        botones.forEach(boton => {
+            if (boton.textContent.includes('Ayuda')) {
+                console.log('Botón de ayuda encontrado por texto');
+                boton.onclick = function(e) {
+                    e.preventDefault();
+                    abrirModalAyuda();
+                    return false;
+                };
+            }
+        });
+    }
+    
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalAyuda();
+        }
+    });
+    
+    // Cargar filtros iniciales
+    loadFilters('ventas');
+    updateStatsPreview();
+    
+    document.getElementById('fecha_inicio').addEventListener('change', updateStatsPreview);
+    document.getElementById('fecha_fin').addEventListener('change', updateStatsPreview);
+});
+
+// RUTAS - INCLUYE PEDIDOS
 const ROUTES = {
     'ventas': '{{ route("reportes.ventas") }}',
     'compras': '{{ route("reportes.compras") }}', 
     'inventario': '{{ route("reportes.inventario") }}',
-    'rentabilidad': '{{ route("reportes.rentabilidad") }}'
+    'rentabilidad': '{{ route("reportes.rentabilidad") }}',
+    'pedidos': '{{ route("reportes.pedidos") }}'  // NUEVA RUTA
 };
 
 // CSRF TOKEN
@@ -814,16 +969,6 @@ const CATEGORIAS = @json($categorias ?? []);
 
 // TIPO DE REPORTE ACTUAL
 let currentReportType = 'ventas';
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Cargar filtros iniciales
-    loadFilters('ventas');
-    updateStatsPreview();
-    
-    // Actualizar preview al cambiar fechas
-    document.getElementById('fecha_inicio').addEventListener('change', updateStatsPreview);
-    document.getElementById('fecha_fin').addEventListener('change', updateStatsPreview);
-});
 
 // SELECCIONAR TIPO DE REPORTE
 function selectReportType(type) {
@@ -848,92 +993,123 @@ function selectReportType(type) {
     updateStatsPreview();
 }
 
-// FILTROS DINÁMICOS
+// FILTROS DINÁMICOS - INCLUYE PEDIDOS
 function loadFilters(type) {
     const container = document.getElementById('dynamicFilters');
     
-    setTimeout(() => {
-        if (type === 'ventas' || type === 'rentabilidad') {
-            let options = '<option value="">Todos los empleados</option>';
-            if (EMPLEADOS && EMPLEADOS.length > 0) {
-                EMPLEADOS.forEach(emp => {
-                    options += `<option value="${emp.id}">${emp.Nombre || emp.nombre || 'Empleado'} ${emp.ApPaterno || ''}</option>`;
-                });
-            }
-            
-            container.innerHTML = `
-                <div class="filter-group">
-                    <label class="form-label small fw-semibold text-muted">Filtrar por empleado</label>
-                    <select class="form-select border-0 bg-white" id="filtro_empleado">
-                        ${options}
-                    </select>
-                    <small class="text-muted mt-1 d-block">
-                        <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
-                        Opcional - deja vacío para todos
-                    </small>
-                </div>
-            `;
-        } else if (type === 'compras') {
-            let options = '<option value="">Todos los proveedores</option>';
-            if (PROVEEDORES && PROVEEDORES.length > 0) {
-                PROVEEDORES.forEach(prov => {
-                    options += `<option value="${prov.id}">${prov.Nombre || prov.nombre || 'Proveedor'} ${prov.ApPaterno || ''}</option>`;
-                });
-            }
-            
-            container.innerHTML = `
-                <div class="filter-group">
-                    <label class="form-label small fw-semibold text-muted">Filtrar por proveedor</label>
-                    <select class="form-select border-0 bg-white" id="filtro_proveedor">
-                        ${options}
-                    </select>
-                    <small class="text-muted mt-1 d-block">
-                        <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
-                        Opcional - deja vacío para todos
-                    </small>
-                </div>
-            `;
-        } else if (type === 'inventario') {
-            let options = '<option value="">Todas las categorías</option>';
-            if (CATEGORIAS && CATEGORIAS.length > 0) {
-                CATEGORIAS.forEach(cat => {
-                    options += `<option value="${cat.id}">${cat.Nombre || cat.nombre || 'Categoría'}</option>`;
-                });
-            }
-            
-            container.innerHTML = `
-                <div class="filter-group">
-                    <label class="form-label small fw-semibold text-muted">Filtrar por categoría</label>
-                    <select class="form-select border-0 bg-white mb-3" id="filtro_categoria">
-                        ${options}
-                    </select>
-                    
-                    <label class="form-label small fw-semibold text-muted">Nivel de stock</label>
-                    <select class="form-select border-0 bg-white" id="filtro_nivel_stock">
-                        <option value="">Todos los niveles</option>
-                        <option value="bajo">🔴 Bajo (menor a mínimo)</option>
-                        <option value="medio">🟡 Medio (entre mínimo y máximo)</option>
-                        <option value="alto">🟢 Alto (mayor a máximo)</option>
-                        <option value="agotado">⚫ Agotado (stock 0)</option>
-                    </select>
-                    <small class="text-muted mt-1 d-block">
-                        <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
-                        Ambos filtros son opcionales
-                    </small>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    <i class="fas fa-filter fa-3x mb-3 opacity-50" style="color: #9ca3af;"></i>
-                    <p class="mb-0">Sin filtros adicionales disponibles</p>
-                </div>
-            `;
+    if (type === 'ventas' || type === 'rentabilidad') {
+        let options = '<option value="">Todos los empleados</option>';
+        if (EMPLEADOS && EMPLEADOS.length > 0) {
+            EMPLEADOS.forEach(emp => {
+                options += `<option value="${emp.id}">${emp.Nombre || emp.nombre || 'Empleado'} ${emp.ApPaterno || ''}</option>`;
+            });
         }
-    }, 300);
+        
+        container.innerHTML = `
+            <div class="filter-group">
+                <label class="form-label small fw-semibold text-muted">Filtrar por empleado</label>
+                <select class="form-select border-0 bg-white" id="filtro_empleado">
+                    ${options}
+                </select>
+                <small class="text-muted mt-1 d-block">
+                    <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
+                    Opcional - deja vacío para todos
+                </small>
+            </div>
+        `;
+    } else if (type === 'compras') {
+        let options = '<option value="">Todos los proveedores</option>';
+        if (PROVEEDORES && PROVEEDORES.length > 0) {
+            PROVEEDORES.forEach(prov => {
+                options += `<option value="${prov.id}">${prov.Nombre || prov.nombre || 'Proveedor'} ${prov.ApPaterno || ''}</option>`;
+            });
+        }
+        
+        container.innerHTML = `
+            <div class="filter-group">
+                <label class="form-label small fw-semibold text-muted">Filtrar por proveedor</label>
+                <select class="form-select border-0 bg-white" id="filtro_proveedor">
+                    ${options}
+                </select>
+                <small class="text-muted mt-1 d-block">
+                    <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
+                    Opcional - deja vacío para todos
+                </small>
+            </div>
+        `;
+    } else if (type === 'inventario') {
+        let options = '<option value="">Todas las categorías</option>';
+        if (CATEGORIAS && CATEGORIAS.length > 0) {
+            CATEGORIAS.forEach(cat => {
+                options += `<option value="${cat.id}">${cat.Nombre || cat.nombre || 'Categoría'}</option>`;
+            });
+        }
+        
+        container.innerHTML = `
+            <div class="filter-group">
+                <label class="form-label small fw-semibold text-muted">Filtrar por categoría</label>
+                <select class="form-select border-0 bg-white mb-3" id="filtro_categoria">
+                    ${options}
+                </select>
+                
+                <label class="form-label small fw-semibold text-muted">Nivel de stock</label>
+                <select class="form-select border-0 bg-white" id="filtro_nivel_stock">
+                    <option value="">Todos los niveles</option>
+                    <option value="bajo">🔴 Bajo (menor a mínimo)</option>
+                    <option value="medio">🟡 Medio (entre mínimo y máximo)</option>
+                    <option value="alto">🟢 Alto (mayor a máximo)</option>
+                    <option value="agotado">⚫ Agotado (stock 0)</option>
+                </select>
+                <small class="text-muted mt-1 d-block">
+                    <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
+                    Ambos filtros son opcionales
+                </small>
+            </div>
+        `;
+    } 
+    // NUEVA SECCIÓN PARA PEDIDOS
+    else if (type === 'pedidos') {
+        let proveedoresOptions = '<option value="">Todos los proveedores</option>';
+        if (PROVEEDORES && PROVEEDORES.length > 0) {
+            PROVEEDORES.forEach(prov => {
+                proveedoresOptions += `<option value="${prov.id}">${prov.Nombre || prov.nombre || 'Proveedor'} ${prov.ApPaterno || ''}</option>`;
+            });
+        }
+        
+        container.innerHTML = `
+            <div class="filter-group">
+                <label class="form-label small fw-semibold text-muted">Filtrar por proveedor</label>
+                <select class="form-select border-0 bg-white mb-3" id="filtro_proveedor_pedidos">
+                    ${proveedoresOptions}
+                </select>
+                
+                <label class="form-label small fw-semibold text-muted">Estado del pedido</label>
+                <select class="form-select border-0 bg-white mb-3" id="filtro_estado_pedido">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">⏳ Pendiente</option>
+                    <option value="en_proceso">🔄 En proceso</option>
+                    <option value="completado">✅ Completado</option>
+                    <option value="cancelado">❌ Cancelado</option>
+                    <option value="entregado">📦 Entregado</option>
+                </select>
+                
+                <label class="form-label small fw-semibold text-muted">Mostrar</label>
+                <select class="form-select border-0 bg-white" id="filtro_tipo_pedido">
+                    <option value="todos">Todos los pedidos</option>
+                    <option value="pendientes">Solo pendientes</option>
+                    <option value="completados">Solo completados</option>
+                    <option value="atrasados">Pedidos atrasados</option>
+                </select>
+                <small class="text-muted mt-1 d-block">
+                    <i class="fas fa-info-circle me-1" style="color: #667eea;"></i> 
+                    Filtra pedidos por estado y proveedor
+                </small>
+            </div>
+        `;
+    }
 }
 
-// PRESETS DE FECHA MEJORADOS
+// PRESETS DE FECHA
 function setDate(preset) {
     const inicio = document.getElementById('fecha_inicio');
     const fin = document.getElementById('fecha_fin');
@@ -962,18 +1138,10 @@ function setDate(preset) {
     inicio.value = start.toISOString().split('T')[0];
     fin.value = today.toISOString().split('T')[0];
     
-    // Animar los inputs
-    [inicio, fin].forEach(input => {
-        input.classList.add('animate__animated', 'animate__pulse');
-        setTimeout(() => {
-            input.classList.remove('animate__animated', 'animate__pulse');
-        }, 500);
-    });
-    
     updateStatsPreview();
 }
 
-// ACTUALIZAR PREVIEW DE ESTADÍSTICAS
+// ACTUALIZAR PREVIEW DE ESTADÍSTICAS - INCLUYE PEDIDOS
 function updateStatsPreview() {
     const inicio = document.getElementById('fecha_inicio').value;
     const fin = document.getElementById('fecha_fin').value;
@@ -989,7 +1157,8 @@ function updateStatsPreview() {
             'ventas': 'Ventas',
             'compras': 'Compras',
             'inventario': 'Inventario',
-            'rentabilidad': 'Rentabilidad'
+            'rentabilidad': 'Rentabilidad',
+            'pedidos': 'Pedidos'  // NUEVO
         };
         
         statsPreview.innerHTML = `
@@ -1008,10 +1177,8 @@ function updateStatsPreview() {
 
 // RESETEAR FORMULARIO
 function resetForm() {
-    // Resetear tipo de reporte
     selectReportType('ventas');
     
-    // Resetear fechas
     const today = new Date();
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -1019,16 +1186,14 @@ function resetForm() {
     document.getElementById('fecha_inicio').value = thirtyDaysAgo.toISOString().split('T')[0];
     document.getElementById('fecha_fin').value = today.toISOString().split('T')[0];
     
-    // Mostrar mensaje de éxito
     showNotification('Formulario restablecido', 'success');
 }
 
-// GENERAR REPORTE (ABRE EN NUEVA PESTAÑA)
+// GENERAR REPORTE - INCLUYE PEDIDOS
 function generarReporte() {
     const inicio = document.getElementById('fecha_inicio').value;
     const fin = document.getElementById('fecha_fin').value;
     
-    // Validaciones
     if (!inicio || !fin) {
         showNotification('Seleccione un rango de fechas', 'error');
         return;
@@ -1039,24 +1204,20 @@ function generarReporte() {
         return;
     }
     
-    // Mostrar loading
     showNotification('Generando reporte...', 'info', 2000);
     
-    // Crear formulario dinámico
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = ROUTES[currentReportType];
     form.target = '_blank';
     form.style.display = 'none';
     
-    // Agregar campos
     const fields = [
         { name: '_token', value: CSRF_TOKEN },
         { name: 'fecha_inicio', value: inicio },
         { name: 'fecha_fin', value: fin }
     ];
     
-    // Agregar filtros según tipo
     if (currentReportType === 'ventas' || currentReportType === 'rentabilidad') {
         const empleadoSelect = document.getElementById('filtro_empleado');
         if (empleadoSelect && empleadoSelect.value) {
@@ -1077,9 +1238,25 @@ function generarReporte() {
         if (nivelStockSelect && nivelStockSelect.value) {
             fields.push({ name: 'nivel_stock', value: nivelStockSelect.value });
         }
+    } 
+    // NUEVA SECCIÓN PARA PEDIDOS
+    else if (currentReportType === 'pedidos') {
+        const proveedorSelect = document.getElementById('filtro_proveedor_pedidos');
+        if (proveedorSelect && proveedorSelect.value) {
+            fields.push({ name: 'proveedor_id', value: proveedorSelect.value });
+        }
+        
+        const estadoSelect = document.getElementById('filtro_estado_pedido');
+        if (estadoSelect && estadoSelect.value) {
+            fields.push({ name: 'estado', value: estadoSelect.value });
+        }
+        
+        const tipoSelect = document.getElementById('filtro_tipo_pedido');
+        if (tipoSelect && tipoSelect.value) {
+            fields.push({ name: 'tipo', value: tipoSelect.value });
+        }
     }
     
-    // Crear inputs
     fields.forEach(field => {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -1088,15 +1265,13 @@ function generarReporte() {
         form.appendChild(input);
     });
     
-    // Enviar formulario
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
 }
 
-// SISTEMA DE NOTIFICACIONES
+// NOTIFICACIONES
 function showNotification(message, type = 'info', duration = 3000) {
-    // Crear elemento de notificación si no existe
     let notification = document.getElementById('notification-toast');
     if (!notification) {
         notification = document.createElement('div');
@@ -1109,11 +1284,9 @@ function showNotification(message, type = 'info', duration = 3000) {
         notification.style.padding = '1rem';
         notification.style.borderRadius = '12px';
         notification.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-        notification.style.animation = 'slideIn 0.3s ease';
         document.body.appendChild(notification);
     }
     
-    // Configurar estilos según tipo
     const colors = {
         success: { bg: '#10b981', icon: 'check-circle' },
         error: { bg: '#ef4444', icon: 'exclamation-circle' },
@@ -1133,15 +1306,9 @@ function showNotification(message, type = 'info', duration = 3000) {
         </div>
     `;
     
-    // Auto-cerrar
     setTimeout(() => {
         if (notification.parentElement) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 300);
+            notification.remove();
         }
     }, duration);
 }

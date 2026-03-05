@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>@yield('title','Muebles Yasbo')</title>
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -590,9 +591,9 @@ body{
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-// Clase SessionManager (mantener igual)
+// Clase SessionManager - VERSIÓN CORREGIDA (SIN ERROR 419)
 class SessionManager {
-    constructor(timeoutMinutes = 2, warningMinutes = 1) {
+    constructor(timeoutMinutes = 16, warningMinutes = 1) {
         this.timeoutMinutes = timeoutMinutes;
         this.warningMinutes = warningMinutes;
         this.timeoutMilliseconds = timeoutMinutes * 60 * 1000;
@@ -671,7 +672,7 @@ class SessionManager {
             title: '¿Todavía estás ahí? 👋',
             html: `
                 <div class="countdown-container">
-                    <div class="countdown-number" id="countdownNumber">2:00</div>
+                    <div class="countdown-number" id="countdownNumber">${this.warningMinutes}:00</div>
                     <div class="countdown-label">minutos restantes</div>
                 </div>
                 <p style="color: #6b7280; margin-top: 15px;">
@@ -741,22 +742,8 @@ class SessionManager {
         });
     }
 
+    // MÉTODO DE LOGOUT CORREGIDO - Usa GET en lugar de POST para evitar error 419
     logout() {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route("logout") }}';
-        form.style.display = 'none';
-        
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-        
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        
-        form.appendChild(csrfInput);
-        document.body.appendChild(form);
-        
         Swal.fire({
             title: '⏰ Sesión expirada',
             text: 'Serás redirigido al inicio de sesión por inactividad.',
@@ -770,7 +757,8 @@ class SessionManager {
         });
         
         setTimeout(() => {
-            form.submit();
+            // Redirigir directamente a logout usando GET (esto evitará el error 419)
+            window.location.href = '{{ route("logout") }}';
         }, 3000);
     }
 
@@ -1036,7 +1024,7 @@ function exportarExcel(nombre, datos, columnas) {
 </script>
 
 @auth
-<form id="logout-form" method="POST" action="{{ route('logout') }}" class="d-none">
+<form id="logout-form" method="POST" action="{{ route('welcome') }}" class="d-none">
     @csrf
 </form>
 @endauth
