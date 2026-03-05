@@ -23,6 +23,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\VerifyCodeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\GraficaController;
+
 /*
 |--------------------------------------------------------------------------
 | RUTAS DE AUTENTICACIÓN (FORTIFY)
@@ -113,57 +114,102 @@ Route::middleware('auth')->group(function () {
     Route::resource('productos', ProductoController::class);
     Route::resource('ventas', VentaController::class);
     Route::resource('compras', CompraController::class);
-    
     Route::resource('pedidos', PedidoController::class);
     Route::resource('calendario', CalendarioController::class);
     
-    // Rutas para respaldos
-    Route::prefix('respaldos')->group(function () {
-        Route::get('/', [RespaldoController::class, 'index'])->name('respaldos.index');
-        Route::get('/create', [RespaldoController::class, 'create'])->name('respaldos.create');
-        Route::post('/', [RespaldoController::class, 'store'])->name('respaldos.store');
-        Route::get('/{id}', [RespaldoController::class, 'show'])->name('respaldos.show');
-        Route::get('/{id}/edit', [RespaldoController::class, 'edit'])->name('respaldos.edit');
-        Route::put('/{id}', [RespaldoController::class, 'update'])->name('respaldos.update');
-        Route::delete('/{id}', [RespaldoController::class, 'destroy'])->name('respaldos.destroy');
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS DE REPORTES (CORREGIDAS)
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        // Vista principal de reportes
+        Route::get('/', [ReporteController::class, 'index'])->name('index');
+        
+        // Rutas POST para generar reportes (desde formularios)
+        Route::post('ventas', [ReporteController::class, 'generarReporteVentas'])->name('ventas');
+        Route::post('compras', [ReporteController::class, 'generarReporteCompras'])->name('compras');
+        Route::post('pedidos', [ReporteController::class, 'generarReportePedidos'])->name('pedidos');
+        Route::post('inventario', [ReporteController::class, 'generarReporteInventario'])->name('inventario');
+        Route::post('rentabilidad', [ReporteController::class, 'generarReporteRentabilidad'])->name('rentabilidad');
+        Route::post('ventas-vendedor', [ReporteController::class, 'generarReporteVentasVendedor'])->name('ventas-vendedor');
+        
+        // Rutas GET para acceder directamente (opcional)
+        Route::get('ventas', [ReporteController::class, 'generarReporteVentas'])->name('ventas.get');
+        Route::get('compras', [ReporteController::class, 'generarReporteCompras'])->name('compras.get');
+        Route::get('pedidos', [ReporteController::class, 'generarReportePedidos'])->name('pedidos.get');
+        Route::get('inventario', [ReporteController::class, 'generarReporteInventario'])->name('inventario.get');
+        Route::get('rentabilidad', [ReporteController::class, 'generarReporteRentabilidad'])->name('rentabilidad.get');
+        Route::get('ventas-vendedor', [ReporteController::class, 'generarReporteVentasVendedor'])->name('ventas-vendedor.get');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS DE RESPALDOS
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('respaldos')->name('respaldos.')->group(function () {
+        Route::get('/', [RespaldoController::class, 'index'])->name('index');
+        Route::get('/create', [RespaldoController::class, 'create'])->name('create');
+        Route::post('/', [RespaldoController::class, 'store'])->name('store');
+        Route::get('/{id}', [RespaldoController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [RespaldoController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [RespaldoController::class, 'update'])->name('update');
+        Route::delete('/{id}', [RespaldoController::class, 'destroy'])->name('destroy');
         
         // Rutas específicas
-        Route::get('/descargar/{id}', [RespaldoController::class, 'descargar'])->name('respaldos.descargar');
-        Route::get('/info/{id}', [RespaldoController::class, 'info'])->name('respaldos.info');
-        Route::get('/verificar/{id}', [RespaldoController::class, 'verificarEstado'])->name('respaldos.verificar');
-        Route::get('/forzar-descarga/{id}', [RespaldoController::class, 'forzarDescarga'])->name('respaldos.forzar-descarga');
+        Route::get('/descargar/{id}', [RespaldoController::class, 'descargar'])->name('descargar');
+        Route::get('/info/{id}', [RespaldoController::class, 'info'])->name('info');
+        Route::get('/verificar/{id}', [RespaldoController::class, 'verificarEstado'])->name('verificar');
+        Route::get('/forzar-descarga/{id}', [RespaldoController::class, 'forzarDescarga'])->name('forzar-descarga');
         
         // Ruta para mostrar el formulario de restauración desde archivo
-        Route::get('/restaurar/desde-archivo', [RespaldoController::class, 'restaurarDesdeArchivoForm'])->name('respaldos.restaurar.form');
-
+        Route::get('/restaurar/desde-archivo', [RespaldoController::class, 'restaurarDesdeArchivoForm'])->name('restaurar.form');
+        
         // Ruta para procesar la restauración desde archivo
-        Route::post('/restaurar/desde-archivo', [RespaldoController::class, 'restaurarDesdeArchivo'])->name('respaldos.restaurar');
+        Route::post('/restaurar/desde-archivo', [RespaldoController::class, 'restaurarDesdeArchivo'])->name('restaurar');
+        
         // Utilitarios
-        Route::post('/generar-manual', [RespaldoController::class, 'generarManual'])->name('respaldos.generar-manual');
-        Route::get('/verificar-conexion', [RespaldoController::class, 'verificarConexion'])->name('respaldos.verificar-conexion');
-        Route::post('/store-simple', [RespaldoController::class, 'storeSimple'])->name('respaldos.store-simple');
+        Route::post('/generar-manual', [RespaldoController::class, 'generarManual'])->name('generar-manual');
+        Route::get('/verificar-conexion', [RespaldoController::class, 'verificarConexion'])->name('verificar-conexion');
+        Route::post('/store-simple', [RespaldoController::class, 'storeSimple'])->name('store-simple');
     });
     
-    // Restaurar desde archivo SQL subido
+    // Rutas adicionales de respaldos fuera del prefix
     Route::post('/respaldos/restaurar-archivo', [App\Http\Controllers\RespaldoController::class, 'restaurarDesdeArchivo'])
         ->name('respaldos.restaurar-archivo');
     Route::post('/respaldos/restaurar/{respaldo}', [App\Http\Controllers\RespaldoController::class, 'restaurar']);
-    // Rutas para el calendario
+
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS DEL CALENDARIO
+    |--------------------------------------------------------------------------
+    */
     Route::get('/calendario/pedido/{id}', [CalendarioController::class, 'obtenerDetallePedido'])->name('calendario.pedido.detalle');
     Route::get('/calendario/eventos', [CalendarioController::class, 'eventosJson'])->name('calendario.eventos');
     Route::get('/clientes/{cliente}/pedidos', [ClienteController::class, 'verificarPedidos'])->name('clientes.pedidos');
 
-    Route::resource('calendario', CalendarioController::class);
-    Route::resource('reportes', ReporteController::class);
-    Route::post('/reportes/pedidos', [App\Http\Controllers\ReporteController::class, 'pedidos'])->name('reportes.pedidos');
-    Route::post('reportes/ventas', [ReporteController::class, 'generarReporteVentas'])->name('reportes.ventas');
-    Route::post('reportes/compras', [ReporteController::class, 'generarReporteCompras'])->name('reportes.compras');
-    Route::post('reportes/inventario', [ReporteController::class, 'generarReporteInventario'])->name('reportes.inventario');
-    Route::post('reportes/rentabilidad', [ReporteController::class, 'generarReporteRentabilidad'])->name('reportes.rentabilidad');
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS DE ESTADOS Y ACCIONES ESPECIALES
+    |--------------------------------------------------------------------------
+    */
     Route::post('/pedidos/{id}/cambiar-estado', [App\Http\Controllers\PedidoController::class, 'cambiarEstado'])->name('pedidos.cambiarEstado');
+    
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS DE GRÁFICAS
+    |--------------------------------------------------------------------------
+    */
     Route::get('grafica/empleados', [App\Http\Controllers\GraficaController::class, 'graficaEmpleados'])->name('grafica.empleados');
     Route::get('grafica/productos', [App\Http\Controllers\GraficaController::class, 'graficaProductos'])->name('grafica.productos');
     Route::get('grafica/tendencia', [App\Http\Controllers\GraficaController::class, 'graficaTendencia'])->name('grafica.tendencia');
+    
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS PARA ACTIVAR REGISTROS (SOFT DELETES)
+    |--------------------------------------------------------------------------
+    */
     Route::patch('/categorias/{id}/activar', [CategoriaController::class, 'activar'])->name('categorias.activar');
     Route::patch('/clientes/{id}/activar', [ClienteController::class, 'activar'])->name('clientes.activar');
     Route::patch('/personal/{id}/activar', [EmpleadoController::class, 'activar'])->name('personal.activar');

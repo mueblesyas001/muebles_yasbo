@@ -74,12 +74,23 @@ class ReporteController extends Controller
      * 1. REPORTE DE VENTAS (CON GRÁFICAS GD)
      * ===========================================
      */
-    public function generarReporteVentas(Request $request){
+    public function generarReporteVentas(Request $request)
+    {
         // Validar fechas
         $request->validate([
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
+        
+        // Verificar si hay ventas en el período seleccionado
+        $totalVentasPeriodo = Venta::whereDate('Fecha', '>=', $request->fecha_inicio)
+            ->whereDate('Fecha', '<=', $request->fecha_fin)
+            ->count();
+        
+        // Si no hay ventas, mostrar mensaje amigable
+        if ($totalVentasPeriodo == 0) {
+            return back()->with('warning', 'No hay ventas en el período seleccionado. Por favor, elige otro rango de fechas.');
+        }
         
         // 1. OBTENER VENTAS
         $ventas = Venta::with('empleado')
@@ -179,19 +190,31 @@ class ReporteController extends Controller
             $datosChartProductos['data'][] = intval($item->total_vendido);
         }
         
-        // 8. GENERAR GRÁFICAS CON GD
+        // 8. GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if (!empty($datosChartDiario['labels'])) {
-            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartDiario, 'Ventas Diarias');
+        if (!empty($datosChartDiario['labels']) && array_sum($datosChartDiario['data']) > 0) {
+            try {
+                $graficas['diaria'] = GraficaHelper::generarLinea($datosChartDiario, 'Ventas Diarias');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de ventas diarias: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartEmpleados['labels'])) {
-            $graficas['empleados'] = GraficaHelper::generarBarra($datosChartEmpleados, 'Ventas por Vendedor');
+        if (!empty($datosChartEmpleados['labels']) && array_sum($datosChartEmpleados['data']) > 0) {
+            try {
+                $graficas['empleados'] = GraficaHelper::generarBarra($datosChartEmpleados, 'Ventas por Vendedor');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de ventas por empleado: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartProductos['labels'])) {
-            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductos, 'Productos más vendidos');
+        if (!empty($datosChartProductos['labels']) && array_sum($datosChartProductos['data']) > 0) {
+            try {
+                $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductos, 'Productos más vendidos');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de productos más vendidos: ' . $e->getMessage());
+            }
         }
         
         // 9. RESUMEN EJECUTIVO
@@ -244,6 +267,16 @@ class ReporteController extends Controller
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
+        
+        // Verificar si hay compras en el período seleccionado
+        $totalComprasPeriodo = Compra::whereDate('Fecha_compra', '>=', $request->fecha_inicio)
+            ->whereDate('Fecha_compra', '<=', $request->fecha_fin)
+            ->count();
+        
+        // Si no hay compras, mostrar mensaje amigable
+        if ($totalComprasPeriodo == 0) {
+            return back()->with('warning', 'No hay compras en el período seleccionado. Por favor, elige otro rango de fechas.');
+        }
         
         // OBTENER COMPRAS
         $query = Compra::with(['proveedor', 'detalleCompras.producto']);
@@ -385,19 +418,31 @@ class ReporteController extends Controller
             $datosChartComprasDiarias['data'][] = floatval($compraDia->total ?? 0);
         }
         
-        // GENERAR GRÁFICAS CON GD
+        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if (!empty($datosChartProveedores['labels'])) {
-            $graficas['proveedores'] = GraficaHelper::generarBarra($datosChartProveedores, 'Compras por Proveedor');
+        if (!empty($datosChartProveedores['labels']) && array_sum($datosChartProveedores['data']) > 0) {
+            try {
+                $graficas['proveedores'] = GraficaHelper::generarBarra($datosChartProveedores, 'Compras por Proveedor');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de compras por proveedor: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartProductosComprados['labels'])) {
-            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosComprados, 'Productos más comprados');
+        if (!empty($datosChartProductosComprados['labels']) && array_sum($datosChartProductosComprados['data']) > 0) {
+            try {
+                $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosComprados, 'Productos más comprados');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de productos más comprados: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartComprasDiarias['labels'])) {
-            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartComprasDiarias, 'Compras Diarias');
+        if (!empty($datosChartComprasDiarias['labels']) && array_sum($datosChartComprasDiarias['data']) > 0) {
+            try {
+                $graficas['diaria'] = GraficaHelper::generarLinea($datosChartComprasDiarias, 'Compras Diarias');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de compras diarias: ' . $e->getMessage());
+            }
         }
         
         $diaPico = $comprasPorDia->sortByDesc('total')->first();
@@ -441,7 +486,7 @@ class ReporteController extends Controller
 
     /**
      * ===========================================
-     * 3. REPORTE DE PEDIDOS (SEGÚN REQUERIMIENTOS)
+     * 3. REPORTE DE PEDIDOS
      * ===========================================
      */
     public function generarReportePedidos(Request $request)
@@ -452,11 +497,24 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
+        // Usar Fecha_entrega como columna de fecha (ajusta según tu modelo)
+        $fechaColumn = 'Fecha_entrega';
+        
+        // Verificar si hay pedidos en el período seleccionado
+        $totalPedidosPeriodo = Pedido::whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
+            ->count();
+        
+        // Si no hay pedidos, mostrar mensaje amigable
+        if ($totalPedidosPeriodo == 0) {
+            return back()->with('warning', 'No hay pedidos en el período seleccionado. Por favor, elige otro rango de fechas.');
+        }
+        
         // OBTENER PEDIDOS con relaciones necesarias
         $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto']);
         
-        $query->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-              ->whereDate('Fecha_pedido', '<=', $request->fecha_fin);
+        $query->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+              ->whereDate($fechaColumn, '<=', $request->fecha_fin);
         
         if ($request->filled('estado')) {
             $query->where('Estado', $request->estado);
@@ -467,27 +525,54 @@ class ReporteController extends Controller
         }
         
         $orden = $request->orden ?? 'fecha_desc';
-        if ($orden == 'fecha_desc') $query->orderBy('Fecha_pedido', 'desc');
-        elseif ($orden == 'fecha_asc') $query->orderBy('Fecha_pedido', 'asc');
-        elseif ($orden == 'estado') $query->orderBy('Estado')->orderBy('Fecha_pedido', 'desc');
+        if ($orden == 'fecha_desc') $query->orderBy($fechaColumn, 'desc');
+        elseif ($orden == 'fecha_asc') $query->orderBy($fechaColumn, 'asc');
+        elseif ($orden == 'estado') $query->orderBy('Estado')->orderBy($fechaColumn, 'desc');
         
         $pedidos = $query->get();
         
+        // DIAGNÓSTICO: Ver los valores reales de Estado
+        $valoresEstado = $pedidos->pluck('Estado')->unique()->values();
+        \Log::info('Valores de Estado en pedidos:', $valoresEstado->toArray());
+        
         // ESTADÍSTICAS PRINCIPALES
         $totalPedidos = $pedidos->count();
-        $pedidosPendientes = $pedidos->where('Estado', 'pendiente')->count();
-        $pedidosEnProceso = $pedidos->where('Estado', 'en proceso')->count();
-        $pedidosEntregados = $pedidos->where('Estado', 'entregado')->count();
-        $pedidosCancelados = $pedidos->where('Estado', 'cancelado')->count();
         
-        // Calcular total de pedidos en valor (si tienen campo Total)
+        // Mapeo de estados (ajusta según tus valores reales)
+        $estadoMap = [
+            'pendiente' => ['pendiente', 'pending', 'Pendiente'],
+            'proceso' => ['en proceso', 'proceso', 'processing', 'En Proceso', 'En proceso'],
+            'completado' => ['completado', 'entregado', 'completed', 'Completado', 'Entregado'],
+            'cancelado' => ['cancelado', 'cancelled', 'Cancelado']
+        ];
+        
+        $pedidosPendientes = 0;
+        $pedidosEnProceso = 0;
+        $pedidosCompletados = 0;
+        $pedidosCancelados = 0;
+        
+        foreach ($pedidos as $pedido) {
+            $estado = trim($pedido->Estado ?? '');
+            
+            if (in_array($estado, $estadoMap['pendiente'])) {
+                $pedidosPendientes++;
+            } elseif (in_array($estado, $estadoMap['proceso'])) {
+                $pedidosEnProceso++;
+            } elseif (in_array($estado, $estadoMap['completado'])) {
+                $pedidosCompletados++;
+            } elseif (in_array($estado, $estadoMap['cancelado'])) {
+                $pedidosCancelados++;
+            }
+        }
+        
+        // Calcular total de pedidos en valor
         $valorTotalPedidos = $pedidos->sum('Total');
         
         // Cliente con más pedidos
         $clienteTop = Pedido::with('cliente')
             ->select('Cliente_idCliente', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-            ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
             ->groupBy('Cliente_idCliente')
             ->orderBy('total_pedidos', 'desc')
             ->first();
@@ -495,28 +580,28 @@ class ReporteController extends Controller
         // Vendedor con más pedidos
         $vendedorTop = Pedido::with('empleado')
             ->select('Empleado_idEmpleado', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-            ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
             ->groupBy('Empleado_idEmpleado')
             ->orderBy('total_pedidos', 'desc')
             ->first();
         
         // PEDIDOS POR DÍA (para gráfica)
         $pedidosPorDia = Pedido::select(
-                DB::raw('DATE(Fecha_pedido) as fecha'),
+                DB::raw("DATE($fechaColumn) as fecha"),
                 DB::raw('COUNT(*) as cantidad')
             )
-            ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-            ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
-            ->groupBy(DB::raw('DATE(Fecha_pedido)'))
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
+            ->groupBy(DB::raw("DATE($fechaColumn)"))
             ->orderBy('fecha', 'asc')
             ->get();
         
         // PEDIDOS POR VENDEDOR (para gráfica)
         $pedidosPorVendedor = Pedido::with('empleado')
             ->select('Empleado_idEmpleado', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-            ->whereDate('Fecha_pedido', '<=', $request->fecha_fin)
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
             ->groupBy('Empleado_idEmpleado')
             ->orderBy('total_pedidos', 'desc')
             ->get();
@@ -525,7 +610,7 @@ class ReporteController extends Controller
         $pedidosPorEstado = [
             'pendiente' => $pedidosPendientes,
             'en proceso' => $pedidosEnProceso,
-            'entregado' => $pedidosEntregados,
+            'completado' => $pedidosCompletados,
             'cancelado' => $pedidosCancelados
         ];
         
@@ -536,9 +621,9 @@ class ReporteController extends Controller
                 DB::raw('SUM(Cantidad) as total_cantidad'),
                 DB::raw('COUNT(DISTINCT Pedido) as veces_pedido')
             )
-            ->whereHas('pedido', function($q) use ($request) {
-                $q->whereDate('Fecha_pedido', '>=', $request->fecha_inicio)
-                  ->whereDate('Fecha_pedido', '<=', $request->fecha_fin);
+            ->whereHas('pedido', function($q) use ($request, $fechaColumn) {
+                $q->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+                  ->whereDate($fechaColumn, '<=', $request->fecha_fin);
             })
             ->groupBy('Producto')
             ->orderBy('total_cantidad', 'desc')
@@ -547,8 +632,8 @@ class ReporteController extends Controller
         
         // PREPARAR DATOS PARA GRÁFICAS GD
         $datosChartEstados = [
-            'labels' => ['Pendientes', 'En Proceso', 'Entregados', 'Cancelados'],
-            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosEntregados, $pedidosCancelados]
+            'labels' => ['Pendientes', 'En Proceso', 'Completados', 'Cancelados'],
+            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosCompletados, $pedidosCancelados]
         ];
         
         $datosChartVendedores = [
@@ -587,7 +672,7 @@ class ReporteController extends Controller
         $fechaInicioObj = Carbon::parse($request->fecha_inicio);
         $fechaFinObj = Carbon::parse($request->fecha_fin);
         $diasTotales = $fechaInicioObj->diffInDays($fechaFinObj) + 1;
-        $diasAMostrar = min($diasTotales, 15); // Mostrar máximo 15 días para no saturar
+        $diasAMostrar = min($diasTotales, 15);
         
         for ($i = 0; $i < $diasAMostrar; $i++) {
             $fechaActual = $fechaInicioObj->copy()->addDays($i);
@@ -597,23 +682,39 @@ class ReporteController extends Controller
             $datosChartPedidosDiarios['data'][] = intval($pedidoDia->cantidad ?? 0);
         }
         
-        // GENERAR GRÁFICAS CON GD
+        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if ($totalPedidos > 0) {
-            $graficas['estados'] = GraficaHelper::generarBarra($datosChartEstados, 'Distribución de Estados');
+        if ($totalPedidos > 0 && array_sum($datosChartEstados['data']) > 0) {
+            try {
+                $graficas['estados'] = GraficaHelper::generarBarra($datosChartEstados, 'Distribución de Estados');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de estados: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartVendedores['labels'])) {
-            $graficas['vendedores'] = GraficaHelper::generarBarra($datosChartVendedores, 'Pedidos por Vendedor');
+        if (!empty($datosChartVendedores['labels']) && array_sum($datosChartVendedores['data']) > 0) {
+            try {
+                $graficas['vendedores'] = GraficaHelper::generarBarra($datosChartVendedores, 'Pedidos por Vendedor');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de vendedores: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartProductosPedidos['labels'])) {
-            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosPedidos, 'Productos más pedidos');
+        if (!empty($datosChartProductosPedidos['labels']) && array_sum($datosChartProductosPedidos['data']) > 0) {
+            try {
+                $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosPedidos, 'Productos más pedidos');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de productos: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartPedidosDiarios['labels'])) {
-            $graficas['diaria'] = GraficaHelper::generarLinea($datosChartPedidosDiarios, 'Pedidos Diarios');
+        if (!empty($datosChartPedidosDiarios['labels']) && array_sum($datosChartPedidosDiarios['data']) > 0) {
+            try {
+                $graficas['diaria'] = GraficaHelper::generarLinea($datosChartPedidosDiarios, 'Pedidos Diarios');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de pedidos diarios: ' . $e->getMessage());
+            }
         }
         
         // GENERAR PDF
@@ -630,7 +731,7 @@ class ReporteController extends Controller
                 'valorTotalPedidos' => $valorTotalPedidos,
                 'pedidosPendientes' => $pedidosPendientes,
                 'pedidosEnProceso' => $pedidosEnProceso,
-                'pedidosEntregados' => $pedidosEntregados,
+                'pedidosCompletados' => $pedidosCompletados,
                 'pedidosCancelados' => $pedidosCancelados,
                 'pedidosPorEstado' => $pedidosPorEstado,
                 'clienteTop' => $clienteTop,
@@ -642,13 +743,6 @@ class ReporteController extends Controller
             ]);
             
             $pdf->setPaper('A4', 'portrait');
-            $pdf->setOptions([
-                'enable-javascript' => true,
-                'javascript-delay' => 1000,
-                'no-stop-slow-scripts' => true,
-                'enable-smart-shrinking' => true,
-            ]);
-            
             $nombreArchivo = 'reporte_pedidos_' . date('Y-m-d_H-i-s') . '.pdf';
             
             return $this->enviarPDFaNuevaPestana($pdf, $nombreArchivo);
@@ -699,8 +793,9 @@ class ReporteController extends Controller
         
         $productos = $query->get();
         
+        // Verificar si hay productos
         if ($productos->isEmpty()) {
-            return back()->with('warning', 'No hay productos en el inventario');
+            return back()->with('warning', 'No hay productos en el inventario con los filtros seleccionados.');
         }
         
         // CÁLCULOS
@@ -800,23 +895,39 @@ class ReporteController extends Controller
             ]
         ];
         
-        // GENERAR GRÁFICAS CON GD
+        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if ($totalProductos > 0) {
-            $graficas['niveles'] = GraficaHelper::generarBarra($datosChartNivelesStock, 'Niveles de Stock');
+        if ($totalProductos > 0 && array_sum($datosChartNivelesStock['data']) > 0) {
+            try {
+                $graficas['niveles'] = GraficaHelper::generarBarra($datosChartNivelesStock, 'Niveles de Stock');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de niveles de stock: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartCategorias['labels'])) {
-            $graficas['categorias'] = GraficaHelper::generarBarra($datosChartCategorias, 'Valor por Categoría');
+        if (!empty($datosChartCategorias['labels']) && array_sum($datosChartCategorias['data']) > 0) {
+            try {
+                $graficas['categorias'] = GraficaHelper::generarBarra($datosChartCategorias, 'Valor por Categoría');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de valor por categoría: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartProductosValiosos['labels'])) {
-            $graficas['valiosos'] = GraficaHelper::generarBarra($datosChartProductosValiosos, 'Productos más valiosos');
+        if (!empty($datosChartProductosValiosos['labels']) && array_sum($datosChartProductosValiosos['data']) > 0) {
+            try {
+                $graficas['valiosos'] = GraficaHelper::generarBarra($datosChartProductosValiosos, 'Productos más valiosos');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de productos más valiosos: ' . $e->getMessage());
+            }
         }
         
         if (!empty($datosChartABC['data']) && array_sum($datosChartABC['data']) > 0) {
-            $graficas['abc'] = GraficaHelper::generarBarra($datosChartABC, 'Análisis ABC');
+            try {
+                $graficas['abc'] = GraficaHelper::generarBarra($datosChartABC, 'Análisis ABC');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de análisis ABC: ' . $e->getMessage());
+            }
         }
         
         // GENERAR PDF
@@ -865,6 +976,16 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
+        // Verificar si hay ventas en el período seleccionado
+        $totalVentasPeriodo = Venta::whereDate('Fecha', '>=', $request->fecha_inicio)
+            ->whereDate('Fecha', '<=', $request->fecha_fin)
+            ->count();
+        
+        // Si no hay ventas, mostrar mensaje amigable
+        if ($totalVentasPeriodo == 0) {
+            return back()->with('warning', 'No hay ventas en el período seleccionado. Por favor, elige otro rango de fechas para calcular rentabilidad.');
+        }
+        
         // OBTENER PRODUCTOS
         $query = Producto::query();
         $query->with('categoria');
@@ -903,12 +1024,17 @@ class ReporteController extends Controller
         $totalVentasGeneral = 0;
         $totalGananciaGeneral = 0;
         $totalCostoGeneral = 0;
+        $productosConVentas = false;
         
         foreach ($productos as $producto) {
             $venta = $ventasPorProducto->get($producto->id);
             $totalVendido = $venta ? $venta->total_vendido : 0;
             $precioVenta = $producto->Precio ?? 0;
             $totalVentas = $totalVendido * $precioVenta;
+            
+            if ($totalVendido > 0) {
+                $productosConVentas = true;
+            }
             
             $compraInfo = $comprasProducto->get($producto->id);
             $costo = $compraInfo ? $compraInfo->precio_promedio : ($precioVenta * 0.7);
@@ -929,6 +1055,11 @@ class ReporteController extends Controller
                 'ganancia_total' => $gananciaTotal,
                 'margen_ganancia' => round($margenGanancia, 2),
             ]);
+        }
+        
+        // Si no hay productos con ventas, mostrar mensaje
+        if (!$productosConVentas) {
+            return back()->with('warning', 'No hay productos vendidos en el período seleccionado. Por favor, elige otro rango de fechas.');
         }
         
         $productosConVentas = $productosProcesados->where('total_vendido', '>', 0);
@@ -965,19 +1096,31 @@ class ReporteController extends Controller
             $datosChartGanancias['data'][] = floatval($item['ganancia_total']);
         }
         
-        // GENERAR GRÁFICAS CON GD
+        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if ($totalVentasGeneral > 0) {
-            $graficas['comparativa'] = GraficaHelper::generarBarra($datosChartComparativa, 'Ventas vs Costo vs Ganancia');
+        if ($totalVentasGeneral > 0 && array_sum($datosChartComparativa['data']) > 0) {
+            try {
+                $graficas['comparativa'] = GraficaHelper::generarBarra($datosChartComparativa, 'Ventas vs Costo vs Ganancia');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica comparativa: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartMargenes['labels'])) {
-            $graficas['margenes'] = GraficaHelper::generarBarra($datosChartMargenes, 'Productos con mayor margen (%)');
+        if (!empty($datosChartMargenes['labels']) && array_sum($datosChartMargenes['data']) > 0) {
+            try {
+                $graficas['margenes'] = GraficaHelper::generarBarra($datosChartMargenes, 'Productos con mayor margen (%)');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de márgenes: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartGanancias['labels'])) {
-            $graficas['ganancias'] = GraficaHelper::generarBarra($datosChartGanancias, 'Productos con mayor ganancia ($)');
+        if (!empty($datosChartGanancias['labels']) && array_sum($datosChartGanancias['data']) > 0) {
+            try {
+                $graficas['ganancias'] = GraficaHelper::generarBarra($datosChartGanancias, 'Productos con mayor ganancia ($)');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de ganancias: ' . $e->getMessage());
+            }
         }
         
         // GENERAR PDF
@@ -1020,8 +1163,19 @@ class ReporteController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
         ]);
         
+        // Verificar si hay ventas en el período seleccionado
+        $totalVentasPeriodo = Venta::whereDate('Fecha', '>=', $request->fecha_inicio)
+            ->whereDate('Fecha', '<=', $request->fecha_fin)
+            ->count();
+        
+        // Si no hay ventas, mostrar mensaje amigable
+        if ($totalVentasPeriodo == 0) {
+            return back()->with('warning', 'No hay ventas en el período seleccionado. Por favor, elige otro rango de fechas.');
+        }
+        
         $empleados = Empleado::all();
         $datosVendedores = collect();
+        $hayVentas = false;
         
         foreach ($empleados as $empleado) {
             $ventas = Venta::where('Empleado_idEmpleado', $empleado->id)
@@ -1031,6 +1185,10 @@ class ReporteController extends Controller
             
             if ($ventas->isEmpty() && !$request->filled('incluir_sin_ventas')) {
                 continue;
+            }
+            
+            if ($ventas->isNotEmpty()) {
+                $hayVentas = true;
             }
             
             $detallesVentas = DetalleVenta::with('producto')
@@ -1053,6 +1211,11 @@ class ReporteController extends Controller
                 'total_productos' => $totalProductosVendidos,
                 'ticket_promedio' => $ticketPromedio,
             ]);
+        }
+        
+        // Si no hay vendedores con ventas, mostrar mensaje
+        if (!$hayVentas && !$request->filled('incluir_sin_ventas')) {
+            return back()->with('warning', 'No hay vendedores con ventas en el período seleccionado.');
         }
         
         $datosVendedores = $datosVendedores->sortByDesc('total_ventas')->values();
@@ -1102,23 +1265,39 @@ class ReporteController extends Controller
             $datosChartNumVentas['data'][] = intval($item['num_ventas']);
         }
         
-        // GENERAR GRÁFICAS CON GD
+        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
         $graficas = [];
         
-        if (!empty($datosChartVentasVendedor['labels'])) {
-            $graficas['ventas'] = GraficaHelper::generarBarra($datosChartVentasVendedor, 'Ventas por Vendedor ($)');
+        if (!empty($datosChartVentasVendedor['labels']) && array_sum($datosChartVentasVendedor['data']) > 0) {
+            try {
+                $graficas['ventas'] = GraficaHelper::generarBarra($datosChartVentasVendedor, 'Ventas por Vendedor ($)');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de ventas por vendedor: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartProductosVendedor['labels'])) {
-            $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosVendedor, 'Productos vendidos por Vendedor');
+        if (!empty($datosChartProductosVendedor['labels']) && array_sum($datosChartProductosVendedor['data']) > 0) {
+            try {
+                $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosVendedor, 'Productos vendidos por Vendedor');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de productos por vendedor: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartTickets['labels'])) {
-            $graficas['tickets'] = GraficaHelper::generarBarra($datosChartTickets, 'Ticket Promedio por Vendedor ($)');
+        if (!empty($datosChartTickets['labels']) && array_sum($datosChartTickets['data']) > 0) {
+            try {
+                $graficas['tickets'] = GraficaHelper::generarBarra($datosChartTickets, 'Ticket Promedio por Vendedor ($)');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de ticket promedio: ' . $e->getMessage());
+            }
         }
         
-        if (!empty($datosChartNumVentas['labels'])) {
-            $graficas['num_ventas'] = GraficaHelper::generarBarra($datosChartNumVentas, 'Número de Ventas por Vendedor');
+        if (!empty($datosChartNumVentas['labels']) && array_sum($datosChartNumVentas['data']) > 0) {
+            try {
+                $graficas['num_ventas'] = GraficaHelper::generarBarra($datosChartNumVentas, 'Número de Ventas por Vendedor');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica de número de ventas: ' . $e->getMessage());
+            }
         }
         
         // GENERAR PDF
