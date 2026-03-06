@@ -16,18 +16,14 @@ class EmpleadoController extends Controller
     public function index(Request $request){
         $query = Empleado::with('usuario')
             ->withCount(['pedidos', 'ventas']);
-            // Eliminado el where('estado', 1) para mostrar TODOS los empleados
 
-        // Filtro por estado del empleado (NUEVO)
+        // Filtro por estado del empleado
         if ($request->filled('estado_empleado')) {
             if ($request->estado_empleado == 'activos') {
                 $query->where('estado', 1);
             } elseif ($request->estado_empleado == 'inactivos') {
                 $query->where('estado', 0);
             }
-        } else {
-            // Por defecto, mostrar todos (activos e inactivos)
-            // No aplicar filtro de estado
         }
 
         // Filtro por ID
@@ -55,31 +51,27 @@ class EmpleadoController extends Controller
             $query->where('Area_trabajo', $request->area);
         }
 
-        // Filtro por estado de usuario (CORREGIDO)
+        // Filtro por estado de usuario
         if ($request->filled('estado_usuario')) {
             if ($request->estado_usuario == 'con_usuario') {
-                // Tiene usuario (ACTIVO O INACTIVO)
-                $query->whereHas('usuario'); // Eliminado el where('estado', 1)
+                $query->whereHas('usuario');
             } elseif ($request->estado_usuario == 'sin_usuario') {
                 $query->whereDoesntHave('usuario');
             } elseif ($request->estado_usuario == 'usuario_activo') {
-                // Usuario activo específicamente
                 $query->whereHas('usuario', function($q) {
                     $q->where('estado', 1);
                 });
             } elseif ($request->estado_usuario == 'usuario_inactivo') {
-                // Usuario inactivo específicamente
                 $query->whereHas('usuario', function($q) {
                     $q->where('estado', 0);
                 });
             }
         }
 
-        // Filtro por rol de usuario (CORREGIDO - muestra todos sin importar estado)
+        // Filtro por rol de usuario
         if ($request->filled('rol')) {
             $query->whereHas('usuario', function($q) use ($request) {
                 $q->where('rol', $request->rol);
-                // Eliminado el filtro de estado
             });
         }
 
@@ -87,7 +79,6 @@ class EmpleadoController extends Controller
         $sortBy = $request->get('sort_by', 'id');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        // Validar que el campo de ordenamiento existe
         $allowedSorts = ['id', 'Nombre', 'Cargo', 'Area_trabajo', 'estado'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'id';
@@ -97,16 +88,12 @@ class EmpleadoController extends Controller
         
         $empleados = $query->paginate(10)->appends($request->query());
         
-        // Obtener datos para filtros
         $areasUnicas = Empleado::distinct()->whereNotNull('Area_trabajo')->pluck('Area_trabajo');
         $cargosUnicos = Empleado::distinct()->whereNotNull('Cargo')->pluck('Cargo');
         
         return view('personal.index', compact('empleados', 'areasUnicas', 'cargosUnicos'));
     }
 
-    /**
-     * Mostrar empleados inactivos (opcional, si aún lo necesitas)
-     */
     public function inactivos(Request $request)
     {
         $empleados = Empleado::with('usuario')
@@ -220,6 +207,19 @@ class EmpleadoController extends Controller
             $empleado = Empleado::with('usuario')->findOrFail($id);
             $tieneUsuario = $empleado->usuario !== null;
 
+            // Log para depuración
+            Log::info('=== INICIO ACTUALIZACIÓN EMPLEADO ===');
+            Log::info('ID del empleado: ' . $id);
+            Log::info('Datos recibidos:', $request->all());
+
+            // Verificar si el teléfono realmente cambió
+            $telefonoOriginal = $empleado->Telefono;
+            $telefonoNuevo = $request->input('Telefono');
+            
+            Log::info('Teléfono original: ' . $telefonoOriginal);
+            Log::info('Teléfono nuevo: ' . $telefonoNuevo);
+
+            // Reglas base de validación
             $rules = [
                 'Nombre' => 'required|string|max:85',
                 'ApPaterno' => 'required|string|max:85',
@@ -229,7 +229,6 @@ class EmpleadoController extends Controller
                     'string',
                     'max:10',
                     'regex:/^[0-9]+$/',
-                    Rule::unique('empleados', 'Telefono')->ignore($empleado->id)
                 ],
                 'Fecha_nacimiento' => 'required|date',
                 'Cargo' => 'required|string|max:80',
@@ -237,28 +236,69 @@ class EmpleadoController extends Controller
                 'Area_trabajo' => 'required|string|max:80',
             ];
 
+            // Solo validar unicidad del teléfono si realmente cambió
+            if ($telefonoNuevo !== $telefonoOriginal) {
+                // Verificar si el nuevo teléfono ya existe en OTRO empleado
+                $otroEmpleado = Empleado::where('Telefono', $telefonoNuevo)
+                                        ->where('id', '!=', $id)
+                                        ->first();
+                
+                if ($otroEmpleado) {
+                    Log::warning('Conflicto de teléfono con empleado ID: ' . $otroEmpleado->id);
+                    return back()->withInput()->withErrors([
+                        'Telefono' => 'El número de teléfono ya está registrado para: ' . 
+                                      $otroEmpleado->Nombre . ' ' . $otroEmpleado->ApPaterno
+                    ]);
+                }
+                
+                // Si no hay conflicto, agregar la regla de unicidad (aunque ya verificamos manualmente)
+                $rules['Telefono'][] = Rule::unique('empleados', 'Telefono')->ignore($empleado->id);
+            }
+
+            // Verificar si se están editando las credenciales
+            $editarCredenciales = $request->has('editar_credenciales') && $request->boolean('editar_credenciales');
+            Log::info('¿Editar credenciales?: ' . ($editarCredenciales ? 'SI' : 'NO'));
+
             // Si tiene usuario y se editan credenciales
-            if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
-                $rules['correo_usuario'] = [ // CORREGIDO: de 'correo' a 'correo_usuario'
+            if ($tieneUsuario && $editarCredenciales) {
+                Log::info('Validando credenciales...');
+                Log::info('correo_usuario recibido: ' . $request->input('correo_usuario'));
+                Log::info('rol recibido: ' . $request->input('rol'));
+
+                $rules['correo_usuario'] = [
                     'required',
                     'email',
                     Rule::unique('usuarios', 'correo')->ignore($empleado->usuario->id)
                 ];
                 $rules['rol'] = 'required|in:Administración,Almacén,Logística';
-
-                if ($request->filled('contrasena')) {
-                    $rules['contrasena'] = 'min:6|confirmed';
-                }
             }
 
-            $validated = $request->validate($rules, [
+            $messages = [
+                'Telefono.required' => 'El teléfono es obligatorio.',
+                'Telefono.max' => 'El teléfono debe tener 10 dígitos.',
+                'Telefono.regex' => 'El teléfono solo debe contener números.',
                 'Telefono.unique' => 'El número de teléfono ya está registrado.',
-                'correo_usuario.unique' => 'El correo electrónico ya está en uso.', // CORREGIDO
-            ]);
+                'correo_usuario.required' => 'El correo electrónico es obligatorio.',
+                'correo_usuario.email' => 'Ingrese un correo electrónico válido.',
+                'correo_usuario.unique' => 'El correo electrónico ya está en uso.',
+                'rol.required' => 'El rol de usuario es obligatorio.',
+                'rol.in' => 'El rol seleccionado no es válido.',
+                'Nombre.required' => 'El nombre es obligatorio.',
+                'ApPaterno.required' => 'El apellido paterno es obligatorio.',
+                'Fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+                'Sexo.required' => 'El género es obligatorio.',
+                'Cargo.required' => 'El cargo es obligatorio.',
+                'Area_trabajo.required' => 'El área de trabajo es obligatoria.',
+            ];
+
+            $validated = $request->validate($rules, $messages);
+            Log::info('Validación exitosa');
 
             // Verificar edad
             $edad = Carbon::parse($validated['Fecha_nacimiento'])->age;
             if ($edad < 18) {
+                Log::warning('Edad no válida: ' . $edad);
+                DB::rollBack();
                 return back()->withInput()->with('error', 'El empleado debe ser mayor de 18 años.');
             }
 
@@ -273,40 +313,45 @@ class EmpleadoController extends Controller
                 'Sexo' => $validated['Sexo'],
                 'Area_trabajo' => $validated['Area_trabajo'],
             ]);
+            Log::info('Empleado actualizado correctamente');
 
             // Actualizar usuario si corresponde
-            if ($tieneUsuario && $request->has('editar_credenciales') && $request->boolean('editar_credenciales')) {
+            if ($tieneUsuario && $editarCredenciales) {
                 $userData = [
-                    'correo' => $validated['correo_usuario'], // CORREGIDO: de 'correo' a 'correo_usuario'
+                    'correo' => $validated['correo_usuario'],
                     'rol' => $validated['rol'],
                 ];
 
-                if ($request->filled('contrasena')) {
-                    $userData['contrasena'] = Hash::make($request->contrasena);
-                }
-
                 $empleado->usuario->update($userData);
+                Log::info('Usuario actualizado con:', $userData);
             }
 
             DB::commit();
+            Log::info('=== ACTUALIZACIÓN COMPLETADA EXITOSAMENTE ===');
 
             return redirect()->route('personal.index')
                 ->with('success', 'Empleado actualizado correctamente.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
+            Log::error('Error de validación:', $e->errors());
+            
+            // Registrar los errores específicos para depuración
+            foreach ($e->errors() as $campo => $errores) {
+                Log::error("Error en campo {$campo}: " . implode(', ', $errores));
+            }
+            
             return back()->withInput()->withErrors($e->errors());
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al actualizar empleado: ' . $e->getMessage());
+            Log::error('Error general al actualizar empleado: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             return back()->withInput()->with('error', 'Error al actualizar el empleado: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Desactivar empleado (Soft Delete)
-     */
     public function destroy($id)
     {
         try {
@@ -333,9 +378,6 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Activar empleado
-     */
     public function activar($id)
     {
         try {
@@ -362,9 +404,6 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Toggle estado (alternar entre activo/inactivo)
-     */
     public function toggleEstado($id)
     {
         try {
@@ -393,9 +432,6 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Crear usuario para empleado existente
-     */
     public function storeUser(Request $request, $id)
     {
         try {
@@ -440,9 +476,6 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Desactivar usuario
-     */
     public function destroyUser($id)
     {
         try {
@@ -464,9 +497,6 @@ class EmpleadoController extends Controller
         }
     }
 
-    /**
-     * Activar usuario
-     */
     public function activateUser($id)
     {
         try {

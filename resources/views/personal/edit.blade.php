@@ -586,7 +586,7 @@
                                     <!-- Campos editables de credenciales -->
                                     <div id="credenciales_fields" class="{{ old('editar_credenciales') ? '' : 'd-none' }}">
                                         <div class="row g-4">
-                                            <!-- Correo -->
+                                            <!-- Correo - MODIFICADO: name="correo_usuario" -->
                                             <div class="col-md-6">
                                                 <div class="form-group-enhanced">
                                                     <label class="form-label-enhanced">
@@ -599,10 +599,10 @@
                                                             <i class="fas fa-envelope"></i>
                                                         </div>
                                                         <input type="email" 
-                                                               class="input-field @error('correo') is-invalid @enderror" 
+                                                               class="input-field @error('correo_usuario') is-invalid @enderror" 
                                                                id="correo" 
-                                                               name="correo" 
-                                                               value="{{ old('correo', $empleado->usuario->correo) }}" 
+                                                               name="correo_usuario" 
+                                                               value="{{ old('correo_usuario', $empleado->usuario->correo) }}" 
                                                                placeholder="correo@dominio.com"
                                                                data-original="{{ $empleado->usuario->correo }}"
                                                                {{ old('editar_credenciales') ? 'required' : '' }}>
@@ -622,6 +622,12 @@
                                                             Original: <span class="fw-medium">{{ $empleado->usuario->correo }}</span>
                                                         </div>
                                                     </div>
+                                                    @error('correo_usuario')
+                                                        <div class="error-message animated">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
                                                 </div>
                                             </div>
 
@@ -655,6 +661,12 @@
                                                         <i class="fas fa-exclamation-circle"></i>
                                                         Debe seleccionar un rol
                                                     </div>
+                                                    @error('rol')
+                                                        <div class="error-message animated">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            {{ $message }}
+                                                        </div>
+                                                    @enderror
                                                 </div>
                                             </div>
 
@@ -753,7 +765,6 @@
     </div>
 </div>
 
-<!-- Incluir todos los estilos del diseño original -->
 <style>
 /* Variables CSS */
 :root {
@@ -1533,7 +1544,7 @@
     border-color: var(--success-color) !important;
 }
 
-/* Toast Notifications System - Copiado del original */
+/* Toast Notifications System */
 .toast-notification {
     position: fixed;
     top: 30px;
@@ -1736,7 +1747,7 @@
 </style>
 
 <script>
-// Sistema de Notificaciones Mejorado - Copiado del original
+// Sistema de Notificaciones Mejorado
 class NotificationManager {
     constructor() {
         this.notifications = [];
@@ -1817,7 +1828,7 @@ class NotificationManager {
             'Telefono': 'Teléfono',
             'Cargo': 'Cargo',
             'Area_trabajo': 'Área de Trabajo',
-            'correo': 'Correo Electrónico',
+            'correo_usuario': 'Correo Electrónico',
             'rol': 'Rol de Usuario'
         };
 
@@ -1858,9 +1869,12 @@ class FormManager {
         ];
         
         @if($empleado->usuario)
-        // Si hay usuario, los campos de credenciales pueden ser requeridos según el switch
+        // Usar 'correo' internamente para el DOM, pero el campo real es 'correo_usuario'
         this.requiredFields.push('correo', 'rol');
         @endif
+        
+        this.modifiedCount = 0;
+        this.modifiedFields = new Set();
         
         this.init();
     }
@@ -1900,15 +1914,16 @@ class FormManager {
 
     initRealTimeValidation() {
         this.requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
+            // Para correo, usar el ID 'correo' aunque el campo se llame 'correo_usuario'
+            const field = document.getElementById(fieldId === 'correo' ? 'correo' : fieldId);
             if (field) {
                 field.addEventListener('input', () => {
-                    this.validateField(fieldId);
+                    this.validateField(fieldId === 'correo' ? 'correo' : fieldId);
                     this.updateProgress();
                     this.trackModified(field);
                 });
                 field.addEventListener('change', () => {
-                    this.validateField(fieldId);
+                    this.validateField(fieldId === 'correo' ? 'correo' : fieldId);
                     this.updateProgress();
                     this.trackModified(field);
                 });
@@ -1945,6 +1960,20 @@ class FormManager {
     initModifiedTracking() {
         this.modifiedCount = 0;
         this.modifiedFields = new Set();
+        
+        // Inicializar tracking para todos los campos
+        document.querySelectorAll('[data-original]').forEach(field => {
+            if (field.value && field.dataset.original) {
+                if (field.value !== field.dataset.original) {
+                    const fieldId = field.id || field.name;
+                    this.modifiedFields.add(fieldId);
+                    this.modifiedCount++;
+                    field.closest('.form-group-enhanced')?.classList.add('modified-highlight');
+                }
+            }
+        });
+        
+        document.getElementById('modifiedFieldsCount').textContent = this.modifiedCount;
     }
 
     trackModified(element) {
@@ -1954,7 +1983,7 @@ class FormManager {
         const originalValue = element.dataset.original;
         const currentValue = element.value;
         
-        if(originalValue && currentValue !== originalValue) {
+        if(originalValue !== undefined && currentValue !== originalValue) {
             if(!this.modifiedFields.has(fieldId)) {
                 this.modifiedFields.add(fieldId);
                 this.modifiedCount++;
@@ -2015,9 +2044,7 @@ class FormManager {
         wrapper.classList.remove('error', 'valid');
 
         // Verificar si el campo es requerido
-        const isRequired = field.hasAttribute('required') || 
-                          (fieldId === 'correo' && document.getElementById('editar_credenciales')?.checked) ||
-                          (fieldId === 'rol' && document.getElementById('editar_credenciales')?.checked);
+        const isRequired = field.hasAttribute('required');
 
         if (isRequired && !field.value.trim()) {
             wrapper.classList.add('error');
@@ -2097,7 +2124,19 @@ class FormManager {
         @if($empleado->usuario)
         const checkbox = document.getElementById('editar_credenciales');
         if(checkbox && checkbox.checked) {
-            if (!this.validateField('correo')) errors.push('correo');
+            // Validar correo_usuario (el campo en el DOM es 'correo')
+            const correoField = document.getElementById('correo');
+            if (!correoField || !correoField.value.trim()) {
+                errors.push('correo_usuario');
+                document.getElementById('correo')?.closest('.email-input-wrapper')?.classList.add('error');
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(correoField.value)) {
+                    errors.push('correo_usuario');
+                    document.getElementById('correo')?.closest('.email-input-wrapper')?.classList.add('error');
+                }
+            }
+            
             if (!this.validateRole()) errors.push('rol');
         }
         @endif
@@ -2107,6 +2146,7 @@ class FormManager {
             
             const firstErrorId = errors[0] === 'Sexo' ? 'sexo_m' : 
                                 errors[0] === 'rol' ? `rol_${document.querySelector('input[name="rol"]:checked')?.value || 'Administración'}` : 
+                                errors[0] === 'correo_usuario' ? 'correo' : // Mapear correo_usuario a correo
                                 errors[0];
             
             const firstError = document.getElementById(firstErrorId);
@@ -2136,7 +2176,7 @@ class FormManager {
             if (fieldId === 'rol') {
                 const checkbox = document.getElementById('editar_credenciales');
                 if(checkbox && !checkbox.checked) {
-                    completedCount++; // No requerido si no se editan credenciales
+                    completedCount++;
                     return;
                 }
                 if (document.querySelector('input[name="rol"]:checked')) completedCount++;
@@ -2145,11 +2185,14 @@ class FormManager {
             if (fieldId === 'correo') {
                 const checkbox = document.getElementById('editar_credenciales');
                 if(checkbox && !checkbox.checked) {
-                    completedCount++; // No requerido si no se editan credenciales
+                    completedCount++;
                     return;
                 }
-                const field = document.getElementById(fieldId);
-                if (field && field.value.trim() !== '') completedCount++;
+                const field = document.getElementById('correo');
+                if (field && field.value.trim() !== '' && 
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value)) {
+                    completedCount++;
+                }
                 return;
             }
             const field = document.getElementById(fieldId);

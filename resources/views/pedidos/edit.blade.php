@@ -23,13 +23,13 @@
                             <div class="header-icon" style="
                                 width: 60px;
                                 height: 60px;
-                                background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+                                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                 border-radius: 16px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
                                 color: white;
-                                box-shadow: 0 8px 25px rgba(67, 97, 238, 0.25);
+                                box-shadow: 0 8px 25px rgba(40, 167, 69, 0.25);
                                 animation: float 6s ease-in-out infinite;
                             ">
                                 <i class="fas fa-edit fa-lg"></i>
@@ -44,7 +44,7 @@
                                     Editar Pedido #{{ $pedido->id }}
                                 </h1>
                                 <p class="mb-0 text-muted" style="font-size: 0.9rem;">
-                                    <i class="fas fa-pen me-1 text-primary"></i>
+                                    <i class="fas fa-pen me-1 text-warning"></i>
                                     Modifique los campos necesarios para actualizar el pedido
                                 </p>
                             </div>
@@ -88,7 +88,7 @@
                                 </div>
                             </div>
                             <div class="progress" style="height: 10px; border-radius: 10px; background: #e5e7eb;">
-                                <div class="progress-bar" id="formProgress" role="progressbar" style="width: 100%; background: linear-gradient(90deg, #4361ee, #3a0ca3); border-radius: 10px; transition: width 0.5s ease;"></div>
+                                <div class="progress-bar" id="formProgress" role="progressbar" style="width: 100%; background: linear-gradient(90deg, #28a745, #20c997); border-radius: 10px; transition: width 0.5s ease;"></div>
                             </div>
                             <div class="d-flex justify-content-between mt-2">
                                 <small class="text-muted" id="completedFields">6 de 6 campos básicos completados</small>
@@ -107,7 +107,7 @@
                             <div class="form-section mb-5">
                                 <div class="section-header mb-4">
                                     <div class="d-flex align-items-center gap-3 mb-3">
-                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);">
+                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
                                             <i class="fas fa-info-circle"></i>
                                         </div>
                                         <div>
@@ -115,7 +115,7 @@
                                             <p class="section-subtitle mb-0">Datos básicos del pedido</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider" style="background: linear-gradient(to right, #4361ee, transparent);"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #007bff, transparent);"></div>
                                 </div>
 
                                 <div class="row g-4">
@@ -146,7 +146,7 @@
                                             <div class="input-meta">
                                                 <div class="input-hint">
                                                     <i class="fas fa-lightbulb"></i>
-                                                    Cliente que realiza el pedido
+                                                    Seleccione el cliente que realiza el pedido
                                                 </div>
                                             </div>
                                             
@@ -223,7 +223,7 @@
                                             
                                             <div class="input-meta">
                                                 <div class="fecha-validation-message" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
-                                                    <i class="fas fa-info-circle" style="color: #4361ee;"></i>
+                                                    <i class="fas fa-info-circle" style="color: #007bff;"></i>
                                                     <span id="fecha-validation-text">Debe ser mayor o igual a hoy</span>
                                                 </div>
                                                 <div class="fecha-actual" style="font-size: 0.7rem; color: #6b7280;">
@@ -240,7 +240,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Hora de Entrega -->
+                                    <!-- Hora de Entrega MODIFICADA - SELECT CON OPCIONES LIMITADAS -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -248,23 +248,41 @@
                                                 <span class="label-required">*</span>
                                             </label>
                                             
-                                            <div class="input-wrapper" data-required="true">
+                                            <div class="input-wrapper" data-required="true" id="hora-wrapper">
                                                 <div class="input-icon">
                                                     <i class="fas fa-clock"></i>
                                                 </div>
-                                                <input type="time" 
-                                                       class="input-field @error('Hora_entrega') is-invalid @enderror" 
-                                                       id="hora_entrega" 
-                                                       name="Hora_entrega" 
-                                                       value="{{ old('Hora_entrega', $pedido->Hora_entrega) }}" 
-                                                       required>
+                                                <select class="input-field @error('Hora_entrega') is-invalid @enderror" 
+                                                        id="hora_entrega" 
+                                                        name="Hora_entrega" 
+                                                        required>
+                                                    <option value="">Seleccionar hora</option>
+                                                    <option value="10:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '10:00' ? 'selected' : '' }}>10:00 AM</option>
+                                                    <option value="10:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '10:30' ? 'selected' : '' }}>10:30 AM</option>
+                                                    <option value="11:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '11:00' ? 'selected' : '' }}>11:00 AM</option>
+                                                    <option value="11:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '11:30' ? 'selected' : '' }}>11:30 AM</option>
+                                                    <option value="12:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '12:00' ? 'selected' : '' }}>12:00 PM</option>
+                                                    <option value="12:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '12:30' ? 'selected' : '' }}>12:30 PM</option>
+                                                    <option value="13:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '13:00' ? 'selected' : '' }}>1:00 PM</option>
+                                                    <option value="13:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '13:30' ? 'selected' : '' }}>1:30 PM</option>
+                                                    <option value="14:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '14:00' ? 'selected' : '' }}>2:00 PM</option>
+                                                    <option value="14:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '14:30' ? 'selected' : '' }}>2:30 PM</option>
+                                                    <option value="15:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '15:00' ? 'selected' : '' }}>3:00 PM</option>
+                                                    <option value="15:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '15:30' ? 'selected' : '' }}>3:30 PM</option>
+                                                    <option value="16:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '16:00' ? 'selected' : '' }}>4:00 PM</option>
+                                                    <option value="16:30" {{ old('Hora_entrega', $pedido->Hora_entrega) == '16:30' ? 'selected' : '' }}>4:30 PM</option>
+                                                    <option value="17:00" {{ old('Hora_entrega', $pedido->Hora_entrega) == '17:00' ? 'selected' : '' }}>5:00 PM</option>
+                                                </select>
                                                 <div class="input-decoration"></div>
                                             </div>
                                             
                                             <div class="input-meta">
-                                                <div class="input-hint">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    Hora estimada de entrega
+                                                <div class="hora-validation-message" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+                                                    <i class="fas fa-info-circle" style="color: #007bff;"></i>
+                                                    <span id="hora-validation-text">Horario disponible: 10:00 AM - 5:00 PM</span>
+                                                </div>
+                                                <div class="hora-info" style="font-size: 0.7rem; color: #6b7280; background: #f3f4f6; padding: 2px 8px; border-radius: 12px;">
+                                                    <i class="far fa-clock"></i> Lunes a Viernes
                                                 </div>
                                             </div>
                                             
@@ -294,20 +312,24 @@
                                                         name="Prioridad" 
                                                         required>
                                                     <option value="">Seleccionar prioridad</option>
-                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }}>
-                                                        Alta Prioridad
+                                                    <option value="Alta" {{ old('Prioridad', $pedido->Prioridad) == 'Alta' ? 'selected' : '' }} 
+                                                            data-badge="danger" data-icon="fa-exclamation-triangle">
+                                                        Alta Prioridad 
                                                     </option>
-                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}>
-                                                        Media Prioridad
+                                                    <option value="Media" {{ old('Prioridad', $pedido->Prioridad) == 'Media' ? 'selected' : '' }}
+                                                            data-badge="warning" data-icon="fa-clock">
+                                                        Media Prioridad 
                                                     </option>
-                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}>
-                                                        Baja Prioridad
+                                                    <option value="Baja" {{ old('Prioridad', $pedido->Prioridad) == 'Baja' ? 'selected' : '' }}
+                                                            data-badge="success" data-icon="fa-calendar-check">
+                                                        Baja Prioridad 
                                                     </option>
-                                                    <option value="Normal" {{ old('Prioridad', $pedido->Prioridad) == 'Normal' ? 'selected' : '' }}>
-                                                        Prioridad Normal
+                                                    <option value="Normal" {{ old('Prioridad', $pedido->Prioridad) == 'Normal' ? 'selected' : '' }}
+                                                            data-badge="info" data-icon="fa-check-circle">
+                                                        Prioridad Normal 
                                                     </option>
                                                 </select>
-                                                <div class="input-decoration"></div>
+                                                <div class="input-decoration" style="background: linear-gradient(135deg, #28a745, #20c997);"></div>
                                             </div>
                                             
                                             <div class="input-meta">
@@ -387,7 +409,7 @@
                             <div class="form-section mb-5">
                                 <div class="section-header mb-4">
                                     <div class="d-flex align-items-center gap-3 mb-3">
-                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);">
+                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
                                             <i class="fas fa-comment-dots"></i>
                                         </div>
                                         <div>
@@ -395,20 +417,20 @@
                                             <p class="section-subtitle mb-0">Notas especiales y observaciones</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider" style="background: linear-gradient(to right, #4cc9f0, transparent);"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #ffc107, transparent);"></div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="alert-card mb-3" style="
-                                            background: rgba(76, 201, 240, 0.1);
-                                            border-left: 4px solid #4cc9f0;
+                                            background: rgba(255, 193, 7, 0.1);
+                                            border-left: 4px solid #ffc107;
                                             border-radius: 12px;
                                             padding: 1rem 1.5rem;
                                         ">
                                             <div class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-info-circle" style="color: #4cc9f0;"></i>
-                                                <span class="text-muted">Aquí puedes ver y editar las notas especiales del pedido como cambios de color, dimensiones personalizadas, instrucciones de entrega, etc.</span>
+                                                <i class="fas fa-info-circle text-warning"></i>
+                                                <span class="text-muted">Aquí puedes agregar notas especiales como cambios de color, dimensiones personalizadas, instrucciones de entrega, etc.</span>
                                             </div>
                                         </div>
                                     </div>
@@ -422,20 +444,20 @@
                                             
                                             <div class="input-wrapper">
                                                 <div class="input-icon" style="top: 25px; transform: none;">
-                                                    <i class="fas fa-pencil-alt" style="color: #4cc9f0;"></i>
+                                                    <i class="fas fa-pencil-alt"></i>
                                                 </div>
                                                 <textarea class="input-field @error('comentario') is-invalid @enderror" 
                                                           id="comentario" 
                                                           name="comentario" 
                                                           rows="4" 
                                                           placeholder="Ej: El cliente quiere el mueble en color caoba en lugar de negro. Las dimensiones son 2m de alto en lugar de 1.80m. El respaldo debe ser acolchado en tela gris."
-                                                          style="padding-top: 20px; min-height: 120px; resize: vertical; background-color: #f0f9ff;">{{ old('comentario', $pedido->comentario) }}</textarea>
-                                                <div class="input-decoration" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);"></div>
+                                                          style="padding-top: 20px; min-height: 120px; resize: vertical; background-color: #fff9e6;">{{ old('comentario', $pedido->comentario) }}</textarea>
+                                                <div class="input-decoration" style="background: linear-gradient(135deg, #ffc107, #ff9800);"></div>
                                             </div>
                                             
                                             <div class="input-meta">
                                                 <div class="input-hint">
-                                                    <i class="fas fa-lightbulb" style="color: #4cc9f0;"></i>
+                                                    <i class="fas fa-lightbulb text-warning"></i>
                                                     Sé específico con los detalles para evitar confusiones en la producción y entrega
                                                 </div>
                                             </div>
@@ -455,7 +477,7 @@
                             <div class="form-section mb-5">
                                 <div class="section-header mb-4">
                                     <div class="d-flex align-items-center gap-3 mb-3">
-                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);">
+                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
                                             <i class="fas fa-boxes"></i>
                                         </div>
                                         <div>
@@ -463,20 +485,20 @@
                                             <p class="section-subtitle mb-0">Seleccione los productos a incluir</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider" style="background: linear-gradient(to right, #f72585, transparent);"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #dc3545, transparent);"></div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="alert-card mb-3" style="
-                                            background: rgba(247, 37, 133, 0.05);
-                                            border-left: 4px solid #f72585;
+                                            background: rgba(40, 167, 69, 0.1);
+                                            border-left: 4px solid #28a745;
                                             border-radius: 12px;
                                             padding: 1rem 1.5rem;
                                         ">
                                             <div class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-info-circle" style="color: #f72585;"></i>
-                                                <span class="text-muted">El precio se puede editar manualmente en caso de modificaciones o personalizaciones. Los precios modificados se resaltan.</span>
+                                                <i class="fas fa-info-circle text-success"></i>
+                                                <span class="text-muted">El precio se puede editar manualmente en caso de modificaciones o personalizaciones.</span>
                                             </div>
                                         </div>
                                     </div>
@@ -484,16 +506,16 @@
                                     <div class="col-12">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="fw-bold mb-0">
-                                                <i class="fas fa-box me-2" style="color: #f72585;"></i>
+                                                <i class="fas fa-box me-2" style="color: #dc3545;"></i>
                                                 Lista de Productos
                                             </h5>
                                             <button type="button" class="btn btn-primary d-flex align-items-center gap-2" id="agregarProducto" style="
-                                                background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+                                                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                                 border: none;
                                                 border-radius: 12px;
                                                 padding: 8px 20px;
                                                 font-weight: 600;
-                                                box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3);
+                                                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
                                             ">
                                                 <i class="fas fa-plus"></i>
                                                 <span>Agregar Producto</span>
@@ -512,7 +534,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="cuerpoTablaProductos">
-                                                    <!-- Las filas de productos se generarán dinámicamente -->
+                                                    <!-- Las filas de productos se agregarán aquí dinámicamente -->
                                                 </tbody>
                                                 <tfoot class="table-light">
                                                     <tr>
@@ -533,7 +555,7 @@
                             <div class="form-section mb-5">
                                 <div class="section-header mb-4">
                                     <div class="d-flex align-items-center gap-3 mb-3">
-                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #7209b7 0%, #560bad 100%);">
+                                        <div class="section-icon-badge" style="background: linear-gradient(135deg, #6f42c1 0%, #6610f2 100%);">
                                             <i class="fas fa-chart-bar"></i>
                                         </div>
                                         <div>
@@ -541,46 +563,46 @@
                                             <p class="section-subtitle mb-0">Visualización rápida de los datos</p>
                                         </div>
                                     </div>
-                                    <div class="section-divider" style="background: linear-gradient(to right, #7209b7, transparent);"></div>
+                                    <div class="section-divider" style="background: linear-gradient(to right, #6f42c1, transparent);"></div>
                                 </div>
 
                                 <div class="row g-4">
                                     <div class="col-md-4">
                                         <div class="stat-card p-4 text-center" style="
-                                            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(58, 12, 163, 0.05) 100%);
+                                            background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 86, 179, 0.05) 100%);
                                             border-radius: 16px;
-                                            border: 1px solid rgba(67, 97, 238, 0.2);
+                                            border: 1px solid rgba(0, 123, 255, 0.2);
                                             transition: all 0.3s ease;
                                         ">
                                             <i class="fas fa-box-open fa-3x text-primary mb-3"></i>
                                             <h5 class="text-muted mb-2">Total de Productos</h5>
-                                            <span class="fw-bold fs-2" style="color: #4361ee;" id="totalProductos">0</span>
+                                            <span class="fw-bold fs-2" style="color: #007bff;" id="totalProductos">0</span>
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="stat-card p-4 text-center" style="
-                                            background: linear-gradient(135deg, rgba(76, 201, 240, 0.1) 0%, rgba(72, 149, 239, 0.05) 100%);
+                                            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.05) 100%);
                                             border-radius: 16px;
-                                            border: 1px solid rgba(76, 201, 240, 0.2);
+                                            border: 1px solid rgba(40, 167, 69, 0.2);
                                             transition: all 0.3s ease;
                                         ">
-                                            <i class="fas fa-cubes fa-3x" style="color: #4cc9f0; margin-bottom: 1rem;"></i>
+                                            <i class="fas fa-cubes fa-3x text-success mb-3"></i>
                                             <h5 class="text-muted mb-2">Unidades Totales</h5>
-                                            <span class="fw-bold fs-2" style="color: #4cc9f0;" id="totalUnidades">0</span>
+                                            <span class="fw-bold fs-2" style="color: #28a745;" id="totalUnidades">0</span>
                                         </div>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="stat-card p-4 text-center" style="
-                                            background: linear-gradient(135deg, rgba(247, 37, 133, 0.1) 0%, rgba(181, 23, 158, 0.05) 100%);
+                                            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
                                             border-radius: 16px;
-                                            border: 1px solid rgba(247, 37, 133, 0.2);
+                                            border: 1px solid rgba(255, 193, 7, 0.2);
                                             transition: all 0.3s ease;
                                         ">
-                                            <i class="fas fa-dollar-sign fa-3x" style="color: #f72585; margin-bottom: 1rem;"></i>
+                                            <i class="fas fa-dollar-sign fa-3x text-warning mb-3"></i>
                                             <h5 class="text-muted mb-2">Monto Total</h5>
-                                            <span class="fw-bold fs-2" style="color: #f72585;" id="montoTotal">${{ number_format($pedido->Total, 2) }}</span>
+                                            <span class="fw-bold fs-2 text-success" id="montoTotal">${{ number_format($pedido->Total, 2) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -600,7 +622,7 @@
                                                 <span id="validFieldsCount">6/6</span> campos básicos
                                             </div>
                                             <div class="stat-item">
-                                                <i class="fas fa-box" style="color: #f72585;"></i>
+                                                <i class="fas fa-box text-info"></i>
                                                 <span id="productCount">{{ count($pedido->detallePedidos ?? []) }}</span> productos
                                             </div>
                                         </div>
@@ -608,7 +630,7 @@
                                     
                                     <div class="d-flex flex-wrap gap-3">
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
-                                            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+                                            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                             border: none;
                                             padding: 12px 32px;
                                             border-radius: 12px;
@@ -623,7 +645,7 @@
                                             </span>
                                             <span class="submit-loader">
                                                 <i class="fas fa-spinner fa-spin me-2"></i>
-                                                Actualizando...
+                                                Procesando...
                                             </span>
                                             <div class="submit-shine"></div>
                                         </button>
@@ -631,6 +653,24 @@
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Footer Informativo -->
+                <div class="info-footer text-center py-4 px-3">
+                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+                        <div class="info-item">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            <span class="ms-2">Datos protegidos y encriptados</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock text-warning"></i>
+                            <span class="ms-2">Tiempo estimado: 5 minutos</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-headset text-success"></i>
+                            <span class="ms-2">Soporte: soporte@empresa.com</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -641,7 +681,7 @@
 <!-- Toast Notifications Container -->
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-<!-- Template para fila de producto (oculto) - CORREGIDO -->
+<!-- Template para fila de producto (oculto) -->
 <template id="templateFilaProducto">
     <tr class="fila-producto" style="animation: slideIn 0.3s ease-out;">
         <td>
@@ -656,18 +696,18 @@
                         </option>
                     @endforeach
                 </select>
-                <div class="input-decoration" style="background: linear-gradient(135deg, #f72585, #b5179e);"></div>
+                <div class="input-decoration" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <span class="input-group-text" style="
-                    background: #ffe5f0;
+                    background: #f8d7da;
                     border: 2px solid #e5e7eb;
                     border-right: none;
                     border-radius: 12px 0 0 12px;
                     font-weight: 600;
-                    color: #f72585;
+                    color: #dc3545;
                 ">$</span>
                 <input type="number" 
                        class="input-field precio-unitario" 
@@ -688,7 +728,7 @@
                        min="1" 
                        value="1" 
                        required>
-                <div class="input-decoration" style="background: linear-gradient(135deg, #f72585, #b5179e);"></div>
+                <div class="input-decoration" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
             </div>
         </td>
         <td>
@@ -720,14 +760,13 @@
 <style>
 /* Variables CSS */
 :root {
-    --primary-gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-    --secondary-gradient: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
-    --accent-gradient: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
-    --purple-gradient: linear-gradient(135deg, #7209b7 0%, #560bad 100%);
+    --primary-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    --success-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    --warning-gradient: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
     --danger-color: #dc3545;
     --success-color: #28a745;
     --warning-color: #ffc107;
-    --info-color: #4cc9f0;
+    --info-color: #17a2b8;
     --border-radius: 16px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
@@ -850,7 +889,7 @@
 }
 
 .toast-info .toast-icon-wrapper {
-    background: rgba(76, 201, 240, 0.1);
+    background: rgba(23, 162, 184, 0.1);
     color: var(--info-color);
 }
 
@@ -907,12 +946,12 @@
 
 .toast-warning .toast-progress {
     --progress-color-start: #ffc107;
-    --progress-color-end: #fd7e14;
+    --progress-color-end: #ff9800;
 }
 
 .toast-info .toast-progress {
-    --progress-color-start: #4cc9f0;
-    --progress-color-end: #4895ef;
+    --progress-color-start: #17a2b8;
+    --progress-color-end: #138496;
 }
 
 @keyframes progress {
@@ -920,12 +959,96 @@
     to { width: 0%; }
 }
 
-/* Shake animation enhanced */
-.shake-enhanced {
-    animation: shake 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    perspective: 1000px;
+/* Estilos específicos para la validación de hora */
+#hora_entrega option[value="10:00"],
+#hora_entrega option[value="10:30"],
+#hora_entrega option[value="11:00"],
+#hora_entrega option[value="11:30"],
+#hora_entrega option[value="12:00"],
+#hora_entrega option[value="12:30"],
+#hora_entrega option[value="13:00"],
+#hora_entrega option[value="13:30"],
+#hora_entrega option[value="14:00"],
+#hora_entrega option[value="14:30"],
+#hora_entrega option[value="15:00"],
+#hora_entrega option[value="15:30"],
+#hora_entrega option[value="16:00"],
+#hora_entrega option[value="16:30"],
+#hora_entrega option[value="17:00"] {
+    padding: 8px;
+}
+
+#hora_entrega option[value="10:00"] { background-color: #d4edda; }
+#hora_entrega option[value="10:30"] { background-color: #d4edda; }
+#hora_entrega option[value="11:00"] { background-color: #d4edda; }
+#hora_entrega option[value="11:30"] { background-color: #d4edda; }
+#hora_entrega option[value="12:00"] { background-color: #fff3cd; }
+#hora_entrega option[value="12:30"] { background-color: #fff3cd; }
+#hora_entrega option[value="13:00"] { background-color: #fff3cd; }
+#hora_entrega option[value="13:30"] { background-color: #fff3cd; }
+#hora_entrega option[value="14:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="14:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="15:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="15:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="16:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="16:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="17:00"] { background-color: #f8d7da; }
+
+.hora-validation-message.success {
+    color: #28a745;
+}
+
+.hora-validation-message.success i {
+    color: #28a745;
+}
+
+.hora-validation-message.warning {
+    color: #ffc107;
+}
+
+.hora-validation-message.warning i {
+    color: #ffc107;
+}
+
+.hora-info i {
+    color: #007bff;
+}
+
+/* Estilos para la validación de fecha */
+.fecha-validation-message {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #007bff;
+}
+
+.fecha-validation-message.warning {
+    color: #dc3545;
+}
+
+.fecha-validation-message.warning i {
+    color: #dc3545;
+}
+
+.fecha-validation-message.success {
+    color: #28a745;
+}
+
+.fecha-validation-message.success i {
+    color: #28a745;
+}
+
+.fecha-actual {
+    font-size: 0.7rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.fecha-actual i {
+    color: #ffc107;
 }
 
 /* Form Sections */
@@ -1009,8 +1132,8 @@
 }
 
 .input-wrapper:focus-within {
-    border-color: #4361ee;
-    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+    border-color: #28a745;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.1);
     transform: translateY(-2px);
 }
 
@@ -1028,7 +1151,7 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #4361ee;
+    color: #28a745;
     font-size: 1.1rem;
     z-index: 2;
 }
@@ -1054,6 +1177,7 @@
     left: 0;
     right: 0;
     height: 2px;
+    background: var(--primary-gradient);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -1076,43 +1200,6 @@
     gap: 4px;
     font-size: 0.75rem;
     color: #6b7280;
-}
-
-/* Estilos específicos para la validación de fecha */
-.fecha-validation-message {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: #4361ee;
-}
-
-.fecha-validation-message.warning {
-    color: #f72585;
-}
-
-.fecha-validation-message.warning i {
-    color: #f72585;
-}
-
-.fecha-validation-message.success {
-    color: #28a745;
-}
-
-.fecha-validation-message.success i {
-    color: #28a745;
-}
-
-.fecha-actual {
-    font-size: 0.7rem;
-    color: #6b7280;
-    background: #f3f4f6;
-    padding: 2px 8px;
-    border-radius: 12px;
-}
-
-.fecha-actual i {
-    color: #4cc9f0;
 }
 
 /* Estilos para el badge de prioridad */
@@ -1224,7 +1311,7 @@ textarea.input-field {
 }
 
 .input-group .input-field:focus {
-    border-color: #f72585;
+    border-color: #28a745;
     box-shadow: none;
 }
 
@@ -1275,7 +1362,7 @@ textarea.input-field {
 
 .btn-submit:hover:not(.loading) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4);
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
 }
 
 .btn-submit:active:not(.loading) {
@@ -1301,7 +1388,7 @@ textarea.input-field {
 /* Botón eliminar */
 .btn-eliminar:hover {
     background-color: #dc3545;
-    border-color: #dc3545 !important;
+    border-color: #dc3545;
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
@@ -1571,7 +1658,25 @@ class FormManager {
         this.showServerErrors();
     }
 
-    // Método para inicializar campo prioridad
+    mostrarFechaHoy() {
+        const hoy = new Date();
+        const dia = hoy.getDate().toString().padStart(2, '0');
+        const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
+        const año = hoy.getFullYear();
+        const fechaHoy = `${dia}/${mes}/${año}`;
+        document.getElementById('fecha-hoy').textContent = fechaHoy;
+    }
+
+    showServerErrors() {
+        @if($errors->any())
+            const errorMessages = [];
+            @foreach($errors->all() as $error)
+                errorMessages.push('{{ $error }}');
+            @endforeach
+            notifier.showError(errorMessages.join('<br>'));
+        @endif
+    }
+
     initPrioridadField() {
         const prioridadSelect = document.getElementById('prioridad');
         const prioridadBadge = document.getElementById('prioridadBadge');
@@ -1581,15 +1686,9 @@ class FormManager {
                 this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
                 this.updateProgress();
             });
-            
-            // Actualizar badge inicial si hay valor
-            if (prioridadSelect.value) {
-                this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
-            }
         }
     }
 
-    // Método para actualizar badge de prioridad
     actualizarBadgePrioridad(select, badgeContainer) {
         const valor = select.value;
         
@@ -1612,32 +1711,12 @@ class FormManager {
                 badgeContainer.innerHTML = '';
         }
         
-        // Animar el badge
         if (badgeContainer.innerHTML) {
             badgeContainer.style.animation = 'pulse 0.5s ease';
             setTimeout(() => {
                 badgeContainer.style.animation = '';
             }, 500);
         }
-    }
-
-    mostrarFechaHoy() {
-        const hoy = new Date();
-        const dia = hoy.getDate().toString().padStart(2, '0');
-        const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
-        const año = hoy.getFullYear();
-        const fechaHoy = `${dia}/${mes}/${año}`;
-        document.getElementById('fecha-hoy').textContent = fechaHoy;
-    }
-
-    showServerErrors() {
-        @if($errors->any())
-            const errorMessages = [];
-            @foreach($errors->all() as $error)
-                errorMessages.push('{{ $error }}');
-            @endforeach
-            notifier.showError(errorMessages.join('<br>'));
-        @endif
     }
 
     initFormReset() {
@@ -1649,7 +1728,7 @@ class FormManager {
                 showCancelButton: true,
                 confirmButtonText: 'Sí, restaurar',
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#4361ee',
+                confirmButtonColor: '#28a745',
                 cancelButtonColor: '#6c757d'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -1661,44 +1740,33 @@ class FormManager {
     }
 
     restoreOriginalData() {
-        // Restaurar campos básicos
-        document.getElementById('cliente_id').value = originalData.cliente_id;
-        document.getElementById('empleado_id').value = originalData.empleado_id;
-        document.getElementById('fecha_entrega').value = originalData.fecha_entrega;
-        document.getElementById('hora_entrega').value = originalData.hora_entrega;
-        document.getElementById('prioridad').value = originalData.prioridad;
-        document.getElementById('lugar_entrega').value = originalData.lugar_entrega;
+        this.requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = originalData[fieldId] || '';
+                field.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+
         document.getElementById('comentario').value = originalData.comentario || '';
 
-        // Actualizar badge de prioridad
-        const prioridadSelect = document.getElementById('prioridad');
         const prioridadBadge = document.getElementById('prioridadBadge');
+        const prioridadSelect = document.getElementById('prioridad');
         if (prioridadSelect && prioridadBadge) {
             this.actualizarBadgePrioridad(prioridadSelect, prioridadBadge);
         }
 
-        // Limpiar y recargar productos
         this.productosSeleccionados.clear();
         const cuerpoTabla = document.getElementById('cuerpoTablaProductos');
         cuerpoTabla.innerHTML = '';
         this.contadorProductos = 0;
-        
-        // Cargar productos originales
-        @if($pedido->detallePedidos && count($pedido->detallePedidos) > 0)
-            @foreach($pedido->detallePedidos as $detalle)
-                this.agregarFilaProducto(
-                    '{{ $detalle->Producto }}', 
-                    {{ $detalle->PrecioUnitario }}, 
-                    {{ $detalle->Cantidad }}
-                );
-            @endforeach
-        @else
-            this.agregarFilaProducto();
-        @endif
+        this.cargarProductosExistentes();
 
-        // Validar todos los campos
-        this.requiredFields.forEach(fieldId => this.validateField(fieldId));
+        this.actualizarResumen();
         this.updateProgress();
+        
+        // Validar hora después de restaurar
+        this.validarHoraEnTiempoReal();
     }
 
     setupEventListeners() {
@@ -1726,7 +1794,6 @@ class FormManager {
             }
         });
 
-        // Validación especial para lugar_entrega (textarea)
         const lugarEntrega = document.getElementById('lugar_entrega');
         if (lugarEntrega) {
             lugarEntrega.addEventListener('input', () => {
@@ -1735,7 +1802,6 @@ class FormManager {
             });
         }
 
-        // Validación especial para fecha_entrega con feedback visual
         const fechaInput = document.getElementById('fecha_entrega');
         if (fechaInput) {
             fechaInput.addEventListener('input', () => {
@@ -1745,6 +1811,16 @@ class FormManager {
             fechaInput.addEventListener('change', () => {
                 this.validarFechaEnTiempoReal();
                 this.validateField('fecha_entrega');
+            });
+        }
+
+        // Validación en tiempo real para la hora
+        const horaSelect = document.getElementById('hora_entrega');
+        if (horaSelect) {
+            horaSelect.addEventListener('change', () => {
+                this.validarHoraEnTiempoReal();
+                this.validateField('hora_entrega');
+                this.updateProgress();
             });
         }
     }
@@ -1782,15 +1858,49 @@ class FormManager {
         }
     }
 
+    validarHoraEnTiempoReal() {
+        const horaSelect = document.getElementById('hora_entrega');
+        const horaValidationText = document.getElementById('hora-validation-text');
+        const horaValidationMessage = document.querySelector('.hora-validation-message');
+        
+        if (!horaSelect || !horaSelect.value) {
+            horaValidationMessage.classList.remove('success', 'warning');
+            horaValidationMessage.classList.add('warning');
+            horaValidationText.innerHTML = '⚠️ Debe seleccionar una hora de entrega';
+            return false;
+        }
+
+        const horaSeleccionada = horaSelect.value;
+        const horaMinima = "10:00";
+        const horaMaxima = "17:00";
+        
+        if (horaSeleccionada >= horaMinima && horaSeleccionada <= horaMaxima) {
+            horaValidationMessage.classList.add('success');
+            horaValidationMessage.classList.remove('warning');
+            
+            if (horaSeleccionada < "12:00") {
+                horaValidationText.innerHTML = '✓ Horario de mañana válido';
+            } else if (horaSeleccionada >= "12:00" && horaSeleccionada < "14:00") {
+                horaValidationText.innerHTML = '✓ Horario de mediodía válido';
+            } else if (horaSeleccionada >= "14:00" && horaSeleccionada < "17:00") {
+                horaValidationText.innerHTML = '✓ Horario de tarde válido';
+            } else {
+                horaValidationText.innerHTML = '✓ Última hora válida';
+            }
+            
+            return true;
+        } else {
+            horaValidationMessage.classList.add('warning');
+            horaValidationMessage.classList.remove('success');
+            horaValidationText.innerHTML = '❌ Hora no válida. Debe ser entre 10:00 AM y 5:00 PM';
+            return false;
+        }
+    }
+
     initDateValidation() {
         const fechaInput = document.getElementById('fecha_entrega');
         const hoy = new Date().toISOString().split('T')[0];
         fechaInput.min = hoy;
-        
-        // Validar la fecha inicial si existe
-        if (fechaInput.value) {
-            this.validarFechaEnTiempoReal();
-        }
     }
 
     validateField(fieldId) {
@@ -1806,6 +1916,11 @@ class FormManager {
         if (field.hasAttribute('required') && !field.value) {
             wrapper.classList.add('error');
             field.classList.add('is-invalid');
+            
+            if (fieldId === 'hora_entrega') {
+                this.validarHoraEnTiempoReal();
+            }
+            
             return false;
         }
 
@@ -1815,6 +1930,15 @@ class FormManager {
             today.setHours(0, 0, 0, 0);
             
             if (selectedDate < today) {
+                wrapper.classList.add('error');
+                field.classList.add('is-invalid');
+                return false;
+            }
+        }
+
+        if (fieldId === 'hora_entrega' && field.value) {
+            const horaValida = this.validarHoraEnTiempoReal();
+            if (!horaValida) {
                 wrapper.classList.add('error');
                 field.classList.add('is-invalid');
                 return false;
@@ -1838,32 +1962,29 @@ class FormManager {
             }
         });
 
-        // Validar productos
         const filasProductos = document.querySelectorAll('.fila-producto');
         if (filasProductos.length === 0) {
             errors.push('productos');
-        } else {
-            let productosValidos = 0;
-            filasProductos.forEach(fila => {
-                const select = fila.querySelector('.select-producto');
-                const precio = fila.querySelector('.precio-unitario');
-                const cantidad = fila.querySelector('.cantidad');
-                
-                if (select.value && select.value !== '') {
-                    if (parseFloat(precio.value) > 0 && parseInt(cantidad.value) > 0) {
-                        productosValidos++;
-                    }
-                }
-            });
-
-            if (productosValidos === 0) {
-                errors.push('productos_validos');
-            }
         }
 
-        // Mostrar errores si los hay
+        let productosValidos = 0;
+        filasProductos.forEach(fila => {
+            const select = fila.querySelector('.select-producto');
+            const precio = fila.querySelector('.precio-unitario');
+            const cantidad = fila.querySelector('.cantidad');
+            
+            if (select.value && select.value !== '') {
+                if (parseFloat(precio.value) > 0 && parseInt(cantidad.value) > 0) {
+                    productosValidos++;
+                }
+            }
+        });
+
+        if (productosValidos === 0 && filasProductos.length > 0) {
+            errors.push('productos_validos');
+        }
+
         if (errors.length > 0) {
-            // Construir mensaje de error detallado
             let errorMessage = '<div style="text-align: left; padding: 10px;">';
             errorMessage += '<p style="font-weight: bold; margin-bottom: 10px;">Por favor, corrija los siguientes errores:</p>';
             errorMessage += '<ul style="list-style: none; padding: 0; margin: 0;">';
@@ -1880,7 +2001,7 @@ class FormManager {
                         errorMessage += '<li style="margin-bottom: 5px;">• <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px;">Fecha de entrega</span> debe ser válida y mayor o igual a hoy</li>';
                         break;
                     case 'hora_entrega':
-                        errorMessage += '<li style="margin-bottom: 5px;">• <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px;">Hora de entrega</span> es obligatoria</li>';
+                        errorMessage += '<li style="margin-bottom: 5px;">• <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px;">Hora de entrega</span> debe ser entre 10:00 AM y 5:00 PM</li>';
                         break;
                     case 'prioridad':
                         errorMessage += '<li style="margin-bottom: 5px;">• <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px;">Prioridad</span> es obligatoria</li>';
@@ -1899,17 +2020,15 @@ class FormManager {
             
             errorMessage += '</ul></div>';
             
-            // Mostrar SweetAlert con los errores
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos incompletos o incorrectos',
                 html: errorMessage,
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#4361ee',
+                confirmButtonColor: '#28a745',
                 width: 500
             });
             
-            // Hacer scroll al primer error
             const firstErrorField = document.getElementById(errors[0]);
             if (firstErrorField && errors[0] !== 'productos' && errors[0] !== 'productos_validos') {
                 firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1922,7 +2041,7 @@ class FormManager {
     updateProgress() {
         const completedFields = this.requiredFields.filter(fieldId => {
             const field = document.getElementById(fieldId);
-            return field && field.value.trim() !== '';
+            return field && field.value && field.value.trim() !== '';
         }).length;
 
         const percentage = Math.round((completedFields / this.requiredFields.length) * 100);
@@ -1933,7 +2052,6 @@ class FormManager {
         document.getElementById('validFieldsCount').textContent = `${completedFields}/${this.requiredFields.length}`;
     }
 
-    // CORREGIDO: Método para cargar productos existentes
     cargarProductosExistentes() {
         @if($pedido->detallePedidos && count($pedido->detallePedidos) > 0)
             @foreach($pedido->detallePedidos as $detalle)
@@ -1948,14 +2066,12 @@ class FormManager {
         @endif
     }
 
-    // CORREGIDO: Método para agregar fila de producto
     agregarFilaProducto(productoId = '', precio = 0, cantidad = 1) {
         const template = document.getElementById('templateFilaProducto');
         const cuerpoTabla = document.getElementById('cuerpoTablaProductos');
         const nuevaFila = template.content.cloneNode(true);
         const fila = nuevaFila.querySelector('.fila-producto');
         
-        // Reemplazar INDEX por el contador actual
         const elementosConName = fila.querySelectorAll('[name]');
         elementosConName.forEach(elemento => {
             elemento.name = elemento.name.replace(/\[INDEX\]/g, `[${this.contadorProductos}]`);
@@ -1963,39 +2079,22 @@ class FormManager {
 
         cuerpoTabla.appendChild(nuevaFila);
         
-        // Inicializar eventos para la nueva fila
         this.inicializarEventosFila(fila);
         
-        // Si se proporcionan datos, establecer valores
         if (productoId) {
             const selectProducto = fila.querySelector('.select-producto');
             selectProducto.value = productoId;
             
-            // Disparar evento change para calcular precios
             const event = new Event('change');
             selectProducto.dispatchEvent(event);
             
-            // Establecer precio y cantidad
             const inputPrecio = fila.querySelector('.precio-unitario');
             inputPrecio.value = precio.toFixed(2);
             
             const inputCantidad = fila.querySelector('.cantidad');
             inputCantidad.value = cantidad;
             
-            // Calcular subtotal
             this.calcularSubtotal(fila);
-            
-            // Mostrar precio base como referencia
-            const precioBaseIndicator = fila.querySelector('.precio-base-indicator');
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
-            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
-            if (precioBase !== precio) {
-                precioBaseIndicator.textContent = `⚠️ Precio modificado (base: $${precioBase.toFixed(2)})`;
-                precioBaseIndicator.style.color = '#dc3545';
-            } else {
-                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
-                precioBaseIndicator.style.color = '#6c757d';
-            }
             
             this.productosSeleccionados.add(productoId.toString());
         }
@@ -2017,13 +2116,12 @@ class FormManager {
             const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
 
             if (productoId && productoId !== '') {
-                // Verificar si el producto ya fue seleccionado
                 if (this.productosSeleccionados.has(productoId)) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Producto duplicado',
                         text: 'Este producto ya ha sido agregado al pedido.',
-                        confirmButtonColor: '#4361ee'
+                        confirmButtonColor: '#28a745'
                     });
                     selectProducto.value = '';
                     inputPrecio.value = '0';
@@ -2034,13 +2132,9 @@ class FormManager {
                 this.productosSeleccionados.add(productoId);
                 inputPrecio.value = precioBase.toFixed(2);
                 precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
-                precioBaseIndicator.style.color = '#6c757d';
             } else {
                 inputPrecio.value = '0';
                 precioBaseIndicator.textContent = '';
-                if (productoId) {
-                    this.productosSeleccionados.delete(productoId);
-                }
             }
             
             this.calcularSubtotal(fila);
@@ -2048,18 +2142,6 @@ class FormManager {
         });
 
         inputPrecio.addEventListener('input', () => {
-            const selectedOption = selectProducto.options[selectProducto.selectedIndex];
-            const precioBase = selectedOption ? parseFloat(selectedOption.getAttribute('data-precio')) || 0 : 0;
-            const precioActual = parseFloat(inputPrecio.value) || 0;
-            
-            if (precioActual !== precioBase && selectProducto.value) {
-                precioBaseIndicator.textContent = `⚠️ Precio modificado (base: $${precioBase.toFixed(2)})`;
-                precioBaseIndicator.style.color = '#dc3545';
-            } else if (selectProducto.value) {
-                precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
-                precioBaseIndicator.style.color = '#6c757d';
-            }
-            
             this.calcularSubtotal(fila);
             this.actualizarResumen();
         });
@@ -2144,7 +2226,6 @@ class FormManager {
             }
         });
         
-        // Actualizar displays
         document.getElementById('totalPedido').textContent = '$' + totalPedido.toFixed(2);
         document.getElementById('totalInput').value = totalPedido.toFixed(2);
         document.getElementById('totalProductos').textContent = totalProductos;
@@ -2161,22 +2242,17 @@ class FormManager {
 
     mostrarConfirmacion() {
         const comentario = document.getElementById('comentario').value;
-        const fechaEntrega = document.getElementById('fecha_entrega').value;
-        const fechaObj = new Date(fechaEntrega);
-        const fechaFormateada = fechaObj.toLocaleDateString('es-MX', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        
         const prioridadSelect = document.getElementById('prioridad');
         const prioridadText = prioridadSelect.options[prioridadSelect.selectedIndex]?.text || 'No seleccionada';
+        const horaSelect = document.getElementById('hora_entrega');
+        const horaText = horaSelect.options[horaSelect.selectedIndex]?.text || 'No seleccionada';
         
         const datosPedido = {
             total: document.getElementById('montoTotal').textContent,
             totalProductos: document.getElementById('totalProductos').textContent,
             totalUnidades: document.getElementById('totalUnidades').textContent,
-            fechaEntrega: fechaFormateada,
+            fechaEntrega: document.getElementById('fecha_entrega').value,
+            horaEntrega: horaText,
             prioridad: prioridadText,
             tieneComentario: comentario.trim() !== '',
             comentario: comentario.trim() ? comentario.substring(0, 150) + (comentario.length > 150 ? '...' : '') : ''
@@ -2187,18 +2263,19 @@ class FormManager {
             html: `
                 <div class="text-start">
                     <p class="mb-3">¿Está seguro de actualizar el pedido con los siguientes datos?</p>
-                    <div class="alert" style="background: rgba(67, 97, 238, 0.1); border: none; border-radius: 12px; padding: 15px;">
-                        <strong style="color: #4361ee;">Resumen del Pedido:</strong><br>
-                        • Total: <strong style="color: #f72585;">${datosPedido.total}</strong><br>
-                        • Productos: <strong style="color: #4361ee;">${datosPedido.totalProductos}</strong><br>
-                        • Unidades: <strong style="color: #4cc9f0;">${datosPedido.totalUnidades}</strong><br>
-                        • Fecha de entrega: <strong style="color: #4361ee;">${datosPedido.fechaEntrega}</strong><br>
-                        • Prioridad: <strong style="color: #4361ee;">${datosPedido.prioridad}</strong>
+                    <div class="alert" style="background: rgba(40, 167, 69, 0.1); border: none; border-radius: 12px;">
+                        <strong>Resumen del Pedido:</strong><br>
+                        • Total: <strong>${datosPedido.total}</strong><br>
+                        • Productos: <strong>${datosPedido.totalProductos}</strong><br>
+                        • Unidades: <strong>${datosPedido.totalUnidades}</strong><br>
+                        • Fecha de entrega: <strong>${datosPedido.fechaEntrega}</strong><br>
+                        • Hora de entrega: <strong>${datosPedido.horaEntrega}</strong><br>
+                        • Prioridad: <strong>${datosPedido.prioridad}</strong>
                     </div>
                     ${datosPedido.tieneComentario ? `
-                    <div class="alert" style="background: rgba(76, 201, 240, 0.1); border: none; border-radius: 12px; margin-top: 12px; padding: 15px;">
-                        <i class="fas fa-comment-dots me-2" style="color: #4cc9f0;"></i>
-                        <strong style="color: #4cc9f0;">Comentario:</strong><br>
+                    <div class="alert" style="background: rgba(255, 193, 7, 0.1); border: none; border-radius: 12px; margin-top: 12px;">
+                        <i class="fas fa-comment-dots me-2 text-warning"></i>
+                        <strong>Comentario:</strong><br>
                         <small>${datosPedido.comentario}</small>
                     </div>
                     ` : ''}
@@ -2206,12 +2283,11 @@ class FormManager {
             `,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-save me-2"></i> Sí, Actualizar',
-            cancelButtonText: '<i class="fas fa-times me-2"></i> Cancelar',
-            confirmButtonColor: '#4361ee',
+            confirmButtonText: '<i class="fas fa-save me-1"></i> Sí, Actualizar',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Cancelar',
+            confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            reverseButtons: true,
-            width: 550
+            reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
                 this.submitForm();
@@ -2224,21 +2300,14 @@ class FormManager {
         const form = document.getElementById('pedidoForm');
 
         if (submitBtn && form) {
-            // Mostrar notificación de procesamiento
-            Swal.fire({
-                title: 'Actualizando pedido...',
-                html: 'Por favor espere un momento',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            notifier.showInfo('Procesando actualización...', 'Un momento por favor');
             
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
 
-            // Enviar el formulario directamente
-            form.submit();
+            setTimeout(() => {
+                form.submit();
+            }, 500);
         }
     }
 }

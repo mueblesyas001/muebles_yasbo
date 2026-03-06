@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
-class CompraController extends Controller
-{
+class CompraController extends Controller{
     public function index(Request $request){
         $query = Compra::with(['proveedor', 'detalleCompras.producto']);
         

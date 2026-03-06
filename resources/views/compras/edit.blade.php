@@ -231,18 +231,16 @@
                                     </button>
                                 </div>
 
-                                <!-- Tabla de Productos (COMPACTADA - CON PRECIO VENTA Y PORCENTAJE) -->
+                                <!-- Tabla de Productos (SIN PORCENTAJE) -->
                                 <div class="table-responsive">
                                     <table class="table table-modern table-compact" id="tablaProductos">
                                         <thead>
                                             <tr>
-                                                <th style="width: 25%">Producto</th>
-                                                <th style="width: 12%">Categoría</th>
-                                                <th style="width: 10%">P.Compra</th>
-                                                <th style="width: 7%">%</th>
-                                                <th style="width: 10%">P.Venta</th>
-                                                <th style="width: 7%">Cant</th>
-                                                <th style="width: 12%">Subtotal</th>
+                                                <th style="width: 30%">Producto</th>
+                                                <th style="width: 15%">Categoría</th>
+                                                <th style="width: 15%">Precio Compra</th>
+                                                <th style="width: 15%">Cantidad</th>
+                                                <th style="width: 20%">Subtotal</th>
                                                 <th style="width: 5%"></th>
                                             </tr>
                                         </thead>
@@ -261,7 +259,7 @@
                                                                 @foreach($productos as $producto)
                                                                     <option value="{{ $producto->id }}" 
                                                                             {{ $detalle->Producto == $producto->id ? 'selected' : '' }}
-                                                                            data-precio-venta="{{ $producto->Precio }}"
+                                                                            data-precio-compra="{{ $producto->Precio_compra ?? $producto->Precio }}"
                                                                             data-nombre="{{ $producto->Nombre }}"
                                                                             data-categoria-id="{{ $producto->Categoria }}"
                                                                             data-categoria-nombre="{{ $producto->categoria->Nombre ?? 'Sin categoría' }}">
@@ -296,28 +294,6 @@
                                                     <div class="form-group-enhanced mb-0 compact">
                                                         <div class="input-wrapper compact">
                                                             <div class="input-icon compact">
-                                                                <i class="fas fa-percent"></i>
-                                                            </div>
-                                                            <input type="number" class="input-field compact porcentaje-ganancia" 
-                                                                   step="0.1" min="0" value="{{ $detalle->porcentaje_ganancia ?? 30 }}" required>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="form-group-enhanced mb-0 compact">
-                                                        <div class="input-wrapper compact">
-                                                            <div class="input-icon compact">
-                                                                <i class="fas fa-tag"></i>
-                                                            </div>
-                                                            <input type="number" class="input-field compact precio-venta" name="productos[{{ $index }}][precio_venta]" 
-                                                                   step="0.01" min="0.01" readonly value="{{ $detalle->producto->Precio ?? 0 }}" placeholder="0.00">
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="form-group-enhanced mb-0 compact">
-                                                        <div class="input-wrapper compact">
-                                                            <div class="input-icon compact">
                                                                 <i class="fas fa-sort-numeric-up"></i>
                                                             </div>
                                                             <input type="number" class="input-field compact cantidad" name="productos[{{ $index }}][cantidad]" 
@@ -345,7 +321,7 @@
                                         </tbody>
                                         <tfoot>
                                             <tr class="table-total">
-                                                <td colspan="6" class="text-end fw-bold">TOTAL:</td>
+                                                <td colspan="4" class="text-end fw-bold">TOTAL:</td>
                                                 <td colspan="2">
                                                     <span class="total-amount" id="totalCompra">${{ number_format($compra->Total, 2) }}</span>
                                                 </td>
@@ -466,7 +442,7 @@
     </div>
 </div>
 
-<!-- Template para fila de producto (COMPACTADO) -->
+<!-- Template para fila de producto (SIN PORCENTAJE) -->
 <template id="templateFilaProducto">
     <tr class="product-row">
         <td>
@@ -498,28 +474,6 @@
                     </div>
                     <input type="number" class="input-field compact precio-compra" name="productos[][precio_unitario]" 
                            step="0.01" min="0.01" placeholder="0.00" required>
-                </div>
-            </div>
-        </td>
-        <td>
-            <div class="form-group-enhanced mb-0 compact">
-                <div class="input-wrapper compact">
-                    <div class="input-icon compact">
-                        <i class="fas fa-percent"></i>
-                    </div>
-                    <input type="number" class="input-field compact porcentaje-ganancia" 
-                           step="0.1" min="0" value="30" required>
-                </div>
-            </div>
-        </td>
-        <td>
-            <div class="form-group-enhanced mb-0 compact">
-                <div class="input-wrapper compact">
-                    <div class="input-icon compact">
-                        <i class="fas fa-tag"></i>
-                    </div>
-                    <input type="number" class="input-field compact precio-venta" name="productos[][precio_venta]" 
-                           step="0.01" min="0.01" readonly placeholder="0.00">
                 </div>
             </div>
         </td>
@@ -1469,7 +1423,7 @@ class EditarCompraManager {
                 const option = document.createElement('option');
                 option.value = producto.id;
                 option.textContent = `${producto.Nombre}`;
-                option.setAttribute('data-precio-venta', producto.Precio);
+                option.setAttribute('data-precio-compra', producto.Precio_compra || producto.Precio);
                 option.setAttribute('data-nombre', producto.Nombre);
                 option.setAttribute('data-categoria-id', producto.Categoria);
                 option.setAttribute('data-categoria-nombre', this.obtenerNombreCategoria(producto.Categoria));
@@ -1518,8 +1472,6 @@ class EditarCompraManager {
     inicializarEventosFila(fila) {
         const selectProducto = fila.querySelector('.select-producto');
         const inputPrecioCompra = fila.querySelector('.precio-compra');
-        const inputPorcentajeGanancia = fila.querySelector('.porcentaje-ganancia');
-        const inputPrecioVenta = fila.querySelector('.precio-venta');
         const displayCategoria = fila.querySelector('.categoria');
         const inputCategoriaId = fila.querySelector('.categoria-id');
         const inputCantidad = fila.querySelector('.cantidad');
@@ -1556,23 +1508,15 @@ class EditarCompraManager {
                 this.productosSeleccionados.add(productoId);
                 
                 const opcionSeleccionada = selectProducto.options[selectProducto.selectedIndex];
-                const precioVentaBase = parseFloat(opcionSeleccionada.getAttribute('data-precio-venta')) || 0;
+                const precioCompraBase = parseFloat(opcionSeleccionada.getAttribute('data-precio-compra')) || 0;
                 const categoriaNombre = opcionSeleccionada.getAttribute('data-categoria-nombre');
                 
                 displayCategoria.value = categoriaNombre;
                 inputCategoriaId.value = opcionSeleccionada.getAttribute('data-categoria-id');
                 
-                if (precioVentaBase > 0) {
-                    inputPrecioVenta.value = precioVentaBase.toFixed(2);
-                    
-                    // Calcular precio de compra sugerido (30% de ganancia por defecto)
-                    const porcentajeGanancia = parseFloat(inputPorcentajeGanancia.value) || 30;
-                    const precioCompraSugerido = precioVentaBase / (1 + porcentajeGanancia / 100);
-                    
-                    // Solo establecer si el campo está vacío
-                    if (!inputPrecioCompra.value) {
-                        inputPrecioCompra.value = precioCompraSugerido.toFixed(2);
-                    }
+                // Solo establecer precio de compra sugerido si el campo está vacío
+                if (!inputPrecioCompra.value && precioCompraBase > 0) {
+                    inputPrecioCompra.value = precioCompraBase.toFixed(2);
                 }
                 
                 this.calcularSubtotal(fila);
@@ -1584,7 +1528,6 @@ class EditarCompraManager {
                 }
                 displayCategoria.value = '';
                 inputCategoriaId.value = '';
-                inputPrecioVenta.value = '';
                 inputPrecioCompra.value = '';
                 inputCantidad.value = '1';
                 displaySubtotal.value = '';
@@ -1594,21 +1537,11 @@ class EditarCompraManager {
             this.actualizarResumen();
         });
 
-        const calcularPrecios = () => {
-            const precioCompra = parseFloat(inputPrecioCompra.value) || 0;
-            const porcentajeGanancia = parseFloat(inputPorcentajeGanancia.value) || 0;
-            
-            if (precioCompra > 0 && porcentajeGanancia > 0) {
-                const precioVenta = precioCompra * (1 + porcentajeGanancia / 100);
-                inputPrecioVenta.value = precioVenta.toFixed(2);
-            }
-            
+        inputPrecioCompra.addEventListener('input', () => {
             this.calcularSubtotal(fila);
             this.validarFila(fila);
-        };
+        });
 
-        inputPrecioCompra.addEventListener('input', calcularPrecios);
-        inputPorcentajeGanancia.addEventListener('input', calcularPrecios);
         inputCantidad.addEventListener('input', () => {
             this.calcularSubtotal(fila);
             this.validarFila(fila);
@@ -1789,21 +1722,20 @@ class EditarCompraManager {
             const selectProducto = fila.querySelector('.select-producto');
             const inputPrecioCompra = fila.querySelector('.precio-compra');
             const inputCantidad = fila.querySelector('.cantidad');
-            const productoNombre = selectProducto.options[selectProducto.selectedIndex]?.text || `Producto ${index + 1}`;
             
             if (!selectProducto.value) {
                 productosValidos = false;
-                errores.push(`Producto ${index + 1}: No tiene producto seleccionado`);
+                errores.push(`Fila ${index + 1}: No tiene producto seleccionado`);
             }
             
             if (!inputPrecioCompra.value || parseFloat(inputPrecioCompra.value) <= 0) {
                 productosValidos = false;
-                errores.push(`Producto ${index + 1}: Precio de compra inválido`);
+                errores.push(`Fila ${index + 1}: Precio de compra inválido`);
             }
             
             if (!inputCantidad.value || parseInt(inputCantidad.value) < 1) {
                 productosValidos = false;
-                errores.push(`Producto ${index + 1}: Cantidad inválida`);
+                errores.push(`Fila ${index + 1}: Cantidad inválida`);
             }
         });
         

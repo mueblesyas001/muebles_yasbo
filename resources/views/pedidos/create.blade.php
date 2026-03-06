@@ -239,7 +239,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Hora de Entrega -->
+                                    <!-- Hora de Entrega MODIFICADA -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -247,23 +247,41 @@
                                                 <span class="label-required">*</span>
                                             </label>
                                             
-                                            <div class="input-wrapper" data-required="true">
+                                            <div class="input-wrapper" data-required="true" id="hora-wrapper">
                                                 <div class="input-icon">
                                                     <i class="fas fa-clock"></i>
                                                 </div>
-                                                <input type="time" 
-                                                       class="input-field @error('Hora_entrega') is-invalid @enderror" 
-                                                       id="hora_entrega" 
-                                                       name="Hora_entrega" 
-                                                       value="{{ old('Hora_entrega', '12:00') }}" 
-                                                       required>
+                                                <select class="input-field @error('Hora_entrega') is-invalid @enderror" 
+                                                        id="hora_entrega" 
+                                                        name="Hora_entrega" 
+                                                        required>
+                                                    <option value="">Seleccionar hora</option>
+                                                    <option value="10:00" {{ old('Hora_entrega') == '10:00' ? 'selected' : '' }}>10:00 AM</option>
+                                                    <option value="10:30" {{ old('Hora_entrega') == '10:30' ? 'selected' : '' }}>10:30 AM</option>
+                                                    <option value="11:00" {{ old('Hora_entrega') == '11:00' ? 'selected' : '' }}>11:00 AM</option>
+                                                    <option value="11:30" {{ old('Hora_entrega') == '11:30' ? 'selected' : '' }}>11:30 AM</option>
+                                                    <option value="12:00" {{ old('Hora_entrega') == '12:00' ? 'selected' : '' }}>12:00 PM</option>
+                                                    <option value="12:30" {{ old('Hora_entrega') == '12:30' ? 'selected' : '' }}>12:30 PM</option>
+                                                    <option value="13:00" {{ old('Hora_entrega') == '13:00' ? 'selected' : '' }}>1:00 PM</option>
+                                                    <option value="13:30" {{ old('Hora_entrega') == '13:30' ? 'selected' : '' }}>1:30 PM</option>
+                                                    <option value="14:00" {{ old('Hora_entrega') == '14:00' ? 'selected' : '' }}>2:00 PM</option>
+                                                    <option value="14:30" {{ old('Hora_entrega') == '14:30' ? 'selected' : '' }}>2:30 PM</option>
+                                                    <option value="15:00" {{ old('Hora_entrega') == '15:00' ? 'selected' : '' }}>3:00 PM</option>
+                                                    <option value="15:30" {{ old('Hora_entrega') == '15:30' ? 'selected' : '' }}>3:30 PM</option>
+                                                    <option value="16:00" {{ old('Hora_entrega') == '16:00' ? 'selected' : '' }}>4:00 PM</option>
+                                                    <option value="16:30" {{ old('Hora_entrega') == '16:30' ? 'selected' : '' }}>4:30 PM</option>
+                                                    <option value="17:00" {{ old('Hora_entrega') == '17:00' ? 'selected' : '' }}>5:00 PM</option>
+                                                </select>
                                                 <div class="input-decoration"></div>
                                             </div>
                                             
                                             <div class="input-meta">
-                                                <div class="input-hint">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    Hora estimada de entrega
+                                                <div class="hora-validation-message" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+                                                    <i class="fas fa-info-circle" style="color: #007bff;"></i>
+                                                    <span id="hora-validation-text">Horario disponible: 10:00 AM - 5:00 PM</span>
+                                                </div>
+                                                <div class="hora-info" style="font-size: 0.7rem; color: #6b7280; background: #f3f4f6; padding: 2px 8px; border-radius: 12px;">
+                                                    <i class="far fa-clock"></i> Lunes a Viernes
                                                 </div>
                                             </div>
                                             
@@ -276,7 +294,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Prioridad - CON EL MISMO DISEÑO -->
+                                    <!-- Prioridad -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -610,10 +628,6 @@
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-3">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
-                                            <i class="fas fa-undo me-2"></i>
-                                            Limpiar
-                                        </button>
                                         <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="
                                             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
                                             border: none;
@@ -944,6 +958,98 @@
     to { width: 0%; }
 }
 
+/* Estilos específicos para la validación de hora */
+#hora_entrega option[value="10:00"],
+#hora_entrega option[value="10:30"],
+#hora_entrega option[value="11:00"],
+#hora_entrega option[value="11:30"],
+#hora_entrega option[value="12:00"],
+#hora_entrega option[value="12:30"],
+#hora_entrega option[value="13:00"],
+#hora_entrega option[value="13:30"],
+#hora_entrega option[value="14:00"],
+#hora_entrega option[value="14:30"],
+#hora_entrega option[value="15:00"],
+#hora_entrega option[value="15:30"],
+#hora_entrega option[value="16:00"],
+#hora_entrega option[value="16:30"],
+#hora_entrega option[value="17:00"] {
+    padding: 8px;
+}
+
+#hora_entrega option[value="10:00"] { background-color: #d4edda; }
+#hora_entrega option[value="10:30"] { background-color: #d4edda; }
+#hora_entrega option[value="11:00"] { background-color: #d4edda; }
+#hora_entrega option[value="11:30"] { background-color: #d4edda; }
+#hora_entrega option[value="12:00"] { background-color: #fff3cd; }
+#hora_entrega option[value="12:30"] { background-color: #fff3cd; }
+#hora_entrega option[value="13:00"] { background-color: #fff3cd; }
+#hora_entrega option[value="13:30"] { background-color: #fff3cd; }
+#hora_entrega option[value="14:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="14:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="15:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="15:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="16:00"] { background-color: #d1ecf1; }
+#hora_entrega option[value="16:30"] { background-color: #d1ecf1; }
+#hora_entrega option[value="17:00"] { background-color: #f8d7da; }
+
+.hora-validation-message.success {
+    color: #28a745;
+}
+
+.hora-validation-message.success i {
+    color: #28a745;
+}
+
+.hora-validation-message.warning {
+    color: #ffc107;
+}
+
+.hora-validation-message.warning i {
+    color: #ffc107;
+}
+
+.hora-info i {
+    color: #007bff;
+}
+
+/* Estilos para la validación de fecha */
+.fecha-validation-message {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #007bff;
+}
+
+.fecha-validation-message.warning {
+    color: #dc3545;
+}
+
+.fecha-validation-message.warning i {
+    color: #dc3545;
+}
+
+.fecha-validation-message.success {
+    color: #28a745;
+}
+
+.fecha-validation-message.success i {
+    color: #28a745;
+}
+
+.fecha-actual {
+    font-size: 0.7rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.fecha-actual i {
+    color: #ffc107;
+}
+
 /* Form Sections */
 .form-section {
     animation: slideIn 0.6s ease-out;
@@ -1093,43 +1199,6 @@
     gap: 4px;
     font-size: 0.75rem;
     color: #6b7280;
-}
-
-/* Estilos específicos para la validación de fecha */
-.fecha-validation-message {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: #007bff;
-}
-
-.fecha-validation-message.warning {
-    color: #dc3545;
-}
-
-.fecha-validation-message.warning i {
-    color: #dc3545;
-}
-
-.fecha-validation-message.success {
-    color: #28a745;
-}
-
-.fecha-validation-message.success i {
-    color: #28a745;
-}
-
-.fecha-actual {
-    font-size: 0.7rem;
-    color: #6b7280;
-    background: #f3f4f6;
-    padding: 2px 8px;
-    border-radius: 12px;
-}
-
-.fecha-actual i {
-    color: #ffc107;
 }
 
 /* Estilos para el badge de prioridad */
@@ -1667,7 +1736,8 @@ class FormManager {
             }
         });
 
-        document.getElementById('hora_entrega').value = '12:00';
+        // Reset hora a vacío en lugar de 12:00
+        document.getElementById('hora_entrega').value = '';
         document.getElementById('comentario').value = '';
 
         // Actualizar badge de prioridad
@@ -1684,6 +1754,16 @@ class FormManager {
 
         this.actualizarResumen();
         this.updateProgress();
+        
+        // Resetear mensajes de validación
+        const horaValidationText = document.getElementById('hora-validation-text');
+        if (horaValidationText) {
+            horaValidationText.innerHTML = 'Horario disponible: 10:00 AM - 5:00 PM';
+        }
+        const fechaValidationText = document.getElementById('fecha-validation-text');
+        if (fechaValidationText) {
+            fechaValidationText.innerHTML = 'Debe ser mayor o igual a hoy';
+        }
     }
 
     setupEventListeners() {
@@ -1730,6 +1810,16 @@ class FormManager {
                 this.validateField('fecha_entrega');
             });
         }
+
+        // Validación en tiempo real para la hora
+        const horaSelect = document.getElementById('hora_entrega');
+        if (horaSelect) {
+            horaSelect.addEventListener('change', () => {
+                this.validarHoraEnTiempoReal();
+                this.validateField('hora_entrega');
+                this.updateProgress();
+            });
+        }
     }
 
     validarFechaEnTiempoReal() {
@@ -1765,6 +1855,46 @@ class FormManager {
         }
     }
 
+    validarHoraEnTiempoReal() {
+        const horaSelect = document.getElementById('hora_entrega');
+        const horaValidationText = document.getElementById('hora-validation-text');
+        const horaValidationMessage = document.querySelector('.hora-validation-message');
+        
+        if (!horaSelect.value) {
+            horaValidationMessage.classList.remove('success', 'warning');
+            horaValidationMessage.classList.add('warning');
+            horaValidationText.innerHTML = '⚠️ Debe seleccionar una hora de entrega';
+            return false;
+        }
+
+        const horaSeleccionada = horaSelect.value;
+        const horaMinima = "10:00";
+        const horaMaxima = "17:00";
+        
+        if (horaSeleccionada >= horaMinima && horaSeleccionada <= horaMaxima) {
+            horaValidationMessage.classList.add('success');
+            horaValidationMessage.classList.remove('warning');
+            
+            // Mostrar mensaje según la hora seleccionada
+            if (horaSeleccionada < "12:00") {
+                horaValidationText.innerHTML = '✓ Horario de mañana válido';
+            } else if (horaSeleccionada >= "12:00" && horaSeleccionada < "14:00") {
+                horaValidationText.innerHTML = '✓ Horario de mediodía válido';
+            } else if (horaSeleccionada >= "14:00" && horaSeleccionada < "17:00") {
+                horaValidationText.innerHTML = '✓ Horario de tarde válido';
+            } else {
+                horaValidationText.innerHTML = '✓ Última hora válida';
+            }
+            
+            return true;
+        } else {
+            horaValidationMessage.classList.add('warning');
+            horaValidationMessage.classList.remove('success');
+            horaValidationText.innerHTML = '❌ Hora no válida. Debe ser entre 10:00 AM y 5:00 PM';
+            return false;
+        }
+    }
+
     initDateValidation() {
         const fechaInput = document.getElementById('fecha_entrega');
         const hoy = new Date().toISOString().split('T')[0];
@@ -1784,6 +1914,12 @@ class FormManager {
         if (field.hasAttribute('required') && !field.value) {
             wrapper.classList.add('error');
             field.classList.add('is-invalid');
+            
+            // Validación específica para hora
+            if (fieldId === 'hora_entrega') {
+                this.validarHoraEnTiempoReal();
+            }
+            
             return false;
         }
 
@@ -1793,6 +1929,16 @@ class FormManager {
             today.setHours(0, 0, 0, 0);
             
             if (selectedDate < today) {
+                wrapper.classList.add('error');
+                field.classList.add('is-invalid');
+                return false;
+            }
+        }
+
+        // Validación específica para hora
+        if (fieldId === 'hora_entrega' && field.value) {
+            const horaValida = this.validarHoraEnTiempoReal();
+            if (!horaValida) {
                 wrapper.classList.add('error');
                 field.classList.add('is-invalid');
                 return false;
@@ -2022,12 +2168,15 @@ class FormManager {
         const comentario = document.getElementById('comentario').value;
         const prioridadSelect = document.getElementById('prioridad');
         const prioridadText = prioridadSelect.options[prioridadSelect.selectedIndex]?.text || 'No seleccionada';
+        const horaSelect = document.getElementById('hora_entrega');
+        const horaText = horaSelect.options[horaSelect.selectedIndex]?.text || 'No seleccionada';
         
         const datosPedido = {
             total: document.getElementById('montoTotal').textContent,
             totalProductos: document.getElementById('totalProductos').textContent,
             totalUnidades: document.getElementById('totalUnidades').textContent,
             fechaEntrega: document.getElementById('fecha_entrega').value,
+            horaEntrega: horaText,
             prioridad: prioridadText,
             tieneComentario: comentario.trim() !== '',
             comentario: comentario.trim() ? comentario.substring(0, 150) + (comentario.length > 150 ? '...' : '') : ''
@@ -2044,6 +2193,7 @@ class FormManager {
                         • Productos: <strong>${datosPedido.totalProductos}</strong><br>
                         • Unidades: <strong>${datosPedido.totalUnidades}</strong><br>
                         • Fecha de entrega: <strong>${datosPedido.fechaEntrega}</strong><br>
+                        • Hora de entrega: <strong>${datosPedido.horaEntrega}</strong><br>
                         • Prioridad: <strong>${datosPedido.prioridad}</strong>
                     </div>
                     ${datosPedido.tieneComentario ? `
