@@ -48,7 +48,7 @@ class ReporteController extends Controller
         $gananciaMes = $ventasMes - $comprasMes;
         
         // Pedidos pendientes
-        $pedidosPendientes = Pedido::where('Estado', 'pendiente')->count();
+        $pedidosPendientes = Pedido::where('Estado', 'En proceso')->count();
         
         // Obtener datos para los filtros de reportes
         $empleados = Empleado::all();
@@ -483,292 +483,7 @@ class ReporteController extends Controller
             return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
         }
     }
-    /**
-     * ===========================================
-     * 3. REPORTE DE PEDIDOS
-     * ===========================================
-     */
-    public function generarReportePedidos(Request $request)
-    {
-        // Validar fechas
-        $request->validate([
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-        ]);
-        
-        // Usar Fecha_entrega como columna de fecha
-        $fechaColumn = 'Fecha_entrega';
-        
-        // Verificar si hay pedidos en el período seleccionado
-        $totalPedidosPeriodo = Pedido::whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
-            ->count();
-        
-        // Si no hay pedidos, mostrar mensaje amigable
-        if ($totalPedidosPeriodo == 0) {
-            return back()->with('warning', 'No hay pedidos en el período seleccionado. Por favor, elige otro rango de fechas.');
-        }
-        
-        // OBTENER PEDIDOS con relaciones necesarias
-        $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto']);
-        
-        $query->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin);
-        
-        if ($request->filled('estado')) {
-            $query->where('Estado', $request->estado);
-        }
-        
-        if ($request->filled('empleado_id')) {
-            $query->where('Empleado_idEmpleado', $request->empleado_id);
-        }
-        
-        $orden = $request->orden ?? 'fecha_desc';
-        if ($orden == 'fecha_desc') $query->orderBy($fechaColumn, 'desc');
-        elseif ($orden == 'fecha_asc') $query->orderBy($fechaColumn, 'asc');
-        elseif ($orden == 'estado') $query->orderBy('Estado')->orderBy($fechaColumn, 'desc');
-        
-        $pedidos = $query->get();
-        
-        // Ver los valores reales de Estado (para diagnóstico)
-        $valoresEstado = $pedidos->pluck('Estado')->unique()->values();
-        \Log::info('Valores de Estado en pedidos:', $valoresEstado->toArray());
-        
-        // ESTADÍSTICAS PRINCIPALES
-        $totalPedidos = $pedidos->count();
-        
-        // Mapeo de estados según los valores que viste en el log: ["Pendiente","En proceso"]
-        $estadoMap = [
-            'pendiente' => ['pendiente', 'pending', 'Pendiente'],
-            'proceso' => ['en proceso', 'proceso', 'processing', 'En Proceso', 'En proceso'],
-            'entregado' => ['completado', 'entregado', 'completed', 'Completado', 'Entregado'],
-            'cancelado' => ['cancelado', 'cancelled', 'Cancelado']
-        ];
-        
-        $pedidosPendientes = 0;
-        $pedidosEnProceso = 0;
-        $pedidosEntregados = 0;  // Cambiado de pedidosCompletados a pedidosEntregados
-        $pedidosCancelados = 0;
-        
-        foreach ($pedidos as $pedido) {
-            $estado = trim($pedido->Estado ?? '');
-            
-            if (in_array($estado, $estadoMap['pendiente'])) {
-                $pedidosPendientes++;
-            } elseif (in_array($estado, $estadoMap['proceso'])) {
-                $pedidosEnProceso++;
-            } elseif (in_array($estado, $estadoMap['entregado'])) {
-                $pedidosEntregados++;  // Cambiado
-            } elseif (in_array($estado, $estadoMap['cancelado'])) {
-                $pedidosCancelados++;
-            }
-        }
-        
-        // Calcular total de pedidos en valor
-        $valorTotalPedidos = $pedidos->sum('Total');
-        
-        // Tiempo promedio de entrega (si aplica)
-        $tiempoPromedioEntrega = 'N/A';
-        
-        // Cliente con más pedidos
-        $clienteTop = Pedido::with('cliente')
-            ->select('Cliente_idCliente', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
-            ->groupBy('Cliente_idCliente')
-            ->orderBy('total_pedidos', 'desc')
-            ->first();
-        
-        // Vendedor con más pedidos
-        $vendedorTop = Pedido::with('empleado')
-            ->select('Empleado_idEmpleado', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
-            ->groupBy('Empleado_idEmpleado')
-            ->orderBy('total_pedidos', 'desc')
-            ->first();
-        
-        // PEDIDOS POR DÍA (para gráfica)
-        $pedidosPorDia = Pedido::select(
-                DB::raw("DATE($fechaColumn) as fecha"),
-                DB::raw('COUNT(*) as cantidad')
-            )
-            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
-            ->groupBy(DB::raw("DATE($fechaColumn)"))
-            ->orderBy('fecha', 'asc')
-            ->get();
-        
-        // PEDIDOS POR VENDEDOR (para gráfica)
-        $pedidosPorVendedor = Pedido::with('empleado')
-            ->select('Empleado_idEmpleado', DB::raw('COUNT(*) as total_pedidos'))
-            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
-            ->groupBy('Empleado_idEmpleado')
-            ->orderBy('total_pedidos', 'desc')
-            ->get();
-        
-        // PEDIDOS POR ESTADO (para gráfica)
-        $pedidosPorEstado = [
-            'pendiente' => $pedidosPendientes,
-            'en proceso' => $pedidosEnProceso,
-            'entregado' => $pedidosEntregados,  // Cambiado
-            'cancelado' => $pedidosCancelados
-        ];
-        
-        // PRODUCTOS MÁS PEDIDOS
-        $productosMasPedidos = DetallePedido::with('producto')
-            ->select(
-                'Producto',
-                DB::raw('SUM(Cantidad) as total_cantidad'),
-                DB::raw('COUNT(DISTINCT Pedido) as veces_pedido')
-            )
-            ->whereHas('pedido', function($q) use ($request, $fechaColumn) {
-                $q->whereDate($fechaColumn, '>=', $request->fecha_inicio)
-                ->whereDate($fechaColumn, '<=', $request->fecha_fin);
-            })
-            ->groupBy('Producto')
-            ->orderBy('total_cantidad', 'desc')
-            ->take(10)
-            ->get();
-        
-        // PREPARAR DATOS PARA GRÁFICAS GD
-        $datosChartEstados = [
-            'labels' => ['Pendientes', 'En Proceso', 'Entregados', 'Cancelados'],  // Cambiado
-            'data' => [$pedidosPendientes, $pedidosEnProceso, $pedidosEntregados, $pedidosCancelados]  // Cambiado
-        ];
-        
-        $datosChartVendedores = [
-            'labels' => [],
-            'data' => []
-        ];
-        
-        foreach($pedidosPorVendedor as $item) {
-            $nombreCompleto = 'Sin vendedor';
-            if ($item->empleado) {
-                $nombreCompleto = trim(
-                    ($item->empleado->Nombre ?? '') . ' ' . 
-                    ($item->empleado->ApPaterno ?? '') . ' ' . 
-                    ($item->empleado->ApMaterno ?? '')
-                );
-            }
-            $datosChartVendedores['labels'][] = $nombreCompleto;
-            $datosChartVendedores['data'][] = intval($item->total_pedidos);
-        }
-        
-        $datosChartProductosPedidos = [
-            'labels' => [],
-            'data' => []
-        ];
-        
-        foreach($productosMasPedidos->take(5) as $item) {
-            $datosChartProductosPedidos['labels'][] = $item->producto->Nombre ?? 'Producto';
-            $datosChartProductosPedidos['data'][] = intval($item->total_cantidad);
-        }
-        
-        $datosChartPedidosDiarios = [
-            'labels' => [],
-            'data' => []
-        ];
-        
-        $fechaInicioObj = Carbon::parse($request->fecha_inicio);
-        $fechaFinObj = Carbon::parse($request->fecha_fin);
-        $diasTotales = $fechaInicioObj->diffInDays($fechaFinObj) + 1;
-        $diasAMostrar = min($diasTotales, 15);
-        
-        for ($i = 0; $i < $diasAMostrar; $i++) {
-            $fechaActual = $fechaInicioObj->copy()->addDays($i);
-            $fechaStr = $fechaActual->format('Y-m-d');
-            $pedidoDia = $pedidosPorDia->firstWhere('fecha', $fechaStr);
-            $datosChartPedidosDiarios['labels'][] = $fechaActual->format('d/m');
-            $datosChartPedidosDiarios['data'][] = intval($pedidoDia->cantidad ?? 0);
-        }
-        
-        // GENERAR GRÁFICAS CON GD (CON VALIDACIÓN)
-        $graficas = [];
-        
-        if ($totalPedidos > 0 && array_sum($datosChartEstados['data']) > 0) {
-            try {
-                $graficas['estados'] = GraficaHelper::generarBarra($datosChartEstados, 'Distribución de Estados');
-            } catch (\Exception $e) {
-                \Log::warning('No se pudo generar gráfica de estados: ' . $e->getMessage());
-            }
-        }
-        
-        if (!empty($datosChartVendedores['labels']) && array_sum($datosChartVendedores['data']) > 0) {
-            try {
-                $graficas['vendedores'] = GraficaHelper::generarBarra($datosChartVendedores, 'Pedidos por Vendedor');
-            } catch (\Exception $e) {
-                \Log::warning('No se pudo generar gráfica de vendedores: ' . $e->getMessage());
-            }
-        }
-        
-        if (!empty($datosChartProductosPedidos['labels']) && array_sum($datosChartProductosPedidos['data']) > 0) {
-            try {
-                $graficas['productos'] = GraficaHelper::generarBarra($datosChartProductosPedidos, 'Productos más pedidos');
-            } catch (\Exception $e) {
-                \Log::warning('No se pudo generar gráfica de productos: ' . $e->getMessage());
-            }
-        }
-        
-        if (!empty($datosChartPedidosDiarios['labels']) && array_sum($datosChartPedidosDiarios['data']) > 0) {
-            try {
-                $graficas['diaria'] = GraficaHelper::generarLinea($datosChartPedidosDiarios, 'Pedidos Diarios');
-            } catch (\Exception $e) {
-                \Log::warning('No se pudo generar gráfica de pedidos diarios: ' . $e->getMessage());
-            }
-        }
-        
-        // GENERAR PDF
-        try {
-            $pdf = Pdf::loadView('reportes.pdf.pedidos', [
-                'pedidos' => $pedidos,
-                'fechaInicio' => $request->fecha_inicio,
-                'fechaFin' => $request->fecha_fin,
-                'fechaGeneracion' => now()->format('d/m/Y H:i:s'),
-                'filtros' => $request->all(),
-                'estadoSeleccionado' => $request->estado,
-                'empleadoSeleccionado' => $request->filled('empleado_id') ? Empleado::find($request->empleado_id) : null,
-                'totalPedidos' => $totalPedidos,
-                'valorTotalPedidos' => $valorTotalPedidos,
-                'pedidosPendientes' => $pedidosPendientes,
-                'pedidosEnProceso' => $pedidosEnProceso,
-                'pedidosEntregados' => $pedidosEntregados,  // Cambiado
-                'pedidosCancelados' => $pedidosCancelados,
-                'tiempoPromedioEntrega' => $tiempoPromedioEntrega,
-                'pedidosPorEstado' => $pedidosPorEstado,
-                'clienteTop' => $clienteTop,
-                'vendedorTop' => $vendedorTop,
-                'pedidosPorDia' => $pedidosPorDia,
-                'pedidosPorVendedor' => $pedidosPorVendedor,
-                'productosMasPedidos' => $productosMasPedidos,
-                'graficas' => $graficas,
-            ]);
-            
-            $pdf->setPaper('A4', 'portrait');
-            $pdf->setOptions([
-                'enable-javascript' => true,
-                'javascript-delay' => 1000,
-                'no-stop-slow-scripts' => true,
-                'enable-smart-shrinking' => true,
-                'dpi' => 150,
-                'defaultFont' => 'sans-serif'
-            ]);
-            
-            $nombreArchivo = 'reporte_pedidos_' . date('Y-m-d_H-i-s') . '.pdf';
-            
-            // Para descargar:
-            return $pdf->download($nombreArchivo);
-            
-            // Para abrir en el navegador (comenta la línea de arriba y descomenta esta):
-            // return $pdf->stream($nombreArchivo);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error en reporte pedidos: ' . $e->getMessage());
-            \Log::error('Trace: ' . $e->getTraceAsString());
-            return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
-        }
-    }
+    
     
     /**
      * ===========================================
@@ -1342,6 +1057,198 @@ class ReporteController extends Controller
         }
     }
 
+    /**
+     * ===========================================
+     * 3. REPORTE DE PEDIDOS - VERSIÓN FINAL CORREGIDA
+     * ===========================================
+     */
+    public function generarReportePedidos(Request $request){
+        // Validar fechas
+        $request->validate([
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        ]);
+        
+        $fechaColumn = 'Fecha_entrega';
+        
+        // Verificar si hay pedidos
+        $totalPedidosPeriodo = Pedido::whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
+            ->count();
+        
+        if ($totalPedidosPeriodo == 0) {
+            return back()->with('warning', 'No hay pedidos en el período seleccionado.');
+        }
+        
+        // OBTENER PEDIDOS
+        $query = Pedido::with(['cliente', 'empleado', 'detallePedidos.producto.categoria']);
+        
+        $query->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin);
+        
+        if ($request->filled('estado')) {
+            $query->where('Estado', $request->estado);
+        }
+        
+        if ($request->filled('empleado_id')) {
+            $query->where('Empleado_idEmpleado', $request->empleado_id);
+        }
+        
+        $orden = $request->orden ?? 'fecha_desc';
+        if ($orden == 'fecha_desc') $query->orderBy($fechaColumn, 'desc');
+        elseif ($orden == 'fecha_asc') $query->orderBy($fechaColumn, 'asc');
+        elseif ($orden == 'estado') $query->orderBy('Estado')->orderBy($fechaColumn, 'desc');
+        
+        $pedidos = $query->get();
+        
+        // ===========================================
+        // CORRECCIÓN - ESTADOS EN SINGULAR
+        // ===========================================
+        $totalPedidos = $pedidos->count();
+        
+        // Estados CORRECTOS según la BD:
+        // "En proceso", "Completado", "Cancelado"
+        $pedidosEnProceso = $pedidos->where('Estado', 'En proceso')->count();
+        $pedidosCompletados = $pedidos->where('Estado', 'Completado')->count(); // SIN 's'
+        $pedidosCancelados = $pedidos->where('Estado', 'Cancelado')->count();   // SIN 's'
+        
+        // Log para verificar
+        \Log::info('=== CONTEO DE PEDIDOS ===');
+        \Log::info('Total pedidos: ' . $totalPedidos);
+        \Log::info('En proceso: ' . $pedidosEnProceso);
+        \Log::info('Completado: ' . $pedidosCompletados);
+        \Log::info('Cancelado: ' . $pedidosCancelados);
+        
+        // Verificar que la suma coincida
+        $suma = $pedidosEnProceso + $pedidosCompletados + $pedidosCancelados;
+        \Log::info('Suma total: ' . $suma);
+        if ($suma != $totalPedidos) {
+            \Log::warning('¡LA SUMA NO COINCIDE! Faltan ' . ($totalPedidos - $suma) . ' pedidos');
+            
+            // Mostrar los estados que no están siendo contados
+            $estadosEncontrados = $pedidos->pluck('Estado')->unique();
+            \Log::info('Estados encontrados en BD:', $estadosEncontrados->toArray());
+        }
+        
+        $valorTotalPedidos = $pedidos->sum('Total');
+        
+        // Cliente con más pedidos
+        $clienteTop = Pedido::with('cliente')
+            ->select('Cliente_idCliente', DB::raw('COUNT(*) as total_pedidos'))
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
+            ->groupBy('Cliente_idCliente')
+            ->orderBy('total_pedidos', 'desc')
+            ->first();
+        
+        // PEDIDOS POR VENDEDOR
+        $pedidosPorVendedor = collect();
+        $vendedores = Empleado::all();
+        
+        foreach ($vendedores as $vendedor) {
+            $pedidosVendedor = $pedidos->where('Empleado_idEmpleado', $vendedor->id);
+            
+            if ($pedidosVendedor->isNotEmpty()) {
+                $enProceso = $pedidosVendedor->where('Estado', 'En proceso')->count();
+                $completados = $pedidosVendedor->where('Estado', 'Completado')->count(); // SIN 's'
+                $cancelados = $pedidosVendedor->where('Estado', 'Cancelado')->count();   // SIN 's'
+                
+                $item = new \stdClass();
+                $item->empleado = $vendedor;
+                $item->pedidos_en_proceso = $enProceso;
+                $item->pedidos_completados = $completados;
+                $item->pedidos_cancelados = $cancelados;
+                
+                $pedidosPorVendedor->push($item);
+            }
+        }
+        
+        $pedidosPorVendedor = $pedidosPorVendedor->sortByDesc(function($item) {
+            return $item->pedidos_en_proceso + $item->pedidos_completados + $item->pedidos_cancelados;
+        })->values();
+        
+        // PEDIDOS POR DÍA
+        $pedidosPorDia = Pedido::select(
+                DB::raw("DATE($fechaColumn) as fecha"),
+                DB::raw('COUNT(*) as cantidad')
+            )
+            ->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+            ->whereDate($fechaColumn, '<=', $request->fecha_fin)
+            ->groupBy(DB::raw("DATE($fechaColumn)"))
+            ->orderBy('fecha', 'asc')
+            ->get();
+        
+        // PRODUCTOS MÁS PEDIDOS
+        $productosMasPedidos = DetallePedido::with('producto.categoria')
+            ->select('Producto', DB::raw('SUM(Cantidad) as total_cantidad'))
+            ->whereHas('pedido', function($q) use ($request, $fechaColumn) {
+                $q->whereDate($fechaColumn, '>=', $request->fecha_inicio)
+                ->whereDate($fechaColumn, '<=', $request->fecha_fin);
+            })
+            ->groupBy('Producto')
+            ->orderBy('total_cantidad', 'desc')
+            ->take(10)
+            ->get();
+        
+        // PREPARAR LISTAS PARA LA VISTA
+        $pedidosEnProcesoLista = $pedidos->where('Estado', 'En proceso');
+        $pedidosCompletadosLista = $pedidos->where('Estado', 'Completado'); // SIN 's'
+        $pedidosCanceladosLista = $pedidos->where('Estado', 'Cancelado');   // SIN 's'
+        
+        // Calcular porcentajes
+        $pedidosEnProcesoPorcentaje = $totalPedidos > 0 ? ($pedidosEnProceso / $totalPedidos) * 100 : 0;
+        $pedidosCompletadosPorcentaje = $totalPedidos > 0 ? ($pedidosCompletados / $totalPedidos) * 100 : 0;
+        $pedidosCanceladosPorcentaje = $totalPedidos > 0 ? ($pedidosCancelados / $totalPedidos) * 100 : 0;
+        
+        // PREPARAR GRÁFICAS
+        $datosChartEstados = [
+            'labels' => ['En proceso', 'Completado', 'Cancelado'], // Ahora en singular
+            'data' => [$pedidosEnProceso, $pedidosCompletados, $pedidosCancelados]
+        ];
+        
+        $graficas = [];
+        if ($totalPedidos > 0 && array_sum($datosChartEstados['data']) > 0) {
+            try {
+                $graficas['estados'] = GraficaHelper::generarBarra($datosChartEstados, 'Distribución de Estados');
+            } catch (\Exception $e) {
+                \Log::warning('No se pudo generar gráfica: ' . $e->getMessage());
+            }
+        }
+        
+        // GENERAR PDF
+        try {
+            $pdf = Pdf::loadView('reportes.pdf.pedidos', [
+                'fechaInicio' => $request->fecha_inicio,
+                'fechaFin' => $request->fecha_fin,
+                'fechaGeneracion' => now()->format('d/m/Y H:i:s'),
+                'totalPedidos' => $totalPedidos,
+                'valorTotalPedidos' => $valorTotalPedidos,
+                'pedidosEnProceso' => $pedidosEnProceso,
+                'pedidosCompletados' => $pedidosCompletados,
+                'pedidosCancelados' => $pedidosCancelados,
+                'pedidosEnProcesoPorcentaje' => $pedidosEnProcesoPorcentaje,
+                'pedidosCompletadosPorcentaje' => $pedidosCompletadosPorcentaje,
+                'pedidosCanceladosPorcentaje' => $pedidosCanceladosPorcentaje,
+                'clienteTop' => $clienteTop,
+                'pedidosPorVendedor' => $pedidosPorVendedor,
+                'productosMasPedidos' => $productosMasPedidos,
+                'pedidosEnProcesoLista' => $pedidosEnProcesoLista,
+                'pedidosCompletadosLista' => $pedidosCompletadosLista,
+                'pedidosCanceladosLista' => $pedidosCanceladosLista,
+                'graficas' => $graficas,
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            $nombreArchivo = 'reporte_pedidos_' . date('Y-m-d_H-i-s') . '.pdf';
+            
+            return $this->enviarPDFaNuevaPestana($pdf, $nombreArchivo);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en reporte pedidos: ' . $e->getMessage());
+            return back()->with('error', 'Error al generar PDF: ' . $e->getMessage());
+        }
+    }
+    
     /**
      * ===========================================
      * MÉTODOS AUXILIARES

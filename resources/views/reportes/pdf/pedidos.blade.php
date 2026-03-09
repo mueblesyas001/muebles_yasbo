@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Reporte de Pedidos - Pendientes y Completados</title>
+    <title>Reporte de Pedidos</title>
     <style>
         * {
             margin: 0;
@@ -28,7 +28,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            background: #f39c12;
             color: white;
             padding: 20px 25px;
         }
@@ -45,16 +45,6 @@
             gap: 25px;
             font-size: 11px;
             opacity: 0.9;
-            flex-wrap: wrap;
-        }
-        
-        .filtro-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
         }
         
         .stats-grid {
@@ -74,8 +64,8 @@
         
         .stat-card:nth-child(1) { border-left-color: #f39c12; }
         .stat-card:nth-child(2) { border-left-color: #3498db; }
-        .stat-card:nth-child(3) { border-left-color: #2ecc71; }
-        .stat-card:nth-child(4) { border-left-color: #e74c3c; }
+        .stat-card:nth-child(3) { border-left-color: #f39c12; }
+        .stat-card:nth-child(4) { border-left-color: #27ae60; }
         
         .stat-label {
             font-size: 11px;
@@ -103,9 +93,6 @@
         
         .section-title {
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
         
         .section-title h2 {
@@ -124,40 +111,6 @@
             border-radius: 12px;
             font-size: 10px;
             margin-left: 10px;
-        }
-        
-        .filtro-info {
-            background: #fff9e6;
-            border: 1px solid #f39c12;
-            border-radius: 6px;
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .filtro-icono {
-            background: #f39c12;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-        }
-        
-        .filtro-texto {
-            flex: 1;
-            font-size: 12px;
-            color: #856404;
-        }
-        
-        .filtro-texto strong {
-            color: #e67e22;
         }
         
         .graficas-section {
@@ -253,9 +206,6 @@
             margin-top: 2px;
         }
         
-        .estado-pendiente { color: #f39c12; font-weight: 600; }
-        .estado-completado { color: #27ae60; font-weight: 600; }
-        
         .estado-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -265,7 +215,7 @@
             text-transform: uppercase;
         }
         
-        .estado-badge.pendiente {
+        .estado-badge.proceso {
             background: #fff3e0;
             color: #f39c12;
             border: 1px solid #f39c12;
@@ -277,50 +227,55 @@
             border: 1px solid #27ae60;
         }
         
-        .pedidos-lista {
-            max-height: 300px;
-            overflow-y: auto;
+        .estado-badge.cancelado {
+            background: #fdeded;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
         }
         
-        .pedido-item {
-            background: white;
-            border: 1px solid #e9ecef;
+        .alertas-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 0 25px 20px;
+        }
+        
+        .alerta-card {
+            padding: 15px;
             border-radius: 6px;
-            margin-bottom: 8px;
-            padding: 10px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border-left: 3px solid;
         }
         
-        .pedido-item:hover {
-            background: #f8f9fa;
+        .alerta-card.proceso {
+            background: #fff3e0;
+            border-left-color: #f39c12;
         }
         
-        .pedido-info h4 {
+        .alerta-card.completado {
+            background: #e8f5e9;
+            border-left-color: #27ae60;
+        }
+        
+        .alerta-card.cancelado {
+            background: #fdeded;
+            border-left-color: #e74c3c;
+        }
+        
+        .alerta-titulo {
             font-size: 12px;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 3px;
+            margin-bottom: 8px;
         }
         
-        .pedido-detalles {
-            display: flex;
-            gap: 15px;
-            font-size: 10px;
-            color: #7f8c8d;
-        }
-        
-        .pedido-total {
+        .alerta-numero {
+            font-size: 20px;
             font-weight: 700;
-            color: #27ae60;
-            font-size: 13px;
         }
         
         .featured-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            border: 2px solid #f39c12;
-            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #f39c12;
+            border-radius: 6px;
             padding: 15px 20px;
             margin: 0 25px 20px;
             display: flex;
@@ -356,19 +311,20 @@
             page-break-inside: avoid;
         }
         
-        .graficas-wrapper {
-            page-break-inside: avoid;
-        }
-        
         .text-center {
             text-align: center;
+        }
+        
+        .amount {
+            font-weight: 600;
+            color: #27ae60;
         }
     </style>
 </head>
 <body>
     <div class="reporte">
         <div class="header">
-            <h1>REPORTE DE PEDIDOS - PENDIENTES Y COMPLETADOS</h1>
+            <h1>REPORTE DE PEDIDOS</h1>
             <div class="header-info">
                 <div>
                     <strong>Período:</strong> {{ date('d/m/Y', strtotime($fechaInicio)) }} - {{ date('d/m/Y', strtotime($fechaFin)) }}
@@ -376,18 +332,6 @@
                 <div>
                     <strong>Generado:</strong> {{ $fechaGeneracion }}
                 </div>
-                <div>
-                    <span class="filtro-badge">Filtro: Solo Pendientes y Completados</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Información del filtro -->
-        <div class="filtro-info">
-            <div class="filtro-icono">!</div>
-            <div class="filtro-texto">
-                <strong>Reporte filtrado:</strong> Mostrando únicamente pedidos con estado <strong>PENDIENTE</strong> y <strong>COMPLETADO</strong>. 
-                Los pedidos en proceso y cancelados no se incluyen en este reporte.
             </div>
         </div>
         
@@ -395,17 +339,17 @@
             <div class="stat-card">
                 <div class="stat-label">Total Pedidos</div>
                 <div class="stat-value">{{ $totalPedidos }}</div>
-                <div class="stat-desc">Pendientes + Completados</div>
+                <div class="stat-desc">Total en el período</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Valor Total</div>
                 <div class="stat-value">${{ number_format($valorTotalPedidos, 2) }}</div>
-                <div class="stat-desc">Monto total filtrado</div>
+                <div class="stat-desc">Monto total</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Pendientes</div>
-                <div class="stat-value">{{ $pedidosPendientes }}</div>
-                <div class="stat-desc">{{ $totalPedidos > 0 ? round(($pedidosPendientes/$totalPedidos)*100, 1) : 0 }}% del total</div>
+                <div class="stat-label">En proceso</div>
+                <div class="stat-value">{{ $pedidosEnProceso }}</div>
+                <div class="stat-desc">{{ $totalPedidos > 0 ? round(($pedidosEnProceso/$totalPedidos)*100, 1) : 0 }}% del total</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Completados</div>
@@ -414,50 +358,66 @@
             </div>
         </div>
         
+        <div class="alertas-grid">
+            <div class="alerta-card proceso">
+                <div class="alerta-titulo">Pedidos en Proceso</div>
+                <div class="alerta-numero">{{ $pedidosEnProceso }}</div>
+                <div style="font-size: 11px;">{{ number_format($pedidosEnProcesoPorcentaje ?? ($totalPedidos > 0 ? ($pedidosEnProceso/$totalPedidos)*100 : 0), 1) }}% del total</div>
+            </div>
+            <div class="alerta-card completado">
+                <div class="alerta-titulo">Pedidos Completados</div>
+                <div class="alerta-numero">{{ $pedidosCompletados ?? 0 }}</div>
+                <div style="font-size: 11px;">{{ number_format($pedidosCompletadosPorcentaje ?? ($totalPedidos > 0 ? (($pedidosCompletados ?? 0)/$totalPedidos)*100 : 0), 1) }}% del total</div>
+            </div>
+            <div class="alerta-card cancelado">
+                <div class="alerta-titulo">Pedidos Cancelados</div>
+                <div class="alerta-numero">{{ $pedidosCancelados ?? 0 }}</div>
+                <div style="font-size: 11px;">{{ number_format($pedidosCanceladosPorcentaje ?? ($totalPedidos > 0 ? (($pedidosCancelados ?? 0)/$totalPedidos)*100 : 0), 1) }}% del total</div>
+            </div>
+        </div>
+        
         @if(!empty($graficas))
-        <div class="graficas-wrapper">
-            <div class="graficas-section">
-                <div class="section-title">
-                    <h2>ANÁLISIS GRÁFICO</h2>
-                </div>
-                
-                <div class="graficas-grid">
-                    @if(isset($graficas['estados']))
-                    <div class="grafica-card">
-                        <div class="grafica-header">
-                            <h3>Distribución Pendientes vs Completados</h3>
-                        </div>
-                        <div class="grafica-container">
-                            <img src="{{ $graficas['estados'] }}" alt="Estados de Pedidos">
-                        </div>
+        <div class="graficas-section">
+            <div class="section-title">
+                <h2>ANÁLISIS GRÁFICO</h2>
+            </div>
+            
+            <div class="graficas-grid">
+                @if(isset($graficas['estados']))
+                <div class="grafica-card">
+                    <div class="grafica-header">
+                        <h3>Distribución de Estados</h3>
                     </div>
-                    @endif
-
-                    @if(isset($graficas['vendedores']))
-                    <div class="grafica-card">
-                        <div class="grafica-header">
-                            <h3>Pedidos por Vendedor</h3>
-                        </div>
-                        <div class="grafica-container">
-                            <img src="{{ $graficas['vendedores'] }}" alt="Pedidos por Vendedor">
-                        </div>
+                    <div class="grafica-container">
+                        <img src="{{ $graficas['estados'] }}" alt="Estados de Pedidos">
                     </div>
-                    @endif
                 </div>
+                @endif
 
-                @if(isset($graficas['productos']))
-                <div style="margin-top: 20px;">
-                    <div class="grafica-card">
-                        <div class="grafica-header">
-                            <h3>Productos más pedidos</h3>
-                        </div>
-                        <div class="grafica-container">
-                            <img src="{{ $graficas['productos'] }}" alt="Productos más pedidos">
-                        </div>
+                @if(isset($graficas['vendedores']))
+                <div class="grafica-card">
+                    <div class="grafica-header">
+                        <h3>Pedidos por Vendedor</h3>
+                    </div>
+                    <div class="grafica-container">
+                        <img src="{{ $graficas['vendedores'] }}" alt="Pedidos por Vendedor">
                     </div>
                 </div>
                 @endif
             </div>
+
+            @if(isset($graficas['productos']))
+            <div style="margin-top: 20px;">
+                <div class="grafica-card">
+                    <div class="grafica-header">
+                        <h3>Productos más pedidos</h3>
+                    </div>
+                    <div class="grafica-container">
+                        <img src="{{ $graficas['productos'] }}" alt="Productos más pedidos">
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
         @endif
         
@@ -465,25 +425,8 @@
         
         <div class="section keep-together">
             <div class="section-title">
-                <h2>RESUMEN DE ESTADOS</h2>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
-                <div style="background: #fff3e0; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #f39c12;">
-                    <div style="font-size: 28px; font-weight: 700; color: #f39c12; margin-bottom: 5px;">{{ $pedidosPendientes }}</div>
-                    <div style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Pedidos Pendientes</div>
-                </div>
-                <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #27ae60;">
-                    <div style="font-size: 28px; font-weight: 700; color: #27ae60; margin-bottom: 5px;">{{ $pedidosCompletados ?? 0 }}</div>
-                    <div style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Pedidos Completados</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="section keep-together">
-            <div class="section-title">
-                <h2>LISTA DE PEDIDOS PENDIENTES</h2>
-                <span class="section-badge">{{ $pedidosPendientes }} pedidos</span>
+                <h2>LISTA DE PEDIDOS EN PROCESO</h2>
+                <span class="section-badge">{{ $pedidosEnProceso }} pedidos</span>
             </div>
             
             <div class="table-container">
@@ -493,13 +436,13 @@
                             <th width="15%">ID Pedido</th>
                             <th width="30%">Cliente</th>
                             <th width="20%">Vendedor</th>
-                            <th width="15%">Fecha</th>
+                            <th width="15%">Fecha Entrega</th>
                             <th width="10%">Estado</th>
                             <th width="10%">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($pedidosPendientesLista ?? [] as $pedido)
+                        @forelse($pedidosEnProcesoLista ?? [] as $pedido)
                         <tr>
                             <td>#{{ $pedido->id }}</td>
                             <td>
@@ -508,13 +451,13 @@
                                 </span>
                             </td>
                             <td>{{ $pedido->empleado->Nombre ?? 'N/A' }} {{ $pedido->empleado->ApPaterno ?? '' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($pedido->Fecha_pedido)->format('d/m/Y') }}</td>
-                            <td><span class="estado-badge pendiente">PENDIENTE</span></td>
-                            <td>${{ number_format($pedido->Total, 2) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pedido->Fecha_entrega)->format('d/m/Y') }}</td>
+                            <td><span class="estado-badge proceso">EN PROCESO</span></td>
+                            <td class="amount">${{ number_format($pedido->Total, 2) }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center">No hay pedidos pendientes en el período seleccionado</td>
+                            <td colspan="6" class="text-center">No hay pedidos en proceso en el período seleccionado</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -535,7 +478,7 @@
                             <th width="15%">ID Pedido</th>
                             <th width="30%">Cliente</th>
                             <th width="20%">Vendedor</th>
-                            <th width="15%">Fecha</th>
+                            <th width="15%">Fecha Entrega</th>
                             <th width="10%">Estado</th>
                             <th width="10%">Total</th>
                         </tr>
@@ -550,13 +493,55 @@
                                 </span>
                             </td>
                             <td>{{ $pedido->empleado->Nombre ?? 'N/A' }} {{ $pedido->empleado->ApPaterno ?? '' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($pedido->Fecha_pedido)->format('d/m/Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pedido->Fecha_entrega)->format('d/m/Y') }}</td>
                             <td><span class="estado-badge completado">COMPLETADO</span></td>
-                            <td>${{ number_format($pedido->Total, 2) }}</td>
+                            <td class="amount">${{ number_format($pedido->Total, 2) }}</td>
                         </tr>
                         @empty
                         <tr>
                             <td colspan="6" class="text-center">No hay pedidos completados en el período seleccionado</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section keep-together">
+            <div class="section-title">
+                <h2>LISTA DE PEDIDOS CANCELADOS</h2>
+                <span class="section-badge">{{ $pedidosCancelados ?? 0 }} pedidos</span>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">ID Pedido</th>
+                            <th width="30%">Cliente</th>
+                            <th width="20%">Vendedor</th>
+                            <th width="15%">Fecha Entrega</th>
+                            <th width="10%">Estado</th>
+                            <th width="10%">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pedidosCanceladosLista ?? [] as $pedido)
+                        <tr>
+                            <td>#{{ $pedido->id }}</td>
+                            <td>
+                                <span class="product-name">
+                                    {{ $pedido->cliente->Nombre ?? 'N/A' }} {{ $pedido->cliente->ApPaterno ?? '' }}
+                                </span>
+                            </td>
+                            <td>{{ $pedido->empleado->Nombre ?? 'N/A' }} {{ $pedido->empleado->ApPaterno ?? '' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pedido->Fecha_entrega)->format('d/m/Y') }}</td>
+                            <td><span class="estado-badge cancelado">CANCELADO</span></td>
+                            <td class="amount">${{ number_format($pedido->Total, 2) }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center">No hay pedidos cancelados en el período seleccionado</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -576,7 +561,7 @@
                         <tr>
                             <th width="5%">#</th>
                             <th width="45%">Vendedor</th>
-                            <th width="15%">Pendientes</th>
+                            <th width="15%">En Proceso</th>
                             <th width="15%">Completados</th>
                             <th width="20%">Total</th>
                         </tr>
@@ -584,16 +569,22 @@
                     <tbody>
                         @forelse($pedidosPorVendedor as $index => $vendedor)
                         @php
-                            $pendientes = $vendedor->pedidos_pendientes ?? 0;
+                            $enProceso = $vendedor->pedidos_en_proceso ?? 0;
                             $completados = $vendedor->pedidos_completados ?? 0;
-                            $totalVendedor = $pendientes + $completados;
+                            $cancelados = $vendedor->pedidos_cancelados ?? 0;
+                            $totalVendedor = $enProceso + $completados + $cancelados;
+                            
+                            $rankClass = '';
+                            if($index == 0) $rankClass = 'rank-1';
+                            elseif($index == 1) $rankClass = 'rank-2';
+                            elseif($index == 2) $rankClass = 'rank-3';
                         @endphp
                         <tr>
-                            <td><span class="rank">{{ $index + 1 }}</span></td>
+                            <td><span class="rank {{ $rankClass }}">{{ $index + 1 }}</span></td>
                             <td>
                                 <span class="product-name">{{ $vendedor->empleado->Nombre ?? 'Sin vendedor' }} {{ $vendedor->empleado->ApPaterno ?? '' }}</span>
                             </td>
-                            <td><span style="color: #f39c12; font-weight: 600;">{{ $pendientes }}</span></td>
+                            <td><span style="color: #f39c12; font-weight: 600;">{{ $enProceso }}</span></td>
                             <td><span style="color: #27ae60; font-weight: 600;">{{ $completados }}</span></td>
                             <td><strong>{{ $totalVendedor }}</strong></td>
                         </tr>
@@ -636,7 +627,7 @@
                                 <span class="product-name">{{ $item->producto->Nombre ?? 'N/A' }}</span>
                                 <div class="category">{{ $item->producto->categoria->Nombre ?? 'Sin categoría' }}</div>
                             </td>
-                            <td>{{ $item->total_cantidad }} unidades</td>
+                            <td class="amount">{{ $item->total_cantidad }} unidades</td>
                         </tr>
                         @empty
                         <tr>
@@ -664,11 +655,11 @@
         
         <div class="footer">
             <div class="footer-info">
-                <span>Reporte de Pedidos - Pendientes y Completados</span>
+                <span>Reporte de Pedidos</span>
                 <span>{{ date('d/m/Y', strtotime($fechaInicio)) }} - {{ date('d/m/Y', strtotime($fechaFin)) }}</span>
             </div>
             <div>
-                Generado: {{ date('d/m/Y H:i:s') }}
+                {{ $totalPedidos }} pedidos • ${{ number_format($valorTotalPedidos, 2) }}
             </div>
         </div>
     </div>

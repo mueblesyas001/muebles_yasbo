@@ -68,6 +68,11 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->group(function () {
 
+    // ========== RUTA DE LOGOUT (AGREGADA AQUÍ) ==========
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout');
+    // ====================================================
+
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 

@@ -295,7 +295,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Método separado para cambiar el estado del pedido
+     * Método para cambiar el estado del pedido (Completado, Cancelado, etc.)
      */
     public function cambiarEstado(Request $request, $id)
     {
@@ -312,7 +312,31 @@ class PedidoController extends Controller
             
             $venta = null; // Variable para almacenar la venta si se crea
 
-            // Validaciones de estado
+            // ===== VALIDACIONES ESPECÍFICAS PARA CANCELACIÓN =====
+            if ($nuevoEstado === 'Cancelado') {
+                // Validar que se pueda cancelar
+                if (!in_array($estadoAnterior, ['Pendiente', 'En proceso'])) {
+                    $estadosPermitidos = ['Pendiente', 'En proceso'];
+                    return redirect()->back()->with('error', 
+                        '❌ No se puede cancelar un pedido en estado "' . $estadoAnterior . '". ' .
+                        'Solo se pueden cancelar pedidos en: ' . implode(' o ', $estadosPermitidos)
+                    );
+                }
+                
+                // Verificar si ya tiene una venta asociada (por si acaso)
+                $ventaAsociada = Venta::where('Fecha', '>=', Carbon::now()->subDay())
+                    ->where('Total', $pedido->Total)
+                    ->where('Empleado_idEmpleado', $pedido->Empleado_idEmpleado)
+                    ->first();
+                    
+                if ($ventaAsociada) {
+                    return redirect()->back()->with('error', 
+                        '❌ No se puede cancelar un pedido que ya tiene una venta asociada (Venta #' . $ventaAsociada->id . ').'
+                    );
+                }
+            }
+
+            // Validaciones generales
             if ($estadoAnterior === 'Cancelado' && $nuevoEstado !== 'Cancelado') {
                 throw new \Exception('No se puede modificar un pedido cancelado.');
             }
@@ -324,10 +348,10 @@ class PedidoController extends Controller
             // Actualizar el estado
             $pedido->update(['Estado' => $nuevoEstado]);
 
-            // GESTIÓN DE STOCK
+            // ===== GESTIÓN DE STOCK SEGÚN EL CAMBIO DE ESTADO =====
             $detalles = $pedido->detallePedidos;
             
-            // Si se marca como Completado
+            // CASO 1: COMPLETAR PEDIDO
             if ($nuevoEstado === 'Completado' && $estadoAnterior !== 'Completado') {
                 // Verificar stock primero
                 foreach ($detalles as $detalle) {
@@ -346,22 +370,34 @@ class PedidoController extends Controller
                     }
                 }
                 
-                // CREAR VENTA AUTOMÁTICAMENTE USANDO EL TOTAL DEL PEDIDO
+                // CREAR VENTA AUTOMÁTICAMENTE
                 $venta = $this->crearVentaDesdePedido($pedido);
             }
             
-            // Si se cancela y estaba En proceso
-            elseif ($nuevoEstado === 'Cancelado' && $estadoAnterior === 'En proceso') {
-                foreach ($detalles as $detalle) {
-                    $producto = Producto::find($detalle->Producto);
-                    if ($producto) {
-                        $producto->increment('Cantidad', $detalle->Cantidad);
-                        Log::info("Stock restaurado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades");
+            // CASO 2: CANCELAR PEDIDO (TU FUNCIONALIDAD ESPECÍFICA)
+            elseif ($nuevoEstado === 'Cancelado') {
+                
+                // Si estaba en proceso, restaurar el stock
+                if ($estadoAnterior === 'En proceso') {
+                    foreach ($detalles as $detalle) {
+                        $producto = Producto::find($detalle->Producto);
+                        if ($producto) {
+                            $producto->increment('Cantidad', $detalle->Cantidad);
+                            Log::info("Stock restaurado para producto {$producto->Nombre}: {$detalle->Cantidad} unidades (pedido cancelado)");
+                        }
                     }
                 }
+                
+                // Si estaba pendiente, no afecta stock
+                elseif ($estadoAnterior === 'Pendiente') {
+                    Log::info("Pedido #{$pedido->id} cancelado desde estado Pendiente (sin afectar stock)");
+                }
+                
+                // Registrar la cancelación (podrías guardar un log o motivo si lo deseas)
+                Log::info("Pedido #{$pedido->id} cancelado. Estado anterior: {$estadoAnterior}");
             }
             
-            // Si se cambia de Pendiente a En proceso
+            // CASO 3: CAMBIAR DE PENDIENTE A EN PROCESO
             elseif ($nuevoEstado === 'En proceso' && $estadoAnterior === 'Pendiente') {
                 foreach ($detalles as $detalle) {
                     $producto = Producto::find($detalle->Producto);
@@ -375,7 +411,7 @@ class PedidoController extends Controller
                 }
             }
             
-            // Si se cambia de En proceso a Pendiente
+            // CASO 4: CAMBIAR DE EN PROCESO A PENDIENTE
             elseif ($nuevoEstado === 'Pendiente' && $estadoAnterior === 'En proceso') {
                 foreach ($detalles as $detalle) {
                     $producto = Producto::find($detalle->Producto);
@@ -388,18 +424,55 @@ class PedidoController extends Controller
 
             DB::commit();
 
-            // Mensaje personalizado según el estado
-            $mensaje = $nuevoEstado === 'Completado' 
-                ? '✅ Pedido completado exitosamente. Se ha generado la venta #' . $venta->id . ' por un total de $' . number_format($pedido->Total, 2)
-                : '✅ Estado del pedido actualizado a: ' . $nuevoEstado;
+            // ===== MENSAJES PERSONALIZADOS SEGÚN EL ESTADO =====
+            $mensaje = '';
+            
+            switch($nuevoEstado) {
+                case 'Completado':
+                    $mensaje = '✅ Pedido #' . $pedido->id . ' completado exitosamente.';
+                    if ($venta) {
+                        $mensaje .= ' Se generó la venta #' . $venta->id . ' por $' . number_format($pedido->Total, 2);
+                    }
+                    break;
+                    
+                case 'Cancelado':
+                    $mensaje = '⛔ Pedido #' . $pedido->id . ' ha sido cancelado.';
+                    if ($estadoAnterior === 'En proceso') {
+                        $mensaje .= ' El stock reservado ha sido liberado.';
+                    }
+                    break;
+                    
+                case 'En proceso':
+                    $mensaje = '⚙️ Pedido #' . $pedido->id . ' ahora está en proceso. Stock reservado.';
+                    break;
+                    
+                case 'Pendiente':
+                    $mensaje = '⏳ Pedido #' . $pedido->id . ' vuelve a estado pendiente.';
+                    if ($estadoAnterior === 'En proceso') {
+                        $mensaje .= ' Stock liberado.';
+                    }
+                    break;
+                    
+                default:
+                    $mensaje = '✅ Estado del pedido actualizado a: ' . $nuevoEstado;
+            }
 
-            return redirect()->route('pedidos.index')
-                           ->with('success', $mensaje);
+            return redirect()->route('pedidos.index')->with('success', $mensaje);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al cambiar estado del pedido: ' . $e->getMessage());
-            return back()->with('error', 'Error al cambiar estado: ' . $e->getMessage());
+            
+            // Mensaje de error más amigable
+            $mensajeError = '❌ Error al cambiar estado: ';
+            
+            if (strpos($e->getMessage(), 'Stock insuficiente') !== false) {
+                $mensajeError = $e->getMessage();
+            } else {
+                $mensajeError .= $e->getMessage();
+            }
+            
+            return redirect()->back()->with('error', $mensajeError);
         }
     }
 

@@ -340,7 +340,7 @@
         <!-- Botón de Ingresar -->
         <button class="enter-btn" onclick="window.location.href='{{ route('dashboard') }}'">
             <i class="fas fa-sign-in-alt"></i>
-            Ingresar al Sistema
+            Iniciar sesión
         </button>
         
         <!-- Módulos -->
