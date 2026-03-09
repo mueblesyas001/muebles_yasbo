@@ -86,7 +86,11 @@ class CalendarioController extends Controller
         $mediaPrioridad = 0;
         $bajaPrioridad = 0;
         $normalPrioridad = 0;
-        $pendientes = 0;
+        
+        // CORREGIDO: Inicializar contadores de estados
+        $enProceso = 0;
+        $cancelados = 0;
+        $completados = 0;
         
         foreach ($pedidos as $pedido) {
             // Convertir prioridad a minúsculas para comparación consistente
@@ -106,28 +110,36 @@ class CalendarioController extends Controller
                 $normalPrioridad++;
             }
             
-            // Contar pendientes (estado pendiente)
+            // CORREGIDO: Contar estados (En proceso, Cancelado, Completado)
             $estado = strtolower(trim($pedido->Estado ?? ''));
-            if ($estado === 'pendiente') {
-                $pendientes++;
+            
+            if ($estado === 'en proceso' || $estado === 'en_proceso') {
+                $enProceso++;
+            } elseif ($estado === 'cancelado') {
+                $cancelados++;
+            } elseif ($estado === 'completado') {
+                $completados++;
             }
         }
 
-        // Estadísticas con los nombres correctos
+        // CORREGIDO: Estadísticas con los estados correctos
         $estadisticas = [
             'total_pedidos' => $totalPedidos,
             'alta_prioridad' => $altaPrioridad,
             'media_prioridad' => $mediaPrioridad,
             'baja_prioridad' => $bajaPrioridad,
             'normal_prioridad' => $normalPrioridad,
-            'pendientes' => $pendientes,
+            'en_proceso' => $enProceso,
+            'cancelados' => $cancelados,
+            'completados' => $completados,
         ];
 
         // DEBUG: Registrar para verificar (puedes comentar esto después)
         \Log::info('=== ESTADÍSTICAS CALCULADAS ===', $estadisticas);
         \Log::info('Pedidos del mes:', [
             'total' => $totalPedidos,
-            'prioridades' => $pedidos->pluck('Prioridad')->toArray()
+            'prioridades' => $pedidos->pluck('Prioridad')->toArray(),
+            'estados' => $pedidos->pluck('Estado')->toArray()
         ]);
 
         return view('calendario.index', compact(
@@ -244,7 +256,7 @@ class CalendarioController extends Controller
                 $clienteDireccion = $pedido->cliente->Direccion ?? 'N/A';
             }
 
-            // Colores para badges
+            // CORREGIDO: Colores para badges con los estados correctos
             $prioridadColor = $this->getPrioridadColor($pedido->Prioridad);
             $estadoColor = $this->getEstadoColor($pedido->Estado);
 
@@ -552,26 +564,21 @@ class CalendarioController extends Controller
         }
     }
 
-    // Método auxiliar para color de estado
+    // CORREGIDO: Método auxiliar para color de estado (En proceso, Cancelado, Completado)
     private function getEstadoColor($estado)
     {
         $estado = strtolower(trim($estado));
         
         switch ($estado) {
-            case 'pendiente':
-                return 'warning';
-            case 'confirmado':
-                return 'info';
             case 'en proceso':
             case 'en_proceso':
-                return 'primary';
-            case 'completado':
-            case 'entregado':
-                return 'success';
+                return 'primary'; // Azul para "En proceso"
             case 'cancelado':
-                return 'danger';
+                return 'danger'; // Rojo para "Cancelado"
+            case 'completado':
+                return 'success'; // Verde para "Completado"
             default:
-                return 'secondary';
+                return 'secondary'; // Gris para cualquier otro estado
         }
     }
 

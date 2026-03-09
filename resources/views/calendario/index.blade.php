@@ -47,7 +47,7 @@
 
     <!-- Contenido principal -->
     <div class="container-fluid px-4 py-4">
-        <!-- ESTADÍSTICAS CON TODAS LAS PRIORIDADES -->
+        <!-- ESTADÍSTICAS - ACTUALIZADAS CON LOS ESTADOS CORRECTOS -->
         <div class="row mb-4 g-3">
             <!-- Total de Pedidos -->
             <div class="col-sm-6 col-md-4 col-lg-2">
@@ -134,17 +134,54 @@
                 </div>
             </div>
 
-            <!-- Pendientes -->
+            <!-- En Proceso (REEMPLAZA A PENDIENTES) -->
             <div class="col-sm-6 col-md-4 col-lg-2">
                 <div class="card border-0 shadow-sm rounded-3 h-100 stats-card">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="stats-icon bg-secondary bg-opacity-10 text-secondary rounded-2 p-3 me-3">
-                                <i class="fas fa-hourglass-half fa-2x"></i>
+                            <div class="stats-icon bg-primary bg-opacity-10 text-primary rounded-2 p-3 me-3">
+                                <i class="fas fa-spinner fa-2x"></i>
                             </div>
                             <div>
-                                <h2 class="mb-0 fw-bold fs-1">{{ $estadisticas['pendientes'] ?? 0 }}</h2>
-                                <small class="text-muted">Pendientes</small>
+                                <h2 class="mb-0 fw-bold fs-1">{{ $estadisticas['en_proceso'] ?? 0 }}</h2>
+                                <small class="text-muted">En Proceso</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEGUNDA FILA DE ESTADÍSTICAS - Cancelados y Completados -->
+        <div class="row mb-4 g-3">
+            <!-- Cancelados (NUEVO) -->
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100 stats-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon bg-danger bg-opacity-10 text-danger rounded-2 p-3 me-3">
+                                <i class="fas fa-times-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-0 fw-bold fs-1">{{ $estadisticas['cancelados'] ?? 0 }}</h2>
+                                <small class="text-muted">Cancelados</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completados (NUEVO) -->
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100 stats-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon bg-success bg-opacity-10 text-success rounded-2 p-3 me-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-0 fw-bold fs-1">{{ $estadisticas['completados'] ?? 0 }}</h2>
+                                <small class="text-muted">Completados</small>
                             </div>
                         </div>
                     </div>
@@ -205,8 +242,9 @@
                                                         @if($index < 3)
                                                             @php
                                                                 $prioridad = strtolower($pedido['prioridad'] ?? 'normal');
-                                                                $estado = strtolower($pedido['estado'] ?? 'pendiente');
+                                                                $estado = strtolower($pedido['estado'] ?? 'en proceso');
                                                                 
+                                                                // Color según prioridad
                                                                 switch($prioridad) {
                                                                     case 'alta':
                                                                         $colorBorde = '#dc3545';
@@ -228,6 +266,26 @@
                                                                         $colorFondo = 'rgba(13, 110, 253, 0.1)';
                                                                         $colorTexto = '#0d6efd';
                                                                         break;
+                                                                }
+                                                                
+                                                                // Color según estado (para el badge)
+                                                                switch($estado) {
+                                                                    case 'en proceso':
+                                                                    case 'en_proceso':
+                                                                        $estadoColor = '#0d6efd'; // azul
+                                                                        $estadoTexto = 'En Proceso';
+                                                                        break;
+                                                                    case 'cancelado':
+                                                                        $estadoColor = '#dc3545'; // rojo
+                                                                        $estadoTexto = 'Cancelado';
+                                                                        break;
+                                                                    case 'completado':
+                                                                        $estadoColor = '#198754'; // verde
+                                                                        $estadoTexto = 'Completado';
+                                                                        break;
+                                                                    default:
+                                                                        $estadoColor = '#6c757d'; // gris
+                                                                        $estadoTexto = ucfirst($estado);
                                                                 }
                                                                 
                                                                 $pedidoId = $pedido['id'] ?? 0;
@@ -254,7 +312,7 @@
                                                                     {{ $clienteNombre }}
                                                                 </div>
                                                                 <div class="d-flex justify-content-between align-items-center mt-1">
-                                                                    <small class="badge" style="background-color: {{ $colorBorde }}; color: white;">{{ ucfirst($prioridad) }}</small>
+                                                                    <small class="badge" style="background-color: {{ $estadoColor }}; color: white;">{{ $estadoTexto }}</small>
                                                                     <small class="fw-bold" style="color: {{ $colorBorde }};">${{ number_format($total, 2) }}</small>
                                                                 </div>
                                                                 @if($tieneComentario)
@@ -328,7 +386,7 @@
                                         @foreach($pedidosHoy as $pedido)
                                             @php
                                                 $prioridad = strtolower($pedido['prioridad'] ?? 'normal');
-                                                $estado = strtolower($pedido['estado'] ?? 'pendiente');
+                                                $estado = strtolower($pedido['estado'] ?? 'en proceso');
                                                 
                                                 $prioridadClass = [
                                                     'alta' => 'danger',
@@ -337,15 +395,21 @@
                                                     'normal' => 'info'
                                                 ][$prioridad] ?? 'secondary';
                                                 
+                                                // ACTUALIZADO: Clases para los estados correctos
                                                 $estadoClass = [
-                                                    'pendiente' => 'warning',
-                                                    'confirmado' => 'info',
                                                     'en proceso' => 'primary',
                                                     'en_proceso' => 'primary',
-                                                    'completado' => 'success',
-                                                    'entregado' => 'success',
-                                                    'cancelado' => 'danger'
+                                                    'cancelado' => 'danger',
+                                                    'completado' => 'success'
                                                 ][$estado] ?? 'secondary';
+                                                
+                                                // Texto formateado del estado
+                                                $estadoTexto = match($estado) {
+                                                    'en proceso', 'en_proceso' => 'En Proceso',
+                                                    'cancelado' => 'Cancelado',
+                                                    'completado' => 'Completado',
+                                                    default => ucfirst($estado)
+                                                };
                                                 
                                                 $totalPedido = $pedido['total'] ?? 0;
                                                 if (is_string($totalPedido)) {
@@ -368,7 +432,7 @@
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-{{ $estadoClass }}">
-                                                        {{ ucfirst($estado) }}
+                                                        {{ $estadoTexto }}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -402,6 +466,8 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="d-flex flex-column gap-3">
+                            <!-- Prioridades -->
+                            <h6 class="fw-bold text-muted mb-2">Prioridades</h6>
                             <div class="d-flex align-items-center">
                                 <div class="leyenda-color me-3" style="background: #dc3545;"></div>
                                 <div>
@@ -430,6 +496,32 @@
                                     <small class="text-muted">Entrega estándar</small>
                                 </div>
                             </div>
+                            
+                            <!-- Estados (ACTUALIZADOS) -->
+                            <h6 class="fw-bold text-muted mb-2 mt-3">Estados</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="leyenda-color me-3" style="background: #0d6efd;"></div>
+                                <div>
+                                    <span class="fw-bold d-block">En Proceso</span>
+                                    <small class="text-muted">Pedido en preparación</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="leyenda-color me-3" style="background: #dc3545;"></div>
+                                <div>
+                                    <span class="fw-bold d-block">Cancelado</span>
+                                    <small class="text-muted">Pedido cancelado</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="leyenda-color me-3" style="background: #198754;"></div>
+                                <div>
+                                    <span class="fw-bold d-block">Completado</span>
+                                    <small class="text-muted">Pedido entregado</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Comentarios -->
                             <div class="d-flex align-items-center mt-2 pt-2 border-top">
                                 <div class="leyenda-color me-3 d-flex align-items-center justify-content-center" 
                                      style="background: #ffc10720; border: 1px dashed #ffc107;">

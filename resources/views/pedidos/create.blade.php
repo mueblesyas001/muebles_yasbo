@@ -239,7 +239,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Hora de Entrega MODIFICADA -->
+                                    <!-- Hora de Entrega MODIFICADA - Ahora como select -->
                                     <div class="col-md-4">
                                         <div class="form-group-enhanced">
                                             <label class="form-label-enhanced">
@@ -311,21 +311,14 @@
                                                         name="Prioridad" 
                                                         required>
                                                     <option value="">Seleccionar prioridad</option>
-                                                    <option value="Alta" {{ old('Prioridad') == 'Alta' ? 'selected' : '' }} 
-                                                            data-badge="danger" data-icon="fa-exclamation-triangle">
+                                                    <option value="Alta" {{ old('Prioridad') == 'Alta' ? 'selected' : '' }}>
                                                         Alta Prioridad 
                                                     </option>
-                                                    <option value="Media" {{ old('Prioridad') == 'Media' ? 'selected' : '' }}
-                                                            data-badge="warning" data-icon="fa-clock">
+                                                    <option value="Media" {{ old('Prioridad') == 'Media' ? 'selected' : '' }}>
                                                         Media Prioridad 
                                                     </option>
-                                                    <option value="Baja" {{ old('Prioridad') == 'Baja' ? 'selected' : '' }}
-                                                            data-badge="success" data-icon="fa-calendar-check">
+                                                    <option value="Baja" {{ old('Prioridad') == 'Baja' ? 'selected' : '' }}>
                                                         Baja Prioridad 
-                                                    </option>
-                                                    <option value="Normal" {{ old('Prioridad') == 'Normal' ? 'selected' : '' }}
-                                                            data-badge="info" data-icon="fa-check-circle">
-                                                        Prioridad Normal 
                                                     </option>
                                                 </select>
                                                 <div class="input-decoration" style="background: linear-gradient(135deg, #28a745, #20c997);"></div>
@@ -347,9 +340,6 @@
                                                                 @break
                                                             @case('Baja')
                                                                 <span class="badge bg-success">Baja Prioridad</span>
-                                                                @break
-                                                            @case('Normal')
-                                                                <span class="badge bg-info">Prioridad Normal</span>
                                                                 @break
                                                         @endswitch
                                                     @endif
@@ -959,40 +949,6 @@
 }
 
 /* Estilos específicos para la validación de hora */
-#hora_entrega option[value="10:00"],
-#hora_entrega option[value="10:30"],
-#hora_entrega option[value="11:00"],
-#hora_entrega option[value="11:30"],
-#hora_entrega option[value="12:00"],
-#hora_entrega option[value="12:30"],
-#hora_entrega option[value="13:00"],
-#hora_entrega option[value="13:30"],
-#hora_entrega option[value="14:00"],
-#hora_entrega option[value="14:30"],
-#hora_entrega option[value="15:00"],
-#hora_entrega option[value="15:30"],
-#hora_entrega option[value="16:00"],
-#hora_entrega option[value="16:30"],
-#hora_entrega option[value="17:00"] {
-    padding: 8px;
-}
-
-#hora_entrega option[value="10:00"] { background-color: #d4edda; }
-#hora_entrega option[value="10:30"] { background-color: #d4edda; }
-#hora_entrega option[value="11:00"] { background-color: #d4edda; }
-#hora_entrega option[value="11:30"] { background-color: #d4edda; }
-#hora_entrega option[value="12:00"] { background-color: #fff3cd; }
-#hora_entrega option[value="12:30"] { background-color: #fff3cd; }
-#hora_entrega option[value="13:00"] { background-color: #fff3cd; }
-#hora_entrega option[value="13:30"] { background-color: #fff3cd; }
-#hora_entrega option[value="14:00"] { background-color: #d1ecf1; }
-#hora_entrega option[value="14:30"] { background-color: #d1ecf1; }
-#hora_entrega option[value="15:00"] { background-color: #d1ecf1; }
-#hora_entrega option[value="15:30"] { background-color: #d1ecf1; }
-#hora_entrega option[value="16:00"] { background-color: #d1ecf1; }
-#hora_entrega option[value="16:30"] { background-color: #d1ecf1; }
-#hora_entrega option[value="17:00"] { background-color: #f8d7da; }
-
 .hora-validation-message.success {
     color: #28a745;
 }
@@ -1234,13 +1190,6 @@
 #prioridad option[value="Baja"] {
     background-color: #d1fae5;
     color: #059669;
-    font-weight: 600;
-    padding: 8px;
-}
-
-#prioridad option[value="Normal"] {
-    background-color: #dbeafe;
-    color: #2563eb;
     font-weight: 600;
     padding: 8px;
 }
@@ -1503,6 +1452,9 @@ textarea.input-field {
 }
 </style>
 
+<!-- Include Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <!-- Incluir SweetAlert2 -->
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1692,9 +1644,6 @@ class FormManager {
             case 'Baja':
                 badgeContainer.innerHTML = '<span class="badge bg-success">Baja Prioridad</span>';
                 break;
-            case 'Normal':
-                badgeContainer.innerHTML = '<span class="badge bg-info">Prioridad Normal</span>';
-                break;
             default:
                 badgeContainer.innerHTML = '';
         }
@@ -1736,7 +1685,7 @@ class FormManager {
             }
         });
 
-        // Reset hora a vacío en lugar de 12:00
+        // Reset hora a vacío
         document.getElementById('hora_entrega').value = '';
         document.getElementById('comentario').value = '';
 
@@ -2059,6 +2008,14 @@ class FormManager {
                 inputPrecio.value = precioBase.toFixed(2);
                 precioBaseIndicator.textContent = `Precio base: $${precioBase.toFixed(2)}`;
             } else {
+                if (selectProducto.value === '') {
+                    // Si se selecciona la opción vacía, remover el producto del set si estaba
+                    this.productosSeleccionados.forEach(id => {
+                        if (id === selectProducto.getAttribute('data-anterior')) {
+                            this.productosSeleccionados.delete(id);
+                        }
+                    });
+                }
                 inputPrecio.value = '0';
                 precioBaseIndicator.textContent = '';
             }
@@ -2229,9 +2186,11 @@ class FormManager {
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
 
-            setTimeout(() => {
-                form.submit();
-            }, 500);
+            // Asegurarse de que el total se actualice antes de enviar
+            this.actualizarResumen();
+
+            // Enviar el formulario
+            form.submit();
         }
     }
 }
@@ -2241,7 +2200,4 @@ document.addEventListener('DOMContentLoaded', () => {
     new FormManager();
 });
 </script>
-
-<!-- Include Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection
